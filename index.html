@@ -2,570 +2,697 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact | AlwaysSammu</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🍭 COIN CATCHER · KITTY EDITION 🍬</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Fredoka', cursive, sans-serif;
         }
-        
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #8b5cf6;
-            --accent: #06b6d4;
-            --light: #f8fafc;
-            --dark: #1e293b;
-            --success: #10b981;
-            --error: #ef4444;
-            --text: #475569;
-        }
-        
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: var(--dark);
-            line-height: 1.6;
+            background: #ffecf2;
+            background-image: 
+                radial-gradient(circle at 10% 20%, #fff0f6 10%, transparent 20%),
+                radial-gradient(circle at 90% 80%, #e3f2fd 15%, transparent 25%),
+                linear-gradient(135deg, #ffd6e7 0%, #fff5e6 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1100px;
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 0;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            justify-content: center;
             overflow: hidden;
-            animation: fadeIn 0.8s ease-out;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .sidebar {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 50px 40px;
+
+        /* --- MAIN CARD --- */
+        .game-card {
+            width: 100%;
+            max-width: 480px;
+            height: 95vh;
+            max-height: 800px;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(15px);
+            border-radius: 40px;
+            box-shadow: 
+                0 20px 40px rgba(255, 182, 193, 0.4),
+                inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+            position: relative;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .sidebar::before {
-            content: "";
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .sidebar::after {
-            content: "";
-            position: absolute;
-            bottom: -80px;
-            left: -80px;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .profile-section {
-            text-align: center;
-            z-index: 1;
-            position: relative;
-        }
-        
-        .profile-img {
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            margin: 0 auto 25px;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-            color: var(--primary);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: transform 0.5s;
-        }
-        
-        .profile-img:hover {
-            transform: scale(1.05);
-        }
-        
-        .name {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            letter-spacing: 0.5px;
-        }
-        
-        .title {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 25px;
-            font-weight: 400;
-        }
-        
-        .divider {
-            width: 60px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.5);
-            margin: 0 auto 30px;
-            border-radius: 2px;
-        }
-        
-        .contact-info {
-            margin: 30px 0;
-        }
-        
-        .contact-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 22px;
-            background: rgba(255, 255, 255, 0.1);
             padding: 15px;
-            border-radius: 12px;
-            transition: all 0.3s;
+            overflow: hidden;
         }
-        
-        .contact-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(5px);
-        }
-        
-        .contact-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-        
-        .contact-details h3 {
-            font-size: 1rem;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        .contact-details p {
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
-        
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        
-        .social-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s;
-            font-size: 18px;
-        }
-        
-        .social-icon:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-5px);
-        }
-        
-        .main-content {
-            padding: 60px 50px;
+
+        /* --- SCREENS --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
+            align-items: center;
             justify-content: center;
-            background: #fefefe;
+            border-radius: 40px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            z-index: 10;
         }
-        
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--dark);
-            position: relative;
-            display: inline-block;
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
         }
-        
-        .section-title::after {
-            content: "";
-            position: absolute;
-            bottom: -10px;
-            left: 0;
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(to right, var(--primary), var(--accent));
-            border-radius: 2px;
+
+        /* 1. START SCREEN */
+        .start-screen {
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 20;
         }
-        
-        .section-subtitle {
-            font-size: 1.1rem;
-            color: var(--text);
+
+        .title-group {
+            text-align: center;
             margin-bottom: 40px;
-            line-height: 1.7;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .game-title {
+            font-size: 3.5rem;
+            color: #ff8fa3;
+            text-shadow: 4px 4px 0px #fff, 6px 6px 0px #ffc2d1;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+
+        .game-subtitle {
+            font-size: 1.5rem;
+            color: #9c89b8;
+            background: #fff;
+            padding: 5px 20px;
+            border-radius: 20px;
+            margin-top: 10px;
+            display: inline-block;
+            box-shadow: 0 5px 15px rgba(156, 137, 184, 0.2);
+        }
+
+        /* 2. LOADING SCREEN */
+        .loading-screen {
+            background: #fff0f5;
+            z-index: 30;
+        }
+
+        .loader-icon {
+            font-size: 4rem;
+            animation: bounce 0.8s infinite alternate;
         }
         
-        .contact-form {
+        .loading-bar-container {
+            width: 200px;
+            height: 12px;
+            background: #ffdde7;
+            border-radius: 10px;
             margin-top: 20px;
+            overflow: hidden;
         }
-        
-        .form-group {
-            margin-bottom: 28px;
-            position: relative;
+
+        .loading-bar-fill {
+            height: 100%;
+            background: #ff8fa3;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.1s linear;
         }
-        
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 1rem;
+
+        /* 3. GAME OVER OVERLAY */
+        .game-over-overlay {
+            background: rgba(255, 235, 238, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 50;
         }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 16px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-            background: #f8fafc;
-            color: var(--dark);
+
+        .score-result {
+            font-size: 5rem;
+            color: #ff8fa3;
+            text-shadow: 3px 3px 0 #fff;
+            margin: 10px 0;
         }
-        
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-            background: white;
-        }
-        
-        textarea {
-            min-height: 160px;
-            resize: vertical;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-        
-        .submit-btn {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: white;
+
+        /* --- BUTTONS --- */
+        .btn-cute {
+            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3);
             border: none;
-            padding: 18px 35px;
-            font-size: 17px;
-            font-weight: 600;
-            border-radius: 12px;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-size: 2rem;
+            color: white;
+            font-weight: 700;
             cursor: pointer;
+            box-shadow: 0 8px 0 #e06c85, 0 15px 20px rgba(255, 143, 163, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-cute::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            transition: all 0.3s;
+            height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+            border-radius: 50px 50px 0 0;
+        }
+
+        .btn-cute:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 #e06c85, inset 0 5px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn-small {
+            font-size: 1.5rem;
+            padding: 12px 35px;
+            background: linear-gradient(to bottom, #a2d2ff, #80bfff);
+            box-shadow: 0 6px 0 #5c97d6, 0 10px 15px rgba(130, 191, 255, 0.4);
+        }
+        
+        .btn-small:active {
+             transform: translateY(6px);
+             box-shadow: 0 0 0 #5c97d6;
+        }
+
+        /* --- GAME CANVAS AREA --- */
+        .canvas-container {
+            flex: 1;
+            width: 100%;
+            background: linear-gradient(180deg, #e0f7fa 0%, #fff3e0 100%);
+            border-radius: 25px;
+            border: 6px solid #fff;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+            touch-action: none; /* Critical for drag */
+            cursor: grab;
+        }
+
+        .canvas-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- TOP HUD --- */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 5px;
+        }
+
+        .score-pill {
+            background: #fff;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: #ff8fa3;
+            font-size: 1.8rem;
+            font-weight: 700;
+            box-shadow: 0 4px 0 #ffe0e9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mute-btn {
+            background: #fff;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
-            margin-top: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #ffe0e9;
+            color: #ff8fa3;
         }
-        
-        .submit-btn:hover {
-            background: linear-gradient(to right, var(--primary-dark), var(--primary));
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px rgba(99, 102, 241, 0.4);
+
+        .mute-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
         }
-        
-        .submit-btn:active {
-            transform: translateY(0);
+
+        /* --- ANIMATIONS --- */
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px) rotate(5deg); }
         }
-        
-        .success-message {
-            background: #d1fae5;
-            color: #065f46;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            border-left: 5px solid var(--success);
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
-        
-        .error-message {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            border-left: 5px solid var(--error);
-        }
-        
-        footer {
+
+        .footer-hint {
             text-align: center;
-            padding: 25px;
-            background: var(--light);
-            color: var(--text);
-            font-size: 0.95rem;
-            margin-top: 40px;
-            border-radius: 12px;
-        }
-        
-        .form-highlight {
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        @media (max-width: 900px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            
-            .sidebar {
-                padding: 40px 30px;
-            }
-            
-            .main-content {
-                padding: 40px 30px;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .sidebar {
-                padding: 30px 20px;
-            }
-            
-            .main-content {
-                padding: 30px 20px;
-            }
-            
-            .profile-img {
-                width: 130px;
-                height: 130px;
-                font-size: 50px;
-            }
-            
-            .name {
-                font-size: 1.8rem;
-            }
+            color: #b0aac0;
+            font-size: 1rem;
+            margin-top: 8px;
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <div class="profile-section">
-                <div class="profile-img">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-                <h1 class="name">AlwaysSammu</h1>
-                <p class="title">Digital Creator</p>
-                
-                <div class="divider"></div>
-                
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h3>Email</h3>
-                            <p>sammanlamsal31@gmail.com</p>
-                        </div>
-                    </div>
-                    
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h3>Location</h3>
-                            <p>Nepal</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="social-links">
-                    <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
-                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                </div>
-            </div>
-        </div>
+
+    <div class="game-card">
         
-        <div class="main-content">
-            <h2 class="section-title">Get In Touch</h2>
-            <p class="section-subtitle">Have a project in mind or want to discuss opportunities? Send me a message and I'll respond within <span class="form-highlight">24 hours</span>.</p>
-            
-            <div class="success-message" id="successMessage">
-                <i class="fas fa-check-circle"></i>
-                <span>Thank you for your message! I'll get back to you soon.</span>
+        <div class="hud">
+            <div class="score-pill">
+                <span>🪙</span>
+                <span id="scoreVal">0</span>
             </div>
-            
-            <div class="error-message" id="errorMessage">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>There was an error sending your message. Please try again.</span>
-            </div>
-            
-            <form class="contact-form" id="contactForm" action="https://formspree.io/f/xgvroego" method="POST">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="name">Full Name <span class="form-highlight">*</span></label>
-                        <input type="text" id="name" name="name" required placeholder="Your full name">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email">Email Address <span class="form-highlight">*</span></label>
-                        <input type="email" id="email" name="email" required placeholder="Your email address">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="subject">Subject <span class="form-highlight">*</span></label>
-                    <input type="text" id="subject" name="subject" required placeholder="Message subject">
-                </div>
-                
-                <div class="form-group">
-                    <label for="inquiry">Type of Inquiry</label>
-                    <select id="inquiry" name="inquiry">
-                        <option value="">Select an option</option>
-                        <option value="project">Project Collaboration</option>
-                        <option value="job">Job Opportunity</option>
-                        <option value="consultation">Consultation</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="message">Your Message <span class="form-highlight">*</span></label>
-                    <textarea id="message" name="message" placeholder="Please provide details about your inquiry..." required></textarea>
-                </div>
-                
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-paper-plane"></i> Send Message
-                </button>
-            </form>
-            
-            <footer>
-                <p>&copy; 2023 AlwaysSammu. All rights reserved.</p>
-            </footer>
+            <div class="mute-btn" id="muteBtn">🔊</div>
         </div>
+
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        <div class="footer-hint">👆 drag the kitty basket to catch! 👆</div>
+
+        <div class="screen start-screen" id="startScreen">
+            <div class="title-group">
+                <div class="game-title">COIN<br>CATCHER</div>
+                <div class="game-subtitle">✨ Cutie Edition ✨</div>
+            </div>
+            <button class="btn-cute" id="startBtn">PLAY ▶</button>
+        </div>
+
+        <div class="screen loading-screen hidden" id="loadingScreen">
+            <div class="loader-icon">🐱</div>
+            <h2 style="color:#ff8fa3; margin-top:10px;">Loading Cuteness...</h2>
+            <div class="loading-bar-container">
+                <div class="loading-bar-fill" id="loadingBar"></div>
+            </div>
+        </div>
+
+        <div class="screen game-over-overlay hidden" id="gameOverScreen">
+            <h2 style="color:#ff8fa3; font-size: 2.5rem;">Oh no! 😢</h2>
+            <div style="color: #b0aac0; font-size: 1.2rem;">You missed a coin!</div>
+            <div class="score-result" id="finalScore">0</div>
+            <button class="btn-cute btn-small" id="restartBtn">Play Again 🔄</button>
+        </div>
+
     </div>
 
     <script>
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const subject = document.getElementById('subject').value;
-            const inquiry = document.getElementById('inquiry').value;
-            const message = document.getElementById('message').value;
-            
-            // Simple validation
-            if (!name || !email || !subject || !message) {
-                showMessage('error', 'Please fill in all required fields.');
-                return;
-            }
-            
-            // Show loading state on button
-            const submitBtn = document.querySelector('.submit-btn');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            submitBtn.disabled = true;
-            
-            // Submit the form to Formspree
-            const form = document.getElementById('contactForm');
-            const formData = new FormData(form);
-            
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
-            }).then(response => {
-                if (response.ok) {
-                    showMessage('success', 'Thank you for your message! I\'ll get back to you soon.');
-                    form.reset();
-                } else {
-                    showMessage('error', 'There was an error sending your message. Please try again.');
-                }
-            }).catch(error => {
-                showMessage('error', 'There was an error sending your message. Please try again.');
-            }).finally(() => {
-                // Reset button
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
-        });
+        /**
+         * 🍬 COIN CATCHER - LOGIC 🍬
+         */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimize
         
-        function showMessage(type, text) {
-            const successEl = document.getElementById('successMessage');
-            const errorEl = document.getElementById('errorMessage');
+        // UI Elements
+        const startScreen = document.getElementById('startScreen');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const loadingBar = document.getElementById('loadingBar');
+        const scoreDisplay = document.getElementById('scoreVal');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const canvasContainer = document.getElementById('canvasContainer');
+
+        // Buttons
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const muteBtn = document.getElementById('muteBtn');
+
+        // Game Constants
+        let width, height, scale;
+        const BASKET_WIDTH = 100;
+        const BASKET_HEIGHT = 50;
+        const COIN_SIZE = 24;
+        
+        // Game State
+        let gameState = 'START'; // START, LOADING, PLAYING, GAMEOVER
+        let score = 0;
+        let basketX = 0;
+        let coins = [];
+        let particles = [];
+        let spawnTimer = 0;
+        let spawnRate = 40;
+        let difficultySpeed = 3;
+        let gameLoopId;
+        
+        // Audio State
+        let audioCtx;
+        let isMuted = false;
+
+        // --- RESIZE HANDLING ---
+        function resize() {
+            const rect = canvasContainer.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            width = canvas.width;
+            height = canvas.height;
+            basketX = (width - BASKET_WIDTH) / 2;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- AUDIO SYSTEM (Synthesized = No external files) ---
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSound(type) {
+            if (isMuted || !audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
             
-            if (type === 'success') {
-                successEl.style.display = 'flex';
-                errorEl.style.display = 'none';
-                successEl.querySelector('span').textContent = text;
-            } else {
-                errorEl.style.display = 'flex';
-                successEl.style.display = 'none';
-                errorEl.querySelector('span').textContent = text;
+            if (type === 'catch') {
+                // High happy ding
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+                osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1); // A6
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'gameover') {
+                // Sad slide
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
             }
             
-            // Scroll to message
-            document.querySelector('.main-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
         }
+
+        // --- GAME LOGIC ---
+
+        function startGameSequence() {
+            initAudio();
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            loadingScreen.classList.remove('hidden');
+            gameState = 'LOADING';
+
+            // Simulate Loading
+            let progress = 0;
+            const loadInterval = setInterval(() => {
+                progress += 5;
+                loadingBar.style.width = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(loadInterval);
+                    setTimeout(() => {
+                        loadingScreen.classList.add('hidden');
+                        resetGame();
+                    }, 200);
+                }
+            }, 30); // Approx 0.6s load time
+        }
+
+        function resetGame() {
+            score = 0;
+            scoreDisplay.textContent = '0';
+            coins = [];
+            particles = [];
+            spawnTimer = 0;
+            difficultySpeed = 3;
+            spawnRate = 40;
+            basketX = (width - BASKET_WIDTH) / 2;
+            gameState = 'PLAYING';
+            loop();
+        }
+
+        function spawnCoin() {
+            const x = Math.random() * (width - COIN_SIZE * 2) + COIN_SIZE;
+            coins.push({
+                x: x,
+                y: -50,
+                speed: difficultySpeed + Math.random(),
+                rot: Math.random() * Math.PI,
+                rotSpeed: (Math.random() - 0.5) * 0.1
+            });
+        }
+
+        function createParticles(x, y) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 1.0,
+                    color: `hsl(${Math.random()*60 + 40}, 100%, 70%)` // Yellow/Orange/Gold
+                });
+            }
+        }
+
+        // --- DRAWING ---
+
+        function drawBasket(x, y) {
+            const w = BASKET_WIDTH;
+            const h = BASKET_HEIGHT;
+            const bottomW = w * 0.75;
+            const inset = (w - bottomW) / 2;
+
+            // Handle
+            ctx.beginPath();
+            ctx.arc(x + w/2, y, w/2 - 10, Math.PI, 0);
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = '#d4a373';
+            ctx.stroke();
+
+            // Basket Body (Trapezoid)
+            ctx.fillStyle = '#fcd5ce'; // Pinkish beige
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + w, y);
+            ctx.lineTo(x + w - inset, y + h);
+            ctx.lineTo(x + inset, y + h);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Texture/Wicker details
+            ctx.strokeStyle = '#e5989b';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Kitty Ears
+            ctx.fillStyle = '#fcd5ce';
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y);
+            ctx.lineTo(x + 25, y - 15);
+            ctx.lineTo(x + 40, y);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(x + w - 10, y);
+            ctx.lineTo(x + w - 25, y - 15);
+            ctx.lineTo(x + w - 40, y);
+            ctx.fill();
+            ctx.stroke();
+
+            // Kitty Face
+            ctx.fillStyle = '#6d597a';
+            // Eyes
+            ctx.beginPath();
+            ctx.arc(x + w/2 - 15, y + h/2, 3, 0, Math.PI*2);
+            ctx.arc(x + w/2 + 15, y + h/2, 3, 0, Math.PI*2);
+            ctx.fill();
+            // Mouth
+            ctx.beginPath();
+            ctx.arc(x + w/2, y + h/2 + 2, 3, 0, Math.PI);
+            ctx.stroke();
+            // Whiskers
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y + h/2); ctx.lineTo(x + 25, y + h/2 + 2);
+            ctx.moveTo(x + 10, y + h/2 + 5); ctx.lineTo(x + 25, y + h/2 + 5);
+            ctx.moveTo(x + w - 10, y + h/2); ctx.lineTo(x + w - 25, y + h/2 + 2);
+            ctx.moveTo(x + w - 10, y + h/2 + 5); ctx.lineTo(x + w - 25, y + h/2 + 5);
+            ctx.stroke();
+        }
+
+        function drawCoin(c) {
+            ctx.save();
+            ctx.translate(c.x, c.y);
+            ctx.rotate(c.rot);
+            
+            // Outer Coin
+            ctx.beginPath();
+            ctx.arc(0, 0, COIN_SIZE, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffd166';
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#f48c06';
+            ctx.stroke();
+
+            // Inner Detail
+            ctx.beginPath();
+            ctx.arc(0, 0, COIN_SIZE * 0.7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffee80';
+            ctx.stroke();
+            
+            // Star in middle
+            ctx.fillStyle = '#d00000';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🍭', 0, 2);
+
+            ctx.restore();
+        }
+
+        function update() {
+            // Clear Canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Background Elements (Clouds)
+            ctx.font = '40px sans-serif';
+            ctx.globalAlpha = 0.5;
+            ctx.fillText('☁️', 50, 80);
+            ctx.fillText('☁️', width - 80, 150);
+            ctx.globalAlpha = 1.0;
+
+            // Spawn Coins
+            spawnTimer++;
+            if (spawnTimer > spawnRate) {
+                spawnCoin();
+                spawnTimer = 0;
+                // Increase difficulty slowly
+                if (spawnRate > 15) spawnRate -= 0.1;
+                difficultySpeed += 0.005;
+            }
+
+            // Draw Basket
+            const basketY = height - BASKET_HEIGHT - 20;
+            drawBasket(basketX, basketY);
+
+            // Update & Draw Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.05;
+                
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            // Update & Draw Coins
+            for (let i = coins.length - 1; i >= 0; i--) {
+                let c = coins[i];
+                c.y += c.speed;
+                c.rot += c.rotSpeed;
+                drawCoin(c);
+
+                // Collision Detection (Circle vs Rect Approximation)
+                // Check height overlap first (optimization)
+                if (c.y + COIN_SIZE >= basketY + 10 && c.y - COIN_SIZE <= basketY + BASKET_HEIGHT) {
+                    // Check width overlap
+                    if (c.x >= basketX && c.x <= basketX + BASKET_WIDTH) {
+                        // CATCH!
+                        score++;
+                        scoreDisplay.textContent = score;
+                        playSound('catch');
+                        createParticles(c.x, c.y);
+                        coins.splice(i, 1);
+                        continue;
+                    }
+                }
+
+                // Missed Coin
+                if (c.y > height) {
+                    playSound('gameover');
+                    gameState = 'GAMEOVER';
+                    finalScoreDisplay.textContent = score;
+                    gameOverScreen.classList.remove('hidden');
+                    cancelAnimationFrame(gameLoopId);
+                    return; // Stop loop
+                }
+            }
+        }
+
+        function loop() {
+            if (gameState === 'PLAYING') {
+                update();
+                gameLoopId = requestAnimationFrame(loop);
+            }
+        }
+
+        // --- INPUT HANDLING (Touch/Mouse) ---
+        function handleInput(clientX) {
+            if (gameState !== 'PLAYING') return;
+            const rect = canvasContainer.getBoundingClientRect();
+            // Map clientX to canvas coordinates
+            let relativeX = clientX - rect.left;
+            // Center the basket on the finger/mouse
+            basketX = relativeX - (BASKET_WIDTH / 2);
+            
+            // Constrain to screen
+            if (basketX < 0) basketX = 0;
+            if (basketX > width - BASKET_WIDTH) basketX = width - BASKET_WIDTH;
+        }
+
+        // Mouse
+        canvasContainer.addEventListener('mousemove', (e) => {
+            if (e.buttons === 1) handleInput(e.clientX);
+        });
+        canvasContainer.addEventListener('mousedown', (e) => {
+            handleInput(e.clientX);
+        });
+
+        // Touch (Prevent scrolling)
+        canvasContainer.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Stop scroll
+            handleInput(e.touches[0].clientX);
+        }, { passive: false });
+
+        canvasContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Stop scroll
+            handleInput(e.touches[0].clientX);
+        }, { passive: false });
+
+        // --- BUTTON EVENTS ---
+        startBtn.addEventListener('click', startGameSequence);
+        
+        restartBtn.addEventListener('click', () => {
+            gameOverScreen.classList.add('hidden');
+            // Small re-load delay for effect
+            startScreen.classList.add('hidden'); // ensure start is gone
+            startGameSequence();
+        });
+
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            muteBtn.textContent = isMuted ? '🔇' : '🔊';
+            muteBtn.style.opacity = isMuted ? '0.5' : '1';
+        });
+
     </script>
 </body>
 </html>
