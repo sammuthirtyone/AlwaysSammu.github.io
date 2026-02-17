@@ -3,685 +3,636 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🐱 SUPER KITTY CATCHER DX: HYPER 💣</title>
+    <title>🐱 SUPER KITTY CATCHER DX 💣</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Fredoka', cursive, sans-serif; }
 
         body {
-            background: #222;
+            background: #ffecf2;
+            background-image: 
+                radial-gradient(circle at 10% 20%, #fff0f6 10%, transparent 20%),
+                radial-gradient(circle at 90% 80%, #e3f2fd 15%, transparent 25%),
+                linear-gradient(135deg, #ffd6e7 0%, #fff5e6 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            transition: background 1s ease;
         }
-
-        /* --- DYNAMIC BACKGROUNDS --- */
-        .bg-lvl-1 { background: radial-gradient(circle, #fff0f6 10%, #ffc2d1 100%); }
-        .bg-lvl-2 { background: radial-gradient(circle, #e0f7fa 10%, #80deea 100%); }
-        .bg-lvl-3 { background: radial-gradient(circle, #f3e5f5 10%, #ce93d8 100%); }
-        .bg-lvl-4 { background: radial-gradient(circle, #fff3e0 10%, #ffb74d 100%); }
-        .bg-lvl-5 { background: radial-gradient(circle, #212121 10%, #000000 100%); } /* Intense Mode */
 
         /* --- MAIN CARD --- */
         .game-card {
             width: 100%; max-width: 500px; height: 95vh; max-height: 850px;
-            background: rgba(255, 255, 255, 0.25); 
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px);
             border-radius: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2), inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(255, 182, 193, 0.4), inset 0 0 0 2px rgba(255, 255, 255, 0.6);
             position: relative; display: flex; flex-direction: column; padding: 15px; overflow: hidden;
         }
+
+        /* --- SCREENS --- */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 40px; transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 20; pointer-events: auto;
+        }
+        .hidden { opacity: 0; pointer-events: none; transform: scale(0.95); z-index: 0; }
+
+        /* START SCREEN */
+        .start-screen { background: rgba(255, 255, 255, 0.6); z-index: 30; }
+        .game-title { font-size: 3.8rem; color: #ff8fa3; text-shadow: 4px 4px 0px #fff, 6px 6px 0px #ffc2d1; text-align: center; line-height: 1; margin-bottom: 10px; }
+        .game-desc { color: #6d597a; margin-bottom: 30px; text-align: center; background: #fff; padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        /* GAME OVER */
+        .game-over-overlay { background: rgba(255, 235, 238, 0.95); z-index: 45; }
+
+        /* --- BUTTONS --- */
+        .btn-cute {
+            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3); border: none; padding: 15px 45px;
+            border-radius: 50px; font-size: 1.8rem; color: white; font-weight: 700; cursor: pointer;
+            box-shadow: 0 6px 0 #e06c85, 0 10px 20px rgba(255, 143, 163, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s; margin: 5px; width: fit-content;
+        }
+        .btn-cute:active { transform: translateY(6px); box-shadow: 0 0 0 #e06c85; }
+        .btn-secondary { background: linear-gradient(to bottom, #bde0fe, #a2d2ff); box-shadow: 0 6px 0 #89c2fa; font-size: 1.4rem; padding: 12px 30px; }
+        .btn-secondary:active { box-shadow: 0 0 0 #89c2fa; }
 
         /* --- HUD --- */
         .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; position: relative; z-index: 15; }
         
+        .stats-box { display: flex; gap: 10px; }
+        
         .pill {
-            background: rgba(255,255,255,0.9); padding: 8px 16px; border-radius: 30px; 
-            color: #6d597a; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1); transition: transform 0.2s;
+            background: #fff; padding: 8px 16px; border-radius: 30px; color: #6d597a; font-weight: 700;
+            box-shadow: 0 4px 0 #ffe0e9; display: flex; align-items: center; gap: 8px; font-size: 1.2rem;
         }
-
-        .level-badge {
-            background: #ffcf56; color: #fff; padding: 5px 10px; border-radius: 15px; 
-            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
-            box-shadow: 0 2px 0 #eebb4d; margin-right: 5px;
-        }
-
-        /* POWER UP BAR */
-        .powerup-container {
-            position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
-            width: 60%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 10px;
-            overflow: hidden; opacity: 0; transition: opacity 0.3s; pointer-events: none;
-        }
-        .powerup-fill {
-            height: 100%; width: 100%; background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
-            transform-origin: left;
-        }
+        
+        .hearts-container { color: #ff5d8f; letter-spacing: 2px; font-size: 1.4rem; }
 
         /* --- CANVAS --- */
         .canvas-container {
-            flex: 1; width: 100%; 
-            background: rgba(255,255,255,0.5);
-            border-radius: 25px; border: 4px solid rgba(255,255,255,0.8);
-            position: relative; overflow: hidden; touch-action: none; cursor: none;
+            flex: 1; width: 100%; background: linear-gradient(180deg, #e0f7fa 0%, #fff3e0 100%);
+            border-radius: 25px; border: 6px solid #fff; box-shadow: inset 0 5px 10px rgba(0,0,0,0.05);
+            position: relative; overflow: hidden; touch-action: none; cursor: none; /* Hide default cursor */
         }
-
-        /* ANIMATIONS */
+        
+        /* Shake Animation Class */
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
-
-        /* SCREENS */
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; transition: 0.3s; }
-        .hidden { opacity: 0; pointer-events: none; transform: scale(0.9); }
-        
-        .start-screen { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px); }
-        .game-title { font-size: 3.5rem; color: #ff8fa3; text-shadow: 4px 4px 0px #fff; text-align: center; line-height: 0.9; margin-bottom: 15px; font-weight: 800; transform: rotate(-5deg); }
-        
-        .game-over { background: rgba(255, 235, 238, 0.95); }
-
-        .btn-cute {
-            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3); border: none; padding: 15px 40px;
-            border-radius: 50px; font-size: 1.5rem; color: white; font-weight: 700; cursor: pointer;
-            box-shadow: 0 6px 0 #e06c85, 0 10px 20px rgba(255, 143, 163, 0.4);
-            margin-top: 20px; transition: transform 0.1s;
+        @keyframes shake { 
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
         }
-        .btn-cute:active { transform: translateY(6px); box-shadow: 0 0 0 #e06c85; }
 
-        .tutorial-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px;
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* Floating Combo Text */
+        .combo-text {
+            position: absolute; pointer-events: none; font-weight: 800;
+            text-shadow: 2px 2px 0 #fff; animation: floatUp 0.8s forwards;
+            z-index: 10;
         }
-        .tut-item { background: #fff; padding: 10px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; font-size: 0.8rem; color: #666; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .tut-icon { font-size: 1.5rem; margin-bottom: 5px; }
-
-        .frozen-overlay {
-            position: absolute; top:0; left:0; width:100%; height:100%; 
-            background: rgba(135, 206, 235, 0.3); pointer-events: none;
-            opacity: 0; transition: opacity 0.2s; border-radius: 20px;
-            box-shadow: inset 0 0 50px #00bcd4; z-index: 5;
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
         }
     </style>
 </head>
-<body class="bg-lvl-1" id="bodyBg">
+<body>
 
     <div class="game-card" id="gameCard">
         
         <div class="hud">
-            <div style="display:flex; gap:8px;">
+            <div class="stats-box">
                 <div class="pill">
-                    <span class="level-badge" id="levelBadge">LVL 1</span>
-                    <span id="scoreVal">0</span>
+                    <span>🪙</span> <span id="scoreVal">0</span>
+                </div>
+                <div class="pill hearts-container" id="heartsDisplay">
+                    ❤️❤️❤️
                 </div>
             </div>
-            <div class="pill" id="heartsDisplay" style="color:#ff5d8f; letter-spacing:2px;">❤️❤️❤️</div>
-        </div>
-
-        <div class="powerup-container" id="powerBarCont">
-            <div class="powerup-fill" id="powerBarFill"></div>
+            <div class="pill" id="comboPill" style="display:none; color:#ff9f1c;">
+                🔥 <span id="comboVal">x1</span>
+            </div>
         </div>
 
         <div class="canvas-container" id="canvasContainer">
-            <div class="frozen-overlay" id="frozenOverlay"></div>
             <canvas id="gameCanvas"></canvas>
+        </div>
+        <div class="footer-hint" style="text-align:center; color:#b0aac0; margin-top:8px; font-size: 0.9rem;">
+            👆 Drag to move! Avoid the bombs! 💣
         </div>
 
         <div class="screen start-screen" id="startScreen">
-            <div style="font-size: 4rem; animation: float 2s infinite ease-in-out;">🐱🧺</div>
-            <div class="game-title">KITTY<br>CATCHER<br>HYPER</div>
-            
-            <div class="tutorial-grid">
-                <div class="tut-item">
-                    <div class="tut-icon">🍬</div>
-                    <span>Catch coins!</span>
-                </div>
-                <div class="tut-item">
-                    <div class="tut-icon">💣❄️</div>
-                    <span>Avoid Bombs & Ice!</span>
-                </div>
-                <div class="tut-item">
-                    <div class="tut-icon">🌈</div>
-                    <span>Magnet Mode!</span>
-                </div>
-                <div class="tut-item">
-                    <div class="tut-icon">🛡️</div>
-                    <span>Shield Up!</span>
-                </div>
+            <div style="font-size: 4rem; margin-bottom: 10px;">🐱🧺</div>
+            <div class="game-title">KITTY<br>CATCHER<br>DX</div>
+            <div class="game-desc">
+                Catch candies 🍬<br>
+                Dodge bombs 💣<br>
+                Don't drop the coins!
             </div>
-
             <button class="btn-cute" id="startBtn">PLAY ▶</button>
         </div>
 
-        <div class="screen game-over hidden" id="gameOverScreen">
-            <h2 style="color:#ff5d8f; font-size: 3rem;">Game Over</h2>
-            <div style="color: #6d597a; font-size: 1.2rem; margin-top: 10px;">You reached Level <span id="finalLevel">1</span></div>
-            <div style="font-size: 4rem; color: #ff8fa3; font-weight:800;" id="finalScore">0</div>
-            <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:20px;"></div>
+        <div class="screen game-over-overlay hidden" id="gameOverScreen">
+            <h2 style="color:#ff5d8f; font-size: 3rem; margin-bottom: 10px;">Ouch! 🤕</h2>
+            <div style="color: #6d597a; font-size: 1.2rem;">Final Score</div>
+            <div style="font-size: 5rem; color: #ff8fa3; text-shadow: 3px 3px 0 #fff; font-weight:800;" id="finalScore">0</div>
+            <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:20px; font-size: 1.2rem;"></div>
             <button class="btn-cute" id="restartBtn">Try Again 🔄</button>
         </div>
 
     </div>
 
     <script>
+        /**
+         * 🐱 KITTY CATCHER DX - ENHANCED LOGIC
+         */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
         
-        // --- DOM ---
+        // --- DOM ELEMENTS ---
+        const screens = {
+            start: document.getElementById('startScreen'),
+            gameover: document.getElementById('gameOverScreen'),
+        };
         const ui = {
             score: document.getElementById('scoreVal'),
-            hearts: document.getElementById('heartsDisplay'),
-            level: document.getElementById('levelBadge'),
-            powerBar: document.getElementById('powerBarFill'),
-            powerCont: document.getElementById('powerBarCont'),
-            frozen: document.getElementById('frozenOverlay'),
-            body: document.getElementById('bodyBg'),
-            screens: {
-                start: document.getElementById('startScreen'),
-                over: document.getElementById('gameOverScreen')
-            },
             finalScore: document.getElementById('finalScore'),
-            finalLevel: document.getElementById('finalLevel'),
-            highScore: document.getElementById('highScoreTag')
+            hearts: document.getElementById('heartsDisplay'),
+            comboPill: document.getElementById('comboPill'),
+            comboVal: document.getElementById('comboVal'),
+            highScoreTag: document.getElementById('highScoreTag'),
+            card: document.getElementById('gameCard'),
+            container: document.getElementById('canvasContainer')
         };
 
+        // --- GAME CONSTANTS ---
+        const BASKET_WIDTH = 90;
+        const BASKET_HEIGHT = 50;
+        const ITEM_SIZE = 24;
+        
         // --- STATE ---
         let width, height;
         let gameState = 'START';
         let score = 0;
         let lives = 3;
-        let level = 1;
         let combo = 0;
-        let gameFrame = 0;
         
-        // Basket Physics
-        let basket = {
-            x: 0, y: 0, w: 90, h: 50,
-            targetX: 0,
-            vx: 0,
-            stretch: 1.0, // For squish animation
-            isFrozen: false,
-            freezeTimer: 0,
-            hasShield: false,
-            magnetTimer: 0
-        };
-
-        let items = [];
+        // Physics & Movement
+        let mouseX = 0;
+        let basketX = 0; // Current position
+        let targetX = 0; // Target position (mouse)
+        
+        // Game Speed Logic
+        let gameFrame = 0;
+        let spawnRate = 50;
+        let fallSpeedBase = 3;
+        
+        // Entities
+        let items = []; // Coins, Bombs, Powerups
         let particles = [];
         
-        // --- CONSTANTS ---
-        const TYPES = {
-            COIN: { id: 'coin', color: '#ffcf56', score: 10, weight: 60, symbol: '🍬' },
-            GEM:  { id: 'gem',  color: '#c77dff', score: 50, weight: 5,  symbol: '💎' },
-            BOMB: { id: 'bomb', color: '#333',    score: 0,  weight: 25, symbol: '☠️' },
-            ICE:  { id: 'ice',  color: '#a2d2ff', score: 5,  weight: 5,  symbol: '🧊' },
-            STAR: { id: 'star', color: '#ffbe0b', score: 0,  weight: 2,  symbol: '🌈' }, // Magnet
-            SHIELD:{id: 'shield',color:'#4cc9f0', score: 0,  weight: 3,  symbol: '🛡️' }
-        };
+        // Audio Context
+        let audioCtx;
+        let isMuted = false;
 
-        // --- AUDIO ---
-        const AudioSys = {
-            ctx: null,
-            init: function() {
-                window.AudioContext = window.AudioContext || window.webkitAudioContext;
-                this.ctx = new AudioContext();
-            },
-            play: function(type) {
-                if(!this.ctx) return;
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-                
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                const t = this.ctx.currentTime;
-                
-                switch(type) {
-                    case 'coin':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(800 + (combo*20), t);
-                        osc.frequency.exponentialRampToValueAtTime(1400, t + 0.1);
-                        gain.gain.setValueAtTime(0.1, t);
-                        gain.gain.linearRampToValueAtTime(0, t + 0.1);
-                        osc.start(t); osc.stop(t+0.1);
-                        break;
-                    case 'gem':
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(1200, t);
-                        osc.frequency.linearRampToValueAtTime(1800, t + 0.2);
-                        gain.gain.setValueAtTime(0.1, t);
-                        gain.gain.linearRampToValueAtTime(0, t + 0.3);
-                        osc.start(t); osc.stop(t+0.3);
-                        break;
-                    case 'bomb':
-                        osc.type = 'sawtooth';
-                        osc.frequency.setValueAtTime(100, t);
-                        osc.frequency.exponentialRampToValueAtTime(10, t + 0.3);
-                        gain.gain.setValueAtTime(0.2, t);
-                        gain.gain.linearRampToValueAtTime(0, t + 0.3);
-                        osc.start(t); osc.stop(t+0.3);
-                        break;
-                    case 'freeze':
-                        osc.type = 'square';
-                        osc.frequency.setValueAtTime(600, t);
-                        osc.frequency.linearRampToValueAtTime(200, t + 0.3);
-                        gain.gain.setValueAtTime(0.1, t);
-                        gain.gain.linearRampToValueAtTime(0, t + 0.3);
-                        osc.start(t); osc.stop(t+0.3);
-                        break;
-                    case 'powerup':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(400, t);
-                        osc.frequency.linearRampToValueAtTime(1200, t + 0.4);
-                        gain.gain.setValueAtTime(0.1, t);
-                        gain.gain.linearRampToValueAtTime(0, t + 0.5);
-                        osc.start(t); osc.stop(t+0.5);
-                        break;
-                }
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-            }
-        };
-
-        // --- INIT & RESIZE ---
+        // --- RESIZE ---
         function resize() {
-            const rect = document.getElementById('canvasContainer').getBoundingClientRect();
+            const rect = ui.container.getBoundingClientRect();
             canvas.width = rect.width;
             canvas.height = rect.height;
             width = canvas.width;
             height = canvas.height;
-            basket.y = height - basket.h - 20;
-            if(gameState === 'START') basket.x = (width - basket.w)/2;
+            // Center basket initially
+            if(gameState === 'START') {
+                targetX = (width - BASKET_WIDTH) / 2;
+                basketX = targetX;
+            }
         }
         window.addEventListener('resize', resize);
         resize();
 
+        // --- AUDIO ENGINE (Synth) ---
+        function playSound(type) {
+            if (isMuted) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const t = audioCtx.currentTime;
+
+            if (type === 'coin') {
+                // High pitch ping
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800 + (combo * 50), t); // Pitch goes up with combo
+                osc.frequency.exponentialRampToValueAtTime(1200 + (combo * 50), t + 0.1);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.1);
+                osc.start(t);
+                osc.stop(t + 0.1);
+            } else if (type === 'bomb') {
+                // Low noise crash
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, t);
+                osc.frequency.exponentialRampToValueAtTime(50, t + 0.4);
+                gain.gain.setValueAtTime(0.2, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+                osc.start(t);
+                osc.stop(t + 0.4);
+            } else if (type === 'lifeup') {
+                // Magical chime
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, t);
+                osc.frequency.linearRampToValueAtTime(800, t + 0.2);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.4);
+                osc.start(t);
+                osc.stop(t + 0.4);
+            } else if (type === 'miss') {
+                // Dull thud
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(200, t);
+                osc.frequency.linearRampToValueAtTime(100, t + 0.1);
+                gain.gain.setValueAtTime(0.05, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.1);
+                osc.start(t);
+                osc.stop(t + 0.1);
+            }
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+        }
+
+        // --- GAME LOGIC ---
+
         function initGame() {
-            AudioSys.init();
             score = 0;
             lives = 3;
             combo = 0;
-            level = 1;
-            gameFrame = 0;
             items = [];
             particles = [];
+            spawnRate = 60;
+            fallSpeedBase = 3.5; // Slightly faster start
+            gameFrame = 0;
             
-            // Basket Reset
-            basket.hasShield = false;
-            basket.magnetTimer = 0;
-            basket.isFrozen = false;
-            basket.targetX = (width - basket.w)/2;
-            basket.x = basket.targetX;
+            // Set initial position
+            const rect = ui.container.getBoundingClientRect();
+            targetX = (width - BASKET_WIDTH) / 2;
+            basketX = targetX;
+            mouseX = targetX + BASKET_WIDTH/2 + rect.left;
+
+            updateUI();
+            
+            screens.start.classList.add('hidden');
+            screens.gameover.classList.add('hidden');
             
             gameState = 'PLAYING';
-            updateUI();
-            updateLevelStyle(1);
-            
-            ui.screens.start.classList.add('hidden');
-            ui.screens.over.classList.add('hidden');
-            
             loop();
-        }
-
-        // --- LOGIC ---
-        function spawnItem() {
-            const rand = Math.random() * 100;
-            let currentWeight = 0;
-            let chosen = TYPES.COIN; // default
-
-            // Weighted Random Selection
-            for (const key in TYPES) {
-                currentWeight += TYPES[key].weight;
-                if (rand < currentWeight) {
-                    chosen = TYPES[key];
-                    break;
-                }
-            }
-
-            // Adjust difficulty by level
-            let speed = 3 + (level * 0.5); 
-            if (chosen.id === 'gem') speed *= 1.5;
-            if (chosen.id === 'ice') speed *= 1.2;
-            if (chosen.id === 'bomb') speed *= (0.8 + (Math.random()*0.4)); // Variable bomb speed
-
-            items.push({
-                x: Math.random() * (width - 40) + 20,
-                y: -40,
-                type: chosen,
-                speed: speed,
-                vx: 0, // For magnet effect
-                vy: speed,
-                angle: 0,
-                rotSpeed: (Math.random() - 0.5) * 0.1
-            });
-        }
-
-        function createParticles(x, y, color, type) {
-            let count = type === 'explosion' ? 15 : 5;
-            for(let i=0; i<count; i++) {
-                particles.push({
-                    x: x, y: y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1.0,
-                    color: color,
-                    grav: 0.2
-                });
-            }
-        }
-
-        function updateLevelStyle(lvl) {
-            ui.body.className = lvl > 5 ? 'bg-lvl-5' : `bg-lvl-${lvl}`;
-            ui.level.innerText = `LVL ${lvl}`;
-        }
-
-        function takeDamage() {
-            if(basket.hasShield) {
-                basket.hasShield = false;
-                AudioSys.play('freeze'); // Shield break sound
-                createParticles(basket.x + basket.w/2, basket.y, '#4cc9f0', 'explosion');
-                return; // Saved!
-            }
-
-            lives--;
-            combo = 0;
-            AudioSys.play('bomb');
-            document.getElementById('gameCard').classList.remove('shake');
-            void document.getElementById('gameCard').offsetWidth;
-            document.getElementById('gameCard').classList.add('shake');
-            
-            // Screen Flash
-            ctx.fillStyle = 'rgba(255,0,0,0.3)';
-            ctx.fillRect(0,0,width,height);
-
-            if(lives <= 0) gameOver();
-            updateUI();
         }
 
         function updateUI() {
             ui.score.innerText = score;
-            let h = '';
-            for(let i=0; i<3; i++) h += i < lives ? '❤️' : '🖤';
-            ui.hearts.innerText = h;
-
-            // Powerbar
-            if (basket.magnetTimer > 0) {
-                ui.powerCont.style.opacity = 1;
-                ui.powerBar.style.width = (basket.magnetTimer / 300 * 100) + '%';
-            } else {
-                ui.powerCont.style.opacity = 0;
+            // Draw hearts
+            let hStr = '';
+            for(let i=0; i<3; i++) {
+                hStr += i < lives ? '❤️' : '🖤';
             }
+            ui.hearts.innerText = hStr;
 
-            // Frozen Overlay
-            ui.frozen.style.opacity = basket.isFrozen ? 1 : 0;
+            // Combo
+            if(combo > 1) {
+                ui.comboPill.style.display = 'flex';
+                ui.comboVal.innerText = 'x' + combo;
+                ui.comboPill.style.transform = `scale(${1 + (combo*0.05)})`;
+            } else {
+                ui.comboPill.style.display = 'none';
+            }
+        }
+
+        function spawnItem() {
+            const typeRoll = Math.random();
+            let type = 'coin';
+            let speed = fallSpeedBase;
+
+            // 1% Chance for Heart (if hurt)
+            if (lives < 3 && typeRoll > 0.98) {
+                type = 'heart';
+                speed = fallSpeedBase * 1.5; // Falls fast!
+            } 
+            // 30% Chance for Bomb
+            else if (typeRoll < 0.3) {
+                type = 'bomb';
+                speed = fallSpeedBase * 0.8; // Falls slower (tricky)
+            }
+            
+            const margin = 30;
+            const x = Math.random() * (width - margin*2) + margin;
+            
+            items.push({
+                x: x,
+                y: -30,
+                type: type,
+                speed: speed + (Math.random() * 1),
+                rot: 0,
+                rotSpeed: (Math.random() - 0.5) * 0.2
+            });
+        }
+
+        function createParticles(x, y, color, count = 5) {
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function createFloatingText(x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'combo-text';
+            el.innerText = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = color;
+            ui.container.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        function triggerShake() {
+            ui.card.classList.remove('shake');
+            void ui.card.offsetWidth; // trigger reflow
+            ui.card.classList.add('shake');
+        }
+
+        function takeDamage() {
+            if(gameState !== 'PLAYING') return;
+            lives--;
+            combo = 0;
+            playSound('bomb');
+            triggerShake();
+            updateUI();
+            
+            // Red flash
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+            ctx.fillRect(0,0,width,height);
+
+            if(lives <= 0) {
+                gameOver();
+            }
         }
 
         function gameOver() {
-            gameState = 'OVER';
+            gameState = 'GAMEOVER';
             ui.finalScore.innerText = score;
-            ui.finalLevel.innerText = level;
+            screens.gameover.classList.remove('hidden');
             
-            const saved = localStorage.getItem('kittyHyperScore') || 0;
-            if(score > saved) {
-                localStorage.setItem('kittyHyperScore', score);
-                ui.highScore.innerText = "✨ NEW HIGH SCORE! ✨";
+            // High Score Logic
+            const saved = localStorage.getItem('kittyHighScore') || 0;
+            if (score > saved) {
+                localStorage.setItem('kittyHighScore', score);
+                ui.highScoreTag.innerText = "✨ NEW HIGH SCORE! ✨";
             } else {
-                ui.highScore.innerText = `Best: ${saved}`;
+                ui.highScoreTag.innerText = "Best: " + saved;
             }
-            ui.screens.over.classList.remove('hidden');
         }
 
-        // --- RENDER ---
-        function drawBasket() {
-            const x = basket.x;
-            const y = basket.y + (1 - basket.stretch)*basket.h; // Squish offset
-            const w = basket.w;
-            const h = basket.h * basket.stretch;
+        // --- DRAWING ---
 
-            // SHIELD BUBBLE
-            if(basket.hasShield) {
-                ctx.beginPath();
-                ctx.arc(x + w/2, y + h/2 - 10, w/1.5, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(76, 201, 240, 0.3)';
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
+        function drawBasket(x, y, targetX) {
+            const w = BASKET_WIDTH;
+            const h = BASKET_HEIGHT;
 
-            // Draw Basket Body
-            ctx.fillStyle = basket.isFrozen ? '#bde0fe' : '#fcd5ce';
-            if(basket.magnetTimer > 0 && gameFrame % 10 < 5) ctx.fillStyle = '#ffcf56'; // Flash gold
+            // Determine look direction based on closest item
+            let lookX = x + w/2;
+            let lowestY = -1000;
+            items.forEach(it => {
+                if (it.y > lowestY && it.y < y) {
+                    lowestY = it.y;
+                    lookX = it.x;
+                }
+            });
+            // Clamp look
+            const eyeOffset = Math.max(-8, Math.min(8, (lookX - (x + w/2)) / 5));
+
+            // Basket Body
+            ctx.fillStyle = '#fcd5ce';
+            ctx.strokeStyle = '#e5989b';
+            ctx.lineWidth = 3;
             
-            // Handle
-            ctx.strokeStyle = '#e5989b'; ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.arc(x + w/2, y, w/2 - 5, Math.PI, 0); ctx.stroke();
+            // Handle (behind)
+            ctx.beginPath();
+            ctx.arc(x + w/2, y, w/2 - 5, Math.PI, 0);
+            ctx.stroke();
 
-            // Box
-            ctx.beginPath(); ctx.roundRect(x, y, w, h, 15); ctx.fill(); 
-            ctx.strokeStyle = '#fff'; ctx.lineWidth=3; ctx.stroke();
+            // Main Box
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, 15);
+            ctx.fill();
+            ctx.stroke();
 
-            // Face
-            const eyeOff = (basket.vx / 20) * 8; // Look direction
-            ctx.fillStyle = '#6d597a';
+            // Kitty Face
+            ctx.fillStyle = '#6d597a'; // Dark purple
             
-            if(basket.isFrozen) {
-                // X X Eyes
-                ctx.font = '20px Arial';
-                ctx.fillText('x', x+25, y+25);
-                ctx.fillText('x', x+55, y+25);
-            } else {
-                ctx.beginPath();
-                ctx.arc(x + 30 + eyeOff, y + 20, 4, 0, Math.PI*2);
-                ctx.arc(x + 60 + eyeOff, y + 20, 4, 0, Math.PI*2);
-                ctx.fill();
-                // Mouth
-                ctx.beginPath(); ctx.arc(x + 45 + eyeOff, y + 26, 3, 0, Math.PI); ctx.stroke();
-            }
+            // Eyes (Move with logic)
+            ctx.beginPath();
+            ctx.arc(x + 30 + eyeOffset, y + 20, 4, 0, Math.PI*2); // L
+            ctx.arc(x + 60 + eyeOffset, y + 20, 4, 0, Math.PI*2); // R
+            ctx.fill();
 
-            // Paws
+            // Mouth
+            ctx.beginPath();
+            ctx.arc(x + 45 + eyeOffset, y + 26, 3, 0, Math.PI);
+            ctx.stroke();
+
+            // Ears
+            ctx.fillStyle = '#fcd5ce';
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y); ctx.lineTo(x + 20, y - 15); ctx.lineTo(x + 35, y);
+            ctx.fill(); ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + w - 35, y); ctx.lineTo(x + w - 20, y - 15); ctx.lineTo(x + w - 10, y);
+            ctx.fill(); ctx.stroke();
+            
+            // Paws (overlap rim)
             ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.ellipse(x + 20, y-2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(x + w - 20, y-2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(x + 20, y - 2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(x + w - 20, y - 2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
         }
 
-        function drawItem(it) {
+        function drawItem(item) {
             ctx.save();
-            ctx.translate(it.x, it.y);
-            ctx.rotate(it.angle);
-
-            // Item Trail
-            if(it.type.id === 'gem' || it.type.id === 'star') {
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = it.type.color;
-            }
-
-            // Simple Circle Backing
-            if(it.type.id !== 'bomb' && it.type.id !== 'ice') {
-                 ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2);
-                 ctx.fillStyle = it.type.color; ctx.fill();
-                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-            } else if (it.type.id === 'bomb') {
-                ctx.beginPath(); ctx.arc(0,5,16,0,Math.PI*2); ctx.fillStyle = '#333'; ctx.fill();
+            ctx.translate(item.x, item.y);
+            ctx.rotate(item.rot);
+            
+            if (item.type === 'coin') {
+                // Candy Coin
+                ctx.beginPath();
+                ctx.arc(0, 0, 16, 0, Math.PI*2);
+                ctx.fillStyle = '#ffcf56'; ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+                // Inner swirl
+                ctx.strokeStyle = '#eebb4d';
+                ctx.beginPath(); ctx.arc(0,0, 10, 0, Math.PI*1.5); ctx.stroke();
+                ctx.font = '16px Arial'; ctx.fillText('🍬', -9, 6);
+            } 
+            else if (item.type === 'bomb') {
+                // Bomb
+                ctx.fillStyle = '#333';
+                ctx.beginPath(); ctx.arc(0, 5, 14, 0, Math.PI*2); ctx.fill();
                 // Fuse
-                ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(4,-18); ctx.stroke();
-                ctx.fillStyle='#f00'; ctx.beginPath(); ctx.arc(4,-18, 3 + Math.sin(gameFrame*0.5)*2, 0, Math.PI*2); ctx.fill();
-            } else {
-                // Ice
-                ctx.fillStyle = 'rgba(162, 210, 255, 0.8)';
-                ctx.fillRect(-15,-15,30,30);
-                ctx.strokeStyle = '#fff'; ctx.strokeRect(-15,-15,30,30);
+                ctx.strokeStyle = '#555'; ctx.lineWidth=3;
+                ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(5, -18); ctx.stroke();
+                // Spark
+                ctx.fillStyle = '#f00';
+                ctx.beginPath(); ctx.arc(5, -18, (gameFrame%10)/2, 0, Math.PI*2); ctx.fill();
+                ctx.font = '16px Arial'; ctx.fillText('☠️', -8, 10);
             }
-
-            // Emoji/Symbol
-            ctx.font = '20px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = '#fff';
-            // Center correction
-            ctx.fillText(it.type.symbol, 0, 2);
-
+            else if (item.type === 'heart') {
+                // Life up
+                ctx.shadowColor = '#fff'; ctx.shadowBlur = 10;
+                ctx.font = '30px Arial';
+                ctx.fillText('💖', -15, 10);
+                ctx.shadowBlur = 0;
+            }
+            
             ctx.restore();
         }
 
         // --- MAIN LOOP ---
+
         function loop() {
-            if(gameState !== 'PLAYING') return;
+            if (gameState !== 'PLAYING') return;
 
-            ctx.clearRect(0,0,width,height);
+            // 1. Clear & Background
+            ctx.clearRect(0, 0, width, height);
+            
+            // 2. Logic Updates
             gameFrame++;
-
-            // 1. Difficulty Scaling
-            if(gameFrame % 60 === 0) {
-                // Level up every 500 points
-                const newLevel = Math.floor(score / 500) + 1;
-                if(newLevel > level) {
-                    level = newLevel;
-                    updateLevelStyle(level);
-                    AudioSys.play('powerup');
-                }
-            }
-
-            // 2. Physics - Basket
-            if(basket.isFrozen) {
-                basket.freezeTimer--;
-                if(basket.freezeTimer <= 0) basket.isFrozen = false;
-            } else {
-                // Smooth movement (Lerp)
-                const prevX = basket.x;
-                basket.x += (basket.targetX - basket.x) * 0.15;
-                
-                // Calculate velocity for squish effect
-                basket.vx = basket.x - prevX;
-                const speed = Math.abs(basket.vx);
-                basket.stretch = 1.0 + (speed * 0.005); // Taller when moving fast
-                if(basket.stretch > 1.15) basket.stretch = 1.15;
+            
+            // Increase Difficulty over time
+            if (gameFrame % 600 === 0) { // Every ~10 seconds
+                if(spawnRate > 20) spawnRate -= 5;
+                fallSpeedBase += 0.5;
             }
             
-            // Decaying squish if stopped
-            if(Math.abs(basket.vx) < 0.1) basket.stretch += (1.0 - basket.stretch) * 0.1;
-
-            // Magnet Timer
-            if(basket.magnetTimer > 0) {
-                basket.magnetTimer--;
-                updateUI(); // For progress bar
+            // Spawning
+            if (gameFrame % spawnRate === 0) {
+                spawnItem();
             }
 
-            drawBasket();
+            // Basket Movement (LERP for smoothness)
+            basketX += (targetX - basketX) * 0.15;
+            const basketY = height - BASKET_HEIGHT - 30;
 
-            // 3. Spawning
-            let spawnRate = Math.max(20, 60 - (level * 5)); // Faster spawn as level goes up
-            if (gameFrame % spawnRate === 0) spawnItem();
+            // Draw Basket
+            drawBasket(basketX, basketY, targetX);
 
-            // 4. Items Logic
+            // 3. Process Items
             for (let i = items.length - 1; i >= 0; i--) {
                 let p = items[i];
+                p.y += p.speed;
+                p.rot += p.rotSpeed;
 
-                // Magnet Effect
-                if (basket.magnetTimer > 0 && p.type.score > 0) {
-                    const dx = (basket.x + basket.w/2) - p.x;
-                    const dy = (basket.y + basket.h/2) - p.y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if(dist < 400) {
-                        p.x += dx * 0.1;
-                        p.y += dy * 0.1;
-                    } else {
-                        p.y += p.speed;
-                    }
-                } else {
-                    p.y += p.speed;
-                }
-                
-                p.angle += p.rotSpeed;
                 drawItem(p);
 
-                // Collision
-                const basketHitY = basket.y + 10;
-                if (p.y > basketHitY && p.y < basketHitY + 40 &&
-                    p.x > basket.x - 10 && p.x < basket.x + basket.w + 10) {
+                // Collision Detection (Circle vs Rect approx)
+                // Hitbox for basket top
+                if (p.y > basketY && p.y < basketY + 20 &&
+                    p.x > basketX && p.x < basketX + BASKET_WIDTH) {
                     
-                    // HIT!
-                    createParticles(p.x, p.y, p.type.color, p.type.id === 'bomb' ? 'explosion' : 'spark');
-                    
-                    if (p.type.id === 'bomb') {
-                        takeDamage();
+                    // CAUGHT!
+                    if (p.type === 'coin') {
+                        score += (10 + combo * 2);
+                        combo++;
+                        playSound('coin');
+                        createParticles(p.x, p.y, '#ffcf56');
+                        createFloatingText(p.x, p.y, "+"+(10+combo*2), "#ff8fa3");
                     } 
-                    else if (p.type.id === 'ice') {
-                        if(!basket.hasShield) {
-                            basket.isFrozen = true;
-                            basket.freezeTimer = 90; // 1.5 sec
-                            AudioSys.play('freeze');
-                            updateUI();
-                        } else {
-                            basket.hasShield = false; // Shield blocks ice too? Sure.
-                            AudioSys.play('freeze');
-                        }
+                    else if (p.type === 'bomb') {
+                        takeDamage();
+                        createParticles(p.x, p.y, '#333');
+                        createFloatingText(p.x, p.y, "OUCH!", "#ff0000");
                     }
-                    else {
-                        // Good Stuff
-                        if(p.type.id === 'star') {
-                            basket.magnetTimer = 300; // 5 seconds
-                            AudioSys.play('powerup');
-                        } else if (p.type.id === 'shield') {
-                            basket.hasShield = true;
-                            AudioSys.play('powerup');
-                        } else {
-                            // Points
-                            score += p.type.score + (combo * 2);
-                            combo++;
-                            AudioSys.play(p.type.id);
-                        }
+                    else if (p.type === 'heart') {
+                        if(lives < 3) lives++;
+                        score += 50;
+                        playSound('lifeup');
+                        createParticles(p.x, p.y, '#ff5d8f');
+                        createFloatingText(p.x, p.y, "HP UP!", "#ff5d8f");
                     }
                     
-                    items.splice(i, 1);
                     updateUI();
+                    items.splice(i, 1);
                     continue;
                 }
 
-                // Missed
+                // MISSED (Floor)
                 if (p.y > height) {
-                    if (p.type.id === 'coin') {
-                        combo = 0; // Break combo
+                    if (p.type === 'coin') {
+                        // Penalty for missing a coin
+                        lives--;
+                        combo = 0;
+                        playSound('miss');
                         updateUI();
+                        createFloatingText(p.x, height-50, "MISS!", "#6d597a");
+                        if(lives <= 0) {
+                            takeDamage(); // Trigger game over
+                            return; 
+                        }
                     }
                     items.splice(i, 1);
                 }
             }
 
-            // 5. Particles
-            for(let i=particles.length-1; i>=0; i--) {
+            // 4. Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
                 let pt = particles[i];
                 pt.x += pt.vx;
                 pt.y += pt.vy;
-                pt.vy += pt.grav;
                 pt.life -= 0.05;
-                
                 ctx.globalAlpha = pt.life;
                 ctx.fillStyle = pt.color;
                 ctx.beginPath(); ctx.arc(pt.x, pt.y, 4, 0, Math.PI*2); ctx.fill();
-                ctx.globalAlpha = 1;
-                
-                if(pt.life <= 0) particles.splice(i,1);
+                if (pt.life <= 0) particles.splice(i, 1);
             }
+            ctx.globalAlpha = 1.0;
 
             requestAnimationFrame(loop);
         }
 
-        // --- INPUT ---
-        function moveHandler(e) {
-            if(basket.isFrozen) return;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const rect = document.getElementById('canvasContainer').getBoundingClientRect();
-            let tx = clientX - rect.left - (basket.w / 2);
+        // --- INPUT HANDLING ---
+        function setTarget(clientX) {
+            const rect = ui.container.getBoundingClientRect();
+            // Offset to center the basket on finger
+            let x = clientX - rect.left - (BASKET_WIDTH / 2);
             // Clamp
-            if(tx < 0) tx = 0;
-            if(tx > width - basket.w) tx = width - basket.w;
-            basket.targetX = tx;
+            if (x < 0) x = 0;
+            if (x > width - BASKET_WIDTH) x = width - BASKET_WIDTH;
+            targetX = x;
+            mouseX = clientX;
         }
 
-        const cont = document.getElementById('canvasContainer');
-        cont.addEventListener('mousemove', moveHandler);
-        cont.addEventListener('touchmove', (e) => { e.preventDefault(); moveHandler(e); }, {passive: false});
-        
+        const container = document.getElementById('canvasContainer');
+        container.addEventListener('mousemove', (e) => setTarget(e.clientX));
+        container.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            setTarget(e.touches[0].clientX);
+        }, { passive: false });
+        container.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            setTarget(e.touches[0].clientX);
+        }, { passive: false });
+
+        // --- BUTTONS ---
         document.getElementById('startBtn').onclick = initGame;
         document.getElementById('restartBtn').onclick = initGame;
 
