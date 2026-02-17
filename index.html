@@ -3,18 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🍭 KITCHEN COIN CATCHER · ULTIMATE CUTIE 🍬</title>
+    <title>🐱 SUPER KITTY CATCHER DX 💣</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Fredoka', cursive, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Fredoka', cursive, sans-serif; }
 
         body {
             background: #ffecf2;
@@ -31,318 +24,132 @@
 
         /* --- MAIN CARD --- */
         .game-card {
-            width: 100%;
-            max-width: 480px;
-            height: 95vh;
-            max-height: 800px;
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(15px);
+            width: 100%; max-width: 500px; height: 95vh; max-height: 850px;
+            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px);
             border-radius: 40px;
-            box-shadow: 
-                0 20px 40px rgba(255, 182, 193, 0.4),
-                inset 0 0 0 2px rgba(255, 255, 255, 0.6);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(255, 182, 193, 0.4), inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+            position: relative; display: flex; flex-direction: column; padding: 15px; overflow: hidden;
         }
 
         /* --- SCREENS --- */
         .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 40px;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            z-index: 20;
-            pointer-events: auto;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 40px; transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 20; pointer-events: auto;
         }
+        .hidden { opacity: 0; pointer-events: none; transform: scale(0.95); z-index: 0; }
 
-        .hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.95);
-            z-index: 0;
-        }
+        /* START SCREEN */
+        .start-screen { background: rgba(255, 255, 255, 0.6); z-index: 30; }
+        .game-title { font-size: 3.8rem; color: #ff8fa3; text-shadow: 4px 4px 0px #fff, 6px 6px 0px #ffc2d1; text-align: center; line-height: 1; margin-bottom: 10px; }
+        .game-desc { color: #6d597a; margin-bottom: 30px; text-align: center; background: #fff; padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
-        /* 1. START SCREEN */
-        .start-screen {
-            background: rgba(255, 255, 255, 0.3);
-            z-index: 30;
-        }
-
-        .title-group {
-            text-align: center;
-            margin-bottom: 30px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .game-title {
-            font-size: 3.5rem;
-            color: #ff8fa3;
-            text-shadow: 4px 4px 0px #fff, 6px 6px 0px #ffc2d1;
-            letter-spacing: 2px;
-            line-height: 1;
-        }
-
-        .game-subtitle {
-            font-size: 1.2rem;
-            color: #9c89b8;
-            background: #fff;
-            padding: 5px 15px;
-            border-radius: 20px;
-            margin-top: 10px;
-            display: inline-block;
-            box-shadow: 0 5px 15px rgba(156, 137, 184, 0.2);
-        }
-
-        /* 2. LEADERBOARD SCREEN */
-        .leaderboard-screen {
-            background: rgba(255, 240, 245, 0.95);
-            z-index: 40;
-            padding: 20px;
-        }
-        
-        .leaderboard-list {
-            background: #fff;
-            width: 80%;
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 10px 20px rgba(255, 182, 193, 0.2);
-            margin-bottom: 20px;
-            max-height: 50%;
-            overflow-y: auto;
-        }
-
-        .leader-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 2px dashed #ffe0e9;
-            font-size: 1.2rem;
-            color: #6d597a;
-            font-weight: 600;
-        }
-        .leader-row:last-child { border-bottom: none; }
-        .rank-medal { margin-right: 10px; }
-
-        /* 3. PAUSE MENU */
-        .pause-screen {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 50;
-        }
-        
-        .pause-menu-box {
-            background: #fff;
-            padding: 30px;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(100, 100, 100, 0.1);
-            text-align: center;
-            border: 4px solid #bde0fe;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            min-width: 250px;
-        }
-
-        /* 4. LOADING & GAME OVER */
-        .loading-screen {
-            background: #fff0f5;
-            z-index: 35;
-        }
-        
-        .game-over-overlay {
-            background: rgba(255, 235, 238, 0.9);
-            z-index: 45;
-        }
+        /* GAME OVER */
+        .game-over-overlay { background: rgba(255, 235, 238, 0.95); z-index: 45; }
 
         /* --- BUTTONS --- */
         .btn-cute {
-            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3);
-            border: none;
-            padding: 15px 45px;
-            border-radius: 50px;
-            font-size: 1.8rem;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
+            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3); border: none; padding: 15px 45px;
+            border-radius: 50px; font-size: 1.8rem; color: white; font-weight: 700; cursor: pointer;
             box-shadow: 0 6px 0 #e06c85, 0 10px 20px rgba(255, 143, 163, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s;
-            position: relative;
-            margin: 5px;
-            width: fit-content;
+            transition: transform 0.1s, box-shadow 0.1s; margin: 5px; width: fit-content;
         }
-
-        .btn-cute:active {
-            transform: translateY(6px);
-            box-shadow: 0 0 0 #e06c85;
-        }
-
-        .btn-secondary {
-            background: linear-gradient(to bottom, #bde0fe, #a2d2ff);
-            box-shadow: 0 6px 0 #89c2fa, 0 10px 15px rgba(162, 210, 255, 0.4);
-            font-size: 1.4rem;
-            padding: 12px 30px;
-        }
+        .btn-cute:active { transform: translateY(6px); box-shadow: 0 0 0 #e06c85; }
+        .btn-secondary { background: linear-gradient(to bottom, #bde0fe, #a2d2ff); box-shadow: 0 6px 0 #89c2fa; font-size: 1.4rem; padding: 12px 30px; }
         .btn-secondary:active { box-shadow: 0 0 0 #89c2fa; }
 
-        .btn-yellow {
-            background: linear-gradient(to bottom, #ffe6a7, #ffcf56);
-            box-shadow: 0 6px 0 #eebb4d, 0 10px 15px rgba(255, 207, 86, 0.4);
-            color: #7c5e10;
-        }
-        .btn-yellow:active { box-shadow: 0 0 0 #eebb4d; }
-
-        .btn-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            background: #fff;
-            box-shadow: 0 4px 0 #e3e3e3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ff8fa3;
-        }
-        .btn-icon:active {
-            transform: translateY(4px);
-            box-shadow: none;
-        }
-
         /* --- HUD --- */
-        .hud {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 0 5px;
-            position: relative;
-            z-index: 15;
+        .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; position: relative; z-index: 15; }
+        
+        .stats-box { display: flex; gap: 10px; }
+        
+        .pill {
+            background: #fff; padding: 8px 16px; border-radius: 30px; color: #6d597a; font-weight: 700;
+            box-shadow: 0 4px 0 #ffe0e9; display: flex; align-items: center; gap: 8px; font-size: 1.2rem;
         }
-
-        .score-pill {
-            background: #fff;
-            padding: 8px 20px;
-            border-radius: 30px;
-            color: #ff8fa3;
-            font-size: 1.5rem;
-            font-weight: 700;
-            box-shadow: 0 4px 0 #ffe0e9;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .hud-controls {
-            display: flex;
-            gap: 10px;
-        }
+        
+        .hearts-container { color: #ff5d8f; letter-spacing: 2px; font-size: 1.4rem; }
 
         /* --- CANVAS --- */
         .canvas-container {
-            flex: 1;
-            width: 100%;
-            background: linear-gradient(180deg, #e0f7fa 0%, #fff3e0 100%);
-            border-radius: 25px;
-            border: 6px solid #fff;
-            box-shadow: inset 0 5px 10px rgba(0,0,0,0.05);
-            position: relative;
-            overflow: hidden;
-            touch-action: none;
-            cursor: grab;
+            flex: 1; width: 100%; background: linear-gradient(180deg, #e0f7fa 0%, #fff3e0 100%);
+            border-radius: 25px; border: 6px solid #fff; box-shadow: inset 0 5px 10px rgba(0,0,0,0.05);
+            position: relative; overflow: hidden; touch-action: none; cursor: none; /* Hide default cursor */
+        }
+        
+        /* Shake Animation Class */
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
         }
 
-        .canvas-container:active { cursor: grabbing; }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* Animation Keyframes */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        /* Floating Combo Text */
+        .combo-text {
+            position: absolute; pointer-events: none; font-weight: 800;
+            text-shadow: 2px 2px 0 #fff; animation: floatUp 0.8s forwards;
+            z-index: 10;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="game-card">
+    <div class="game-card" id="gameCard">
         
         <div class="hud">
-            <div class="score-pill">
-                <span>🪙</span>
-                <span id="scoreVal">0</span>
+            <div class="stats-box">
+                <div class="pill">
+                    <span>🪙</span> <span id="scoreVal">0</span>
+                </div>
+                <div class="pill hearts-container" id="heartsDisplay">
+                    ❤️❤️❤️
+                </div>
             </div>
-            <div class="hud-controls">
-                <button class="btn-icon" id="muteBtn">🔊</button>
-                <button class="btn-icon" id="pauseBtn" style="color:#a2d2ff;">II</button>
+            <div class="pill" id="comboPill" style="display:none; color:#ff9f1c;">
+                🔥 <span id="comboVal">x1</span>
             </div>
         </div>
 
         <div class="canvas-container" id="canvasContainer">
             <canvas id="gameCanvas"></canvas>
         </div>
-        <div class="footer-hint" style="text-align:center; color:#b0aac0; margin-top:8px;">
-            👆 drag the kitty basket! 👆
+        <div class="footer-hint" style="text-align:center; color:#b0aac0; margin-top:8px; font-size: 0.9rem;">
+            👆 Drag to move! Avoid the bombs! 💣
         </div>
 
         <div class="screen start-screen" id="startScreen">
-            <div class="title-group">
-                <div class="game-title">KITTY COIN<br>CATCHER</div>
-                <div class="game-subtitle">✨ Cutie Edition ✨</div>
+            <div style="font-size: 4rem; margin-bottom: 10px;">🐱🧺</div>
+            <div class="game-title">KITTY<br>CATCHER<br>DX</div>
+            <div class="game-desc">
+                Catch candies 🍬<br>
+                Dodge bombs 💣<br>
+                Don't drop the coins!
             </div>
             <button class="btn-cute" id="startBtn">PLAY ▶</button>
-            <button class="btn-cute btn-yellow" id="leaderboardBtn" style="margin-top:10px; font-size:1.4rem;">🏆 Leaderboard</button>
-        </div>
-
-        <div class="screen leaderboard-screen hidden" id="leaderboardScreen">
-            <h2 style="color:#ffcf56; font-size: 2.5rem; margin-bottom:10px; text-shadow: 2px 2px #fff;">Top Scores</h2>
-            <div class="leaderboard-list" id="leaderboardList">
-                <div class="leader-row" style="justify-content:center;">No scores yet! 🥺</div>
-            </div>
-            <button class="btn-cute btn-secondary" id="closeLeaderboardBtn">Back 🏠</button>
-        </div>
-
-        <div class="screen pause-screen hidden" id="pauseScreen">
-            <div class="pause-menu-box">
-                <h2 style="color:#a2d2ff; font-size:2rem;">PAUSED 😴</h2>
-                <button class="btn-cute btn-small" id="resumeBtn">Resume ▶</button>
-                <button class="btn-cute btn-small btn-yellow" id="pauseRestartBtn">Return 🔄</button>
-                <button class="btn-cute btn-small btn-secondary" id="homeBtn">Home 🏠</button>
-            </div>
-        </div>
-
-        <div class="screen loading-screen hidden" id="loadingScreen">
-            <div style="font-size:4rem; animation: float 1s infinite;">🧸</div>
-            <h2 style="color:#ff8fa3; margin-top:10px;">Loading...</h2>
-            <div style="width:200px; height:12px; background:#ffdde7; border-radius:10px; margin-top:20px; overflow:hidden;">
-                <div id="loadingBar" style="height:100%; width:0%; background:#ff8fa3; border-radius:10px; transition: width 0.1s;"></div>
-            </div>
         </div>
 
         <div class="screen game-over-overlay hidden" id="gameOverScreen">
-            <h2 style="color:#ff8fa3; font-size: 2.5rem;">Oh no! 😢</h2>
-            <div style="color: #b0aac0;">You missed a coin!</div>
-            <div style="font-size: 5rem; color: #ff8fa3; text-shadow: 3px 3px 0 #fff;" id="finalScore">0</div>
-            <div id="newHighScoreMsg" style="color:#ffcf56; font-weight:bold; display:none; margin-bottom:10px;">✨ NEW HIGH SCORE! ✨</div>
-            <button class="btn-cute" id="restartBtn">Play Again 🔄</button>
-            <button class="btn-cute btn-secondary" id="goHomeBtn" style="margin-top:10px;">Home 🏠</button>
+            <h2 style="color:#ff5d8f; font-size: 3rem; margin-bottom: 10px;">Ouch! 🤕</h2>
+            <div style="color: #6d597a; font-size: 1.2rem;">Final Score</div>
+            <div style="font-size: 5rem; color: #ff8fa3; text-shadow: 3px 3px 0 #fff; font-weight:800;" id="finalScore">0</div>
+            <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:20px; font-size: 1.2rem;"></div>
+            <button class="btn-cute" id="restartBtn">Try Again 🔄</button>
         </div>
 
     </div>
 
     <script>
         /**
-         * 🍬 COIN CATCHER - LOGIC 🍬
+         * 🐱 KITTY CATCHER DX - ENHANCED LOGIC
          */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
@@ -350,358 +157,484 @@
         // --- DOM ELEMENTS ---
         const screens = {
             start: document.getElementById('startScreen'),
-            loading: document.getElementById('loadingScreen'),
             gameover: document.getElementById('gameOverScreen'),
-            pause: document.getElementById('pauseScreen'),
-            leaderboard: document.getElementById('leaderboardScreen')
         };
-        
         const ui = {
             score: document.getElementById('scoreVal'),
             finalScore: document.getElementById('finalScore'),
-            loadingBar: document.getElementById('loadingBar'),
-            leaderboardList: document.getElementById('leaderboardList'),
-            newHighMsg: document.getElementById('newHighScoreMsg'),
-            muteBtn: document.getElementById('muteBtn'),
-            pauseBtn: document.getElementById('pauseBtn')
+            hearts: document.getElementById('heartsDisplay'),
+            comboPill: document.getElementById('comboPill'),
+            comboVal: document.getElementById('comboVal'),
+            highScoreTag: document.getElementById('highScoreTag'),
+            card: document.getElementById('gameCard'),
+            container: document.getElementById('canvasContainer')
         };
-        
-        const container = document.getElementById('canvasContainer');
 
-        // --- GAME CONSTANTS & STATE ---
-        const BASKET_WIDTH = 100;
+        // --- GAME CONSTANTS ---
+        const BASKET_WIDTH = 90;
         const BASKET_HEIGHT = 50;
-        const COIN_SIZE = 24;
+        const ITEM_SIZE = 24;
         
+        // --- STATE ---
         let width, height;
-        let gameState = 'START'; // START, LOADING, PLAYING, PAUSED, GAMEOVER
+        let gameState = 'START';
         let score = 0;
-        let basketX = 0;
-        let coins = [];
-        let particles = [];
-        let spawnTimer = 0;
-        let spawnRate = 40;
-        let difficultySpeed = 3;
-        let gameLoopId;
+        let lives = 3;
+        let combo = 0;
         
+        // Physics & Movement
+        let mouseX = 0;
+        let basketX = 0; // Current position
+        let targetX = 0; // Target position (mouse)
+        
+        // Game Speed Logic
+        let gameFrame = 0;
+        let spawnRate = 50;
+        let fallSpeedBase = 3;
+        
+        // Entities
+        let items = []; // Coins, Bombs, Powerups
+        let particles = [];
+        
+        // Audio Context
         let audioCtx;
         let isMuted = false;
 
-        // --- RESIZE HANDLING ---
+        // --- RESIZE ---
         function resize() {
-            const rect = container.getBoundingClientRect();
+            const rect = ui.container.getBoundingClientRect();
             canvas.width = rect.width;
             canvas.height = rect.height;
             width = canvas.width;
             height = canvas.height;
-            basketX = (width - BASKET_WIDTH) / 2;
+            // Center basket initially
+            if(gameState === 'START') {
+                targetX = (width - BASKET_WIDTH) / 2;
+                basketX = targetX;
+            }
         }
         window.addEventListener('resize', resize);
         resize();
 
-        // --- AUDIO (Simple Synth) ---
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
+        // --- AUDIO ENGINE (Synth) ---
         function playSound(type) {
-            if (isMuted || !audioCtx) return;
+            if (isMuted) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
+
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            
-            const time = audioCtx.currentTime;
-            
-            if (type === 'catch') {
+            const t = audioCtx.currentTime;
+
+            if (type === 'coin') {
+                // High pitch ping
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, time);
-                osc.frequency.exponentialRampToValueAtTime(1200, time + 0.1);
-                gain.gain.setValueAtTime(0.1, time);
-                gain.gain.linearRampToValueAtTime(0, time + 0.15);
-                osc.start(time);
-                osc.stop(time + 0.15);
-            } else if (type === 'gameover') {
+                osc.frequency.setValueAtTime(800 + (combo * 50), t); // Pitch goes up with combo
+                osc.frequency.exponentialRampToValueAtTime(1200 + (combo * 50), t + 0.1);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.1);
+                osc.start(t);
+                osc.stop(t + 0.1);
+            } else if (type === 'bomb') {
+                // Low noise crash
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, t);
+                osc.frequency.exponentialRampToValueAtTime(50, t + 0.4);
+                gain.gain.setValueAtTime(0.2, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+                osc.start(t);
+                osc.stop(t + 0.4);
+            } else if (type === 'lifeup') {
+                // Magical chime
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(300, time);
-                osc.frequency.linearRampToValueAtTime(50, time + 0.5);
-                gain.gain.setValueAtTime(0.2, time);
-                gain.gain.linearRampToValueAtTime(0, time + 0.5);
-                osc.start(time);
-                osc.stop(time + 0.5);
+                osc.frequency.setValueAtTime(400, t);
+                osc.frequency.linearRampToValueAtTime(800, t + 0.2);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.4);
+                osc.start(t);
+                osc.stop(t + 0.4);
+            } else if (type === 'miss') {
+                // Dull thud
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(200, t);
+                osc.frequency.linearRampToValueAtTime(100, t + 0.1);
+                gain.gain.setValueAtTime(0.05, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.1);
+                osc.start(t);
+                osc.stop(t + 0.1);
             }
             
             osc.connect(gain);
             gain.connect(audioCtx.destination);
         }
 
-        // --- LEADERBOARD LOGIC ---
-        function getScores() {
-            return JSON.parse(localStorage.getItem('coinCatcherScores')) || [];
-        }
+        // --- GAME LOGIC ---
 
-        function saveScore(newScore) {
-            let scores = getScores();
-            scores.push({ score: newScore, date: new Date().toLocaleDateString() });
-            scores.sort((a, b) => b.score - a.score); // Sort Descending
-            scores = scores.slice(0, 5); // Keep top 5
-            localStorage.setItem('coinCatcherScores', JSON.stringify(scores));
-            return scores[0].score === newScore; // Returns true if high score
-        }
-
-        function renderLeaderboard() {
-            const scores = getScores();
-            ui.leaderboardList.innerHTML = '';
-            if (scores.length === 0) {
-                ui.leaderboardList.innerHTML = '<div class="leader-row" style="justify-content:center;">No scores yet! 🥺</div>';
-                return;
-            }
-            scores.forEach((s, index) => {
-                const medals = ['🥇','🥈','🥉'];
-                const rank = medals[index] || `#${index + 1}`;
-                const row = document.createElement('div');
-                row.className = 'leader-row';
-                row.innerHTML = `<span>${rank} Player</span> <span>${s.score} 🪙</span>`;
-                ui.leaderboardList.appendChild(row);
-            });
-        }
-
-        // --- SCREEN NAVIGATION ---
-        function showScreen(name) {
-            Object.values(screens).forEach(el => el.classList.add('hidden'));
-            if (screens[name]) screens[name].classList.remove('hidden');
-        }
-
-        // --- GAME LOOP ---
-        function startGameSequence() {
-            initAudio();
-            gameState = 'LOADING';
-            showScreen('loading');
-            
-            let progress = 0;
-            const loadInterval = setInterval(() => {
-                progress += 5;
-                ui.loadingBar.style.width = `${progress}%`;
-                if (progress >= 100) {
-                    clearInterval(loadInterval);
-                    setTimeout(resetGame, 200);
-                }
-            }, 20);
-        }
-
-        function resetGame() {
+        function initGame() {
             score = 0;
-            ui.score.textContent = '0';
-            coins = [];
+            lives = 3;
+            combo = 0;
+            items = [];
             particles = [];
-            spawnTimer = 0;
-            difficultySpeed = 3;
-            spawnRate = 40;
-            basketX = (width - BASKET_WIDTH) / 2;
+            spawnRate = 60;
+            fallSpeedBase = 3.5; // Slightly faster start
+            gameFrame = 0;
             
-            showScreen('none'); // Hide all overlays
+            // Set initial position
+            const rect = ui.container.getBoundingClientRect();
+            targetX = (width - BASKET_WIDTH) / 2;
+            basketX = targetX;
+            mouseX = targetX + BASKET_WIDTH/2 + rect.left;
+
+            updateUI();
+            
+            screens.start.classList.add('hidden');
+            screens.gameover.classList.add('hidden');
+            
             gameState = 'PLAYING';
-            ui.pauseBtn.style.opacity = '1';
             loop();
         }
 
-        function togglePause() {
-            if (gameState === 'PLAYING') {
-                gameState = 'PAUSED';
-                showScreen('pause');
-                cancelAnimationFrame(gameLoopId);
-            } else if (gameState === 'PAUSED') {
-                gameState = 'PLAYING';
-                showScreen('none'); // Hide pause screen
-                loop();
+        function updateUI() {
+            ui.score.innerText = score;
+            // Draw hearts
+            let hStr = '';
+            for(let i=0; i<3; i++) {
+                hStr += i < lives ? '❤️' : '🖤';
+            }
+            ui.hearts.innerText = hStr;
+
+            // Combo
+            if(combo > 1) {
+                ui.comboPill.style.display = 'flex';
+                ui.comboVal.innerText = 'x' + combo;
+                ui.comboPill.style.transform = `scale(${1 + (combo*0.05)})`;
+            } else {
+                ui.comboPill.style.display = 'none';
             }
         }
 
-        function goHome() {
-            cancelAnimationFrame(gameLoopId);
-            gameState = 'START';
-            showScreen('start');
+        function spawnItem() {
+            const typeRoll = Math.random();
+            let type = 'coin';
+            let speed = fallSpeedBase;
+
+            // 1% Chance for Heart (if hurt)
+            if (lives < 3 && typeRoll > 0.98) {
+                type = 'heart';
+                speed = fallSpeedBase * 1.5; // Falls fast!
+            } 
+            // 30% Chance for Bomb
+            else if (typeRoll < 0.3) {
+                type = 'bomb';
+                speed = fallSpeedBase * 0.8; // Falls slower (tricky)
+            }
+            
+            const margin = 30;
+            const x = Math.random() * (width - margin*2) + margin;
+            
+            items.push({
+                x: x,
+                y: -30,
+                type: type,
+                speed: speed + (Math.random() * 1),
+                rot: 0,
+                rotSpeed: (Math.random() - 0.5) * 0.2
+            });
         }
 
-        // --- GAME UPDATE & DRAW ---
-        function drawBasket(x, y) {
-            // Kitty Basket Art
+        function createParticles(x, y, color, count = 5) {
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function createFloatingText(x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'combo-text';
+            el.innerText = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = color;
+            ui.container.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        function triggerShake() {
+            ui.card.classList.remove('shake');
+            void ui.card.offsetWidth; // trigger reflow
+            ui.card.classList.add('shake');
+        }
+
+        function takeDamage() {
+            if(gameState !== 'PLAYING') return;
+            lives--;
+            combo = 0;
+            playSound('bomb');
+            triggerShake();
+            updateUI();
+            
+            // Red flash
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+            ctx.fillRect(0,0,width,height);
+
+            if(lives <= 0) {
+                gameOver();
+            }
+        }
+
+        function gameOver() {
+            gameState = 'GAMEOVER';
+            ui.finalScore.innerText = score;
+            screens.gameover.classList.remove('hidden');
+            
+            // High Score Logic
+            const saved = localStorage.getItem('kittyHighScore') || 0;
+            if (score > saved) {
+                localStorage.setItem('kittyHighScore', score);
+                ui.highScoreTag.innerText = "✨ NEW HIGH SCORE! ✨";
+            } else {
+                ui.highScoreTag.innerText = "Best: " + saved;
+            }
+        }
+
+        // --- DRAWING ---
+
+        function drawBasket(x, y, targetX) {
             const w = BASKET_WIDTH;
             const h = BASKET_HEIGHT;
-            
-            // Handle
-            ctx.beginPath();
-            ctx.arc(x + w/2, y, w/2 - 10, Math.PI, 0);
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = '#d4a373';
-            ctx.stroke();
 
-            // Basket
-            ctx.fillStyle = '#fcd5ce'; 
-            ctx.beginPath();
-            ctx.roundRect(x, y, w, h, 10);
-            ctx.fill();
+            // Determine look direction based on closest item
+            let lookX = x + w/2;
+            let lowestY = -1000;
+            items.forEach(it => {
+                if (it.y > lowestY && it.y < y) {
+                    lowestY = it.y;
+                    lookX = it.x;
+                }
+            });
+            // Clamp look
+            const eyeOffset = Math.max(-8, Math.min(8, (lookX - (x + w/2)) / 5));
+
+            // Basket Body
+            ctx.fillStyle = '#fcd5ce';
             ctx.strokeStyle = '#e5989b';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
+            
+            // Handle (behind)
+            ctx.beginPath();
+            ctx.arc(x + w/2, y, w/2 - 5, Math.PI, 0);
             ctx.stroke();
 
-            // Face
-            ctx.fillStyle = '#6d597a';
+            // Main Box
             ctx.beginPath();
-            ctx.arc(x + 30, y + 20, 4, 0, Math.PI*2); // Eye L
-            ctx.arc(x + 70, y + 20, 4, 0, Math.PI*2); // Eye R
+            ctx.roundRect(x, y, w, h, 15);
             ctx.fill();
+            ctx.stroke();
+
+            // Kitty Face
+            ctx.fillStyle = '#6d597a'; // Dark purple
+            
+            // Eyes (Move with logic)
             ctx.beginPath();
-            ctx.arc(x + 50, y + 25, 3, 0, Math.PI); // Mouth
+            ctx.arc(x + 30 + eyeOffset, y + 20, 4, 0, Math.PI*2); // L
+            ctx.arc(x + 60 + eyeOffset, y + 20, 4, 0, Math.PI*2); // R
+            ctx.fill();
+
+            // Mouth
+            ctx.beginPath();
+            ctx.arc(x + 45 + eyeOffset, y + 26, 3, 0, Math.PI);
             ctx.stroke();
 
             // Ears
             ctx.fillStyle = '#fcd5ce';
             ctx.beginPath();
-            ctx.moveTo(x + 10, y); ctx.lineTo(x + 20, y - 15); ctx.lineTo(x + 30, y);
+            ctx.moveTo(x + 10, y); ctx.lineTo(x + 20, y - 15); ctx.lineTo(x + 35, y);
             ctx.fill(); ctx.stroke();
+            
             ctx.beginPath();
-            ctx.moveTo(x + 70, y); ctx.lineTo(x + 80, y - 15); ctx.lineTo(x + 90, y);
+            ctx.moveTo(x + w - 35, y); ctx.lineTo(x + w - 20, y - 15); ctx.lineTo(x + w - 10, y);
             ctx.fill(); ctx.stroke();
+            
+            // Paws (overlap rim)
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.ellipse(x + 20, y - 2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(x + w - 20, y - 2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
         }
 
-        function update() {
-            ctx.clearRect(0, 0, width, height);
-
-            // Cloud bg
-            ctx.font = '40px sans-serif';
-            ctx.globalAlpha = 0.5;
-            ctx.fillText('☁️', 30, 80);
-            ctx.fillText('☁️', width - 80, 150);
-            ctx.globalAlpha = 1.0;
-
-            spawnTimer++;
-            if (spawnTimer > spawnRate) {
-                const x = Math.random() * (width - COIN_SIZE * 2) + COIN_SIZE;
-                coins.push({ x, y: -50, speed: difficultySpeed + Math.random(), rot: 0 });
-                spawnTimer = 0;
-                if (spawnRate > 15) spawnRate -= 0.1;
-                difficultySpeed += 0.005;
+        function drawItem(item) {
+            ctx.save();
+            ctx.translate(item.x, item.y);
+            ctx.rotate(item.rot);
+            
+            if (item.type === 'coin') {
+                // Candy Coin
+                ctx.beginPath();
+                ctx.arc(0, 0, 16, 0, Math.PI*2);
+                ctx.fillStyle = '#ffcf56'; ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+                // Inner swirl
+                ctx.strokeStyle = '#eebb4d';
+                ctx.beginPath(); ctx.arc(0,0, 10, 0, Math.PI*1.5); ctx.stroke();
+                ctx.font = '16px Arial'; ctx.fillText('🍬', -9, 6);
+            } 
+            else if (item.type === 'bomb') {
+                // Bomb
+                ctx.fillStyle = '#333';
+                ctx.beginPath(); ctx.arc(0, 5, 14, 0, Math.PI*2); ctx.fill();
+                // Fuse
+                ctx.strokeStyle = '#555'; ctx.lineWidth=3;
+                ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(5, -18); ctx.stroke();
+                // Spark
+                ctx.fillStyle = '#f00';
+                ctx.beginPath(); ctx.arc(5, -18, (gameFrame%10)/2, 0, Math.PI*2); ctx.fill();
+                ctx.font = '16px Arial'; ctx.fillText('☠️', -8, 10);
             }
+            else if (item.type === 'heart') {
+                // Life up
+                ctx.shadowColor = '#fff'; ctx.shadowBlur = 10;
+                ctx.font = '30px Arial';
+                ctx.fillText('💖', -15, 10);
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.restore();
+        }
+
+        // --- MAIN LOOP ---
+
+        function loop() {
+            if (gameState !== 'PLAYING') return;
+
+            // 1. Clear & Background
+            ctx.clearRect(0, 0, width, height);
+            
+            // 2. Logic Updates
+            gameFrame++;
+            
+            // Increase Difficulty over time
+            if (gameFrame % 600 === 0) { // Every ~10 seconds
+                if(spawnRate > 20) spawnRate -= 5;
+                fallSpeedBase += 0.5;
+            }
+            
+            // Spawning
+            if (gameFrame % spawnRate === 0) {
+                spawnItem();
+            }
+
+            // Basket Movement (LERP for smoothness)
+            basketX += (targetX - basketX) * 0.15;
+            const basketY = height - BASKET_HEIGHT - 30;
 
             // Draw Basket
-            const basketY = height - BASKET_HEIGHT - 20;
-            drawBasket(basketX, basketY);
+            drawBasket(basketX, basketY, targetX);
 
-            // Particles
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
-                ctx.globalAlpha = p.life;
-                ctx.fillStyle = p.color;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
-                if (p.life <= 0) particles.splice(i, 1);
-            }
-            ctx.globalAlpha = 1.0;
+            // 3. Process Items
+            for (let i = items.length - 1; i >= 0; i--) {
+                let p = items[i];
+                p.y += p.speed;
+                p.rot += p.rotSpeed;
 
-            // Coins
-            for (let i = coins.length - 1; i >= 0; i--) {
-                let c = coins[i];
-                c.y += c.speed;
-                c.rot += 0.1;
+                drawItem(p);
 
-                // Draw Coin
-                ctx.save();
-                ctx.translate(c.x, c.y);
-                ctx.rotate(c.rot);
-                ctx.beginPath();
-                ctx.arc(0, 0, COIN_SIZE, 0, Math.PI*2);
-                ctx.fillStyle = '#ffd166'; ctx.fill();
-                ctx.lineWidth = 3; ctx.strokeStyle = '#f48c06'; ctx.stroke();
-                ctx.fillStyle = '#d00000'; ctx.font = '20px Arial';
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText('🍭', 0, 2);
-                ctx.restore();
-
-                // Collision
-                if (c.y + COIN_SIZE >= basketY + 10 && c.y - COIN_SIZE <= basketY + BASKET_HEIGHT && 
-                    c.x >= basketX && c.x <= basketX + BASKET_WIDTH) {
+                // Collision Detection (Circle vs Rect approx)
+                // Hitbox for basket top
+                if (p.y > basketY && p.y < basketY + 20 &&
+                    p.x > basketX && p.x < basketX + BASKET_WIDTH) {
                     
-                    score++;
-                    ui.score.textContent = score;
-                    playSound('catch');
-                    
-                    // Burst
-                    for(let k=0; k<8; k++) {
-                        particles.push({x: c.x, y: c.y, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, life: 1, color: '#ffd166'});
+                    // CAUGHT!
+                    if (p.type === 'coin') {
+                        score += (10 + combo * 2);
+                        combo++;
+                        playSound('coin');
+                        createParticles(p.x, p.y, '#ffcf56');
+                        createFloatingText(p.x, p.y, "+"+(10+combo*2), "#ff8fa3");
+                    } 
+                    else if (p.type === 'bomb') {
+                        takeDamage();
+                        createParticles(p.x, p.y, '#333');
+                        createFloatingText(p.x, p.y, "OUCH!", "#ff0000");
+                    }
+                    else if (p.type === 'heart') {
+                        if(lives < 3) lives++;
+                        score += 50;
+                        playSound('lifeup');
+                        createParticles(p.x, p.y, '#ff5d8f');
+                        createFloatingText(p.x, p.y, "HP UP!", "#ff5d8f");
                     }
                     
-                    coins.splice(i, 1);
+                    updateUI();
+                    items.splice(i, 1);
                     continue;
                 }
 
-                // Game Over
-                if (c.y > height) {
-                    playSound('gameover');
-                    gameState = 'GAMEOVER';
-                    ui.finalScore.textContent = score;
-                    
-                    const isHigh = saveScore(score);
-                    ui.newHighMsg.style.display = isHigh ? 'block' : 'none';
-                    
-                    showScreen('gameover');
-                    cancelAnimationFrame(gameLoopId);
-                    return;
+                // MISSED (Floor)
+                if (p.y > height) {
+                    if (p.type === 'coin') {
+                        // Penalty for missing a coin
+                        lives--;
+                        combo = 0;
+                        playSound('miss');
+                        updateUI();
+                        createFloatingText(p.x, height-50, "MISS!", "#6d597a");
+                        if(lives <= 0) {
+                            takeDamage(); // Trigger game over
+                            return; 
+                        }
+                    }
+                    items.splice(i, 1);
                 }
             }
-        }
 
-        function loop() {
-            if (gameState === 'PLAYING') {
-                update();
-                gameLoopId = requestAnimationFrame(loop);
+            // 4. Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let pt = particles[i];
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.life -= 0.05;
+                ctx.globalAlpha = pt.life;
+                ctx.fillStyle = pt.color;
+                ctx.beginPath(); ctx.arc(pt.x, pt.y, 4, 0, Math.PI*2); ctx.fill();
+                if (pt.life <= 0) particles.splice(i, 1);
             }
+            ctx.globalAlpha = 1.0;
+
+            requestAnimationFrame(loop);
         }
 
-        // --- INPUTS ---
-        function handleInput(clientX) {
-            if (gameState !== 'PLAYING') return;
-            const rect = container.getBoundingClientRect();
-            basketX = (clientX - rect.left) - (BASKET_WIDTH / 2);
-            if (basketX < 0) basketX = 0;
-            if (basketX > width - BASKET_WIDTH) basketX = width - BASKET_WIDTH;
+        // --- INPUT HANDLING ---
+        function setTarget(clientX) {
+            const rect = ui.container.getBoundingClientRect();
+            // Offset to center the basket on finger
+            let x = clientX - rect.left - (BASKET_WIDTH / 2);
+            // Clamp
+            if (x < 0) x = 0;
+            if (x > width - BASKET_WIDTH) x = width - BASKET_WIDTH;
+            targetX = x;
+            mouseX = clientX;
         }
 
-        container.addEventListener('mousemove', (e) => { if (e.buttons === 1) handleInput(e.clientX); });
-        container.addEventListener('mousedown', (e) => handleInput(e.clientX));
-        container.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(e.touches[0].clientX); }, {passive:false});
-        container.addEventListener('touchmove', (e) => { e.preventDefault(); handleInput(e.touches[0].clientX); }, {passive:false});
+        const container = document.getElementById('canvasContainer');
+        container.addEventListener('mousemove', (e) => setTarget(e.clientX));
+        container.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            setTarget(e.touches[0].clientX);
+        }, { passive: false });
+        container.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            setTarget(e.touches[0].clientX);
+        }, { passive: false });
 
-        // --- BUTTON EVENTS ---
-        
-        // Start Screen
-        document.getElementById('startBtn').onclick = startGameSequence;
-        document.getElementById('leaderboardBtn').onclick = () => {
-            renderLeaderboard();
-            showScreen('leaderboard');
-        };
-
-        // Leaderboard
-        document.getElementById('closeLeaderboardBtn').onclick = () => showScreen('start');
-
-        // HUD
-        ui.muteBtn.onclick = () => {
-            isMuted = !isMuted;
-            ui.muteBtn.textContent = isMuted ? '🔇' : '🔊';
-        };
-        ui.pauseBtn.onclick = togglePause;
-
-        // Pause Menu
-        document.getElementById('resumeBtn').onclick = togglePause;
-        document.getElementById('pauseRestartBtn').onclick = () => {
-             // Use loading sequence for restart
-             startGameSequence(); 
-        };
-        document.getElementById('homeBtn').onclick = goHome;
-
-        // Game Over
-        document.getElementById('restartBtn').onclick = startGameSequence;
-        document.getElementById('goHomeBtn').onclick = goHome;
+        // --- BUTTONS ---
+        document.getElementById('startBtn').onclick = initGame;
+        document.getElementById('restartBtn').onclick = initGame;
 
     </script>
 </body>
