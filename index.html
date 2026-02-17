@@ -189,7 +189,10 @@
         <h2>Choose a Hat! 🧢</h2>
         <div style="margin-bottom: 10px; color: var(--text);">Total Coins: <span id="bankDisplay">0</span></div>
         <div class="shop-grid" id="shopGrid">
-            </div>
+            <div class="shop-item selected">🚫</div>
+            <div class="shop-item">🎩</div>
+            <div class="shop-item">👑</div>
+        </div>
         <button class="btn-big" onclick="closeShop()">CLOSE</button>
     </div>
 
@@ -200,433 +203,288 @@
     </div>
 
     <div class="screen hidden" id="pauseScreen" style="background: rgba(255,255,255,0.6); backdrop-filter:blur(5px);">
-        <h2 style="font-size: 3rem; color: var(--text);">PAUSED</h2>
+        <h2 style="font-size: 3rem; color: var(--text); margin-bottom: 20px;">PAUSED</h2>
         <button class="btn-big" onclick="togglePause()">RESUME ▶</button>
-        <button class="btn-icon" onclick="goHome()" style="margin-top: 20px;">🏠</button>
+        <button class="btn-icon" onclick="goHome()" style="margin-top: 10px;">🏠</button>
     </div>
 
-    <div class="screen hidden" id="gameOverScreen">
-        <div style="font-size: 4rem;">😿</div>
-        <h2 style="color: var(--accent); font-size: 3rem;">GAME OVER</h2>
-        
-        <div style="background: #fff; padding: 20px; border-radius: 20px; width: 80%; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin: 20px 0;">
-            <div style="font-size: 1rem; color: #888;">SCORE</div>
-            <div style="font-size: 3rem; font-weight: 800; color: var(--text);" id="finalScore">0</div>
-            <div style="color: gold; margin-top: 5px;" id="newHighScoreTag"></div>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-icon" onclick="goHome()">🏠</button>
-            <button class="btn-big" onclick="restartGame()">RETRY ↺</button>
-        </div>
+    <div class="screen hidden" id="gameOverScreen" style="background: rgba(255,255,255,0.85); backdrop-filter:blur(5px);">
+        <h2 style="font-size: 3rem; color: #ff0000; margin-bottom: 10px;">OH NO! 🥒</h2>
+        <div style="font-size: 1.5rem; color: var(--text); margin-bottom: 20px;">Score: <span id="finalScore">0</span></div>
+        <button class="btn-big" onclick="startLoading()">RESTART 🔄</button>
+        <button class="btn-icon" onclick="goHome()" style="margin-top: 10px;">🏠</button>
     </div>
 
 </div>
 
 <script>
-    /**
-     * 🐱 DELUXE ENGINE
-     */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    
-    // --- STATE MANAGEMENT ---
-    const STATE = {
-        MENU: 0,
-        LOADING: 1,
-        PLAYING: 2,
-        PAUSED: 3,
-        GAMEOVER: 4,
-        SHOP: 5
-    };
-    let currentState = STATE.MENU;
+    const frame = document.getElementById('game-frame');
 
-    // --- GAME VARIABLES ---
+    // Game State
     let width, height;
-    let frame = 0;
+    let gameRunning = false;
+    let isPaused = false;
     let score = 0;
-    let bank = parseInt(localStorage.getItem('kittyBank')) || 0;
-    let highScore = parseInt(localStorage.getItem('kittyHighScore')) || 0;
-    let lives = 1; // It's addictive because it's hard! One mistake = over.
+    let highScore = localStorage.getItem('kittyHighScoreDeluxe') || 0;
     let fever = 0;
-    let isFever = false;
-    let magnetActive = 0;
+    let frameCount = 0;
+    let spawnRate = 50;
+    let baseSpeed = 4;
 
-    // --- ENTITIES ---
-    let player = { x: 0, y: 0, w: 70, h: 60, hat: localStorage.getItem('kittyHat') || 'none' };
+    document.getElementById('menuHighScore').innerText = highScore;
+
+    // Entities
+    let player = { x: 0, y: 0, w: 70, h: 60 };
     let items = [];
-    let particles = [];
     let mouseX = 0;
-    
-    // --- ASSETS (Emoji based) ---
-    const HATS = {
-        'none': { icon: '❌', price: 0 },
-        'bow': { icon: '🎀', price: 100 },
-        'crown': { icon: '👑', price: 500 },
-        'cool': { icon: '😎', price: 1000 },
-        'cowboy': { icon: '🤠', price: 2000 },
-        'astro': { icon: '👨‍🚀', price: 5000 }
-    };
-    let unlockedHats = JSON.parse(localStorage.getItem('kittyUnlocked')) || ['none'];
 
-    // --- SETUP ---
+    // Resize Canvas
     function resize() {
-        const rect = document.getElementById('game-frame').getBoundingClientRect();
+        const rect = frame.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = rect.height;
         width = canvas.width;
         height = canvas.height;
-        player.y = height - 100;
-        if(currentState === STATE.MENU) player.x = width/2;
+        player.y = height - 90;
+        if(!gameRunning) player.x = width / 2;
     }
     window.addEventListener('resize', resize);
     resize();
 
-    // --- INPUT ---
-    const frameEl = document.getElementById('game-frame');
-    function setInput(x) {
-        const rect = frameEl.getBoundingClientRect();
-        mouseX = x - rect.left;
-        if(mouseX < 0) mouseX = 0;
-        if(mouseX > width) mouseX = width;
+    // Input Handling
+    function handleInput(clientX) {
+        const rect = frame.getBoundingClientRect();
+        let tx = clientX - rect.left;
+        mouseX = Math.max(player.w/2, Math.min(width - player.w/2, tx));
     }
-    frameEl.addEventListener('mousemove', e => setInput(e.clientX));
-    frameEl.addEventListener('touchmove', e => { e.preventDefault(); setInput(e.touches[0].clientX); }, {passive:false});
+    frame.addEventListener('mousemove', e => handleInput(e.clientX));
+    frame.addEventListener('touchmove', e => { e.preventDefault(); handleInput(e.touches[0].clientX); }, {passive:false});
+    frame.addEventListener('touchstart', e => { handleInput(e.touches[0].clientX); }, {passive:false});
 
-    // --- AUDIO SYSTEM (Synthesizer) ---
-    const Audio = {
-        ctx: null,
-        mute: false,
-        init: function() {
-            if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        },
-        play: function(type) {
-            if(this.mute || !this.ctx) return;
-            if(this.ctx.state === 'suspended') this.ctx.resume();
-            
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            const t = this.ctx.currentTime;
-            
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-
-            if(type === 'coin') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(isFever ? 1200 : 880, t);
-                osc.frequency.exponentialRampToValueAtTime(1600, t+0.1);
-                gain.gain.setValueAtTime(0.1, t);
-                gain.gain.exponentialRampToValueAtTime(0.01, t+0.1);
-                osc.start(t); osc.stop(t+0.1);
-            } else if(type === 'hit') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, t);
-                osc.frequency.linearRampToValueAtTime(50, t+0.3);
-                gain.gain.setValueAtTime(0.2, t);
-                gain.gain.linearRampToValueAtTime(0, t+0.3);
-                osc.start(t); osc.stop(t+0.3);
-            } else if(type === 'fever') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(440, t);
-                osc.frequency.linearRampToValueAtTime(880, t+0.5);
-                gain.gain.setValueAtTime(0.05, t);
-                gain.gain.linearRampToValueAtTime(0, t+0.5);
-                osc.start(t); osc.stop(t+0.5);
-            }
-        }
-    };
-
-    // --- UI FUNCTIONS ---
-    function updateMenu() {
-        document.getElementById('menuHighScore').innerText = highScore;
-        document.getElementById('menuCat').innerText = player.hat !== 'none' ? HATS[player.hat].icon : '😺';
+    // --- UI LOGIC ---
+    function hideAllScreens() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     }
-    
+
     function startLoading() {
-        Audio.init();
-        document.getElementById('startScreen').classList.add('hidden');
+        hideAllScreens();
         document.getElementById('loadingScreen').classList.remove('hidden');
-        currentState = STATE.LOADING;
+        document.getElementById('gameUI').style.display = 'none';
         
-        // Fake loading time
-        setTimeout(() => {
-            document.getElementById('loadingScreen').classList.add('hidden');
-            initGame();
-        }, 1600);
+        // Reset old loading animation
+        const bar = document.querySelector('.loading-progress');
+        bar.style.animation = 'none';
+        bar.offsetHeight; /* trigger reflow */
+        bar.style.animation = null;
+
+        setTimeout(() => { startGame(); }, 1500);
     }
 
-    function initGame() {
+    function startGame() {
+        hideAllScreens();
+        document.getElementById('gameUI').style.display = 'flex';
+        
+        gameRunning = true;
+        isPaused = false;
         score = 0;
         fever = 0;
-        isFever = false;
+        frameCount = 0;
         items = [];
-        particles = [];
-        magnetActive = 0;
-        player.x = width/2;
-        mouseX = width/2;
+        spawnRate = 50;
+        baseSpeed = 4;
+        player.x = width / 2;
+        mouseX = width / 2;
         
-        document.getElementById('gameUI').style.display = 'block';
-        document.getElementById('scoreDisplay').innerText = '0';
-        document.getElementById('feverBar').style.width = '0%';
-        document.getElementById('feverContainer').classList.remove('fever-active');
-        
-        currentState = STATE.PLAYING;
-        loop();
-    }
-
-    function goHome() {
-        currentState = STATE.MENU;
-        document.getElementById('gameUI').style.display = 'none';
-        document.getElementById('pauseScreen').classList.add('hidden');
-        document.getElementById('gameOverScreen').classList.add('hidden');
-        document.getElementById('startScreen').classList.remove('hidden');
-        updateMenu();
+        updateUI();
+        requestAnimationFrame(gameLoop);
     }
 
     function togglePause() {
-        if(currentState === STATE.PLAYING) {
-            currentState = STATE.PAUSED;
+        if (!gameRunning) return;
+        isPaused = !isPaused;
+        if (isPaused) {
             document.getElementById('pauseScreen').classList.remove('hidden');
-        } else if (currentState === STATE.PAUSED) {
-            currentState = STATE.PLAYING;
-            document.getElementById('pauseScreen').classList.add('hidden');
-            loop();
-        }
-    }
-
-    function restartGame() {
-        document.getElementById('gameOverScreen').classList.add('hidden');
-        initGame();
-    }
-
-    function gameOver() {
-        currentState = STATE.GAMEOVER;
-        Audio.play('hit');
-        
-        // Update Bank
-        bank += score;
-        localStorage.setItem('kittyBank', bank);
-        
-        // Update High Score
-        if(score > highScore) {
-            highScore = score;
-            localStorage.setItem('kittyHighScore', highScore);
-            document.getElementById('newHighScoreTag').innerText = "NEW HIGH SCORE!";
         } else {
-            document.getElementById('newHighScoreTag').innerText = "";
+            document.getElementById('pauseScreen').classList.add('hidden');
+            requestAnimationFrame(gameLoop);
         }
-
-        document.getElementById('finalScore').innerText = score;
-        document.getElementById('gameOverScreen').classList.remove('hidden');
-        document.getElementById('gameUI').style.display = 'none';
     }
 
-    // --- SHOP LOGIC ---
+    function goHome() {
+        gameRunning = false;
+        isPaused = false;
+        hideAllScreens();
+        document.getElementById('gameUI').style.display = 'none';
+        document.getElementById('startScreen').classList.remove('hidden');
+    }
+
     function toggleShop() {
-        const shop = document.getElementById('shopScreen');
-        if(currentState === STATE.MENU) {
-            currentState = STATE.SHOP;
-            shop.classList.remove('hidden');
-            renderShop();
-        }
+        hideAllScreens();
+        document.getElementById('shopScreen').classList.remove('hidden');
     }
 
     function closeShop() {
-        document.getElementById('shopScreen').classList.add('hidden');
-        currentState = STATE.MENU;
-        updateMenu();
-    }
-
-    function renderShop() {
-        document.getElementById('bankDisplay').innerText = bank;
-        const grid = document.getElementById('shopGrid');
-        grid.innerHTML = '';
-        
-        for(const [key, data] of Object.entries(HATS)) {
-            const div = document.createElement('div');
-            const unlocked = unlockedHats.includes(key);
-            div.className = `shop-item ${player.hat === key ? 'selected' : ''} ${!unlocked ? 'locked' : ''}`;
-            div.innerText = data.icon;
-            
-            div.onclick = () => {
-                if(unlocked) {
-                    player.hat = key;
-                    localStorage.setItem('kittyHat', key);
-                    renderShop();
-                } else if(bank >= data.price) {
-                    bank -= data.price;
-                    unlockedHats.push(key);
-                    localStorage.setItem('kittyBank', bank);
-                    localStorage.setItem('kittyUnlocked', JSON.stringify(unlockedHats));
-                    player.hat = key; // Auto equip
-                    renderShop();
-                } else {
-                    div.style.animation = 'shake 0.3s'; // Cant afford
-                }
-            };
-            
-            if(!unlocked) {
-                const price = document.createElement('div');
-                price.style.fontSize = '10px';
-                price.style.position = 'absolute';
-                price.style.bottom = '2px';
-                price.innerText = '🪙' + data.price;
-                div.appendChild(price);
-                div.style.position = 'relative';
-            }
-            grid.appendChild(div);
-        }
+        hideAllScreens();
+        document.getElementById('startScreen').classList.remove('hidden');
     }
 
     function toggleMute() {
-        Audio.mute = !Audio.mute;
-        alert(Audio.mute ? "Sound Muted 🔇" : "Sound On 🔊");
+        // Placeholder for audio logic
+        alert("Audio toggled!");
     }
 
-    // --- GAME LOOP ---
+    function gameOver() {
+        gameRunning = false;
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('kittyHighScoreDeluxe', highScore);
+            document.getElementById('menuHighScore').innerText = highScore;
+        }
+        document.getElementById('finalScore').innerText = score;
+        document.getElementById('gameUI').style.display = 'none';
+        document.getElementById('gameOverScreen').classList.remove('hidden');
+    }
+
+    function updateUI() {
+        document.getElementById('scoreDisplay').innerText = score;
+        document.getElementById('feverBar').style.width = Math.min(fever, 100) + '%';
+        
+        if (fever >= 100) {
+            document.getElementById('feverBar').parentElement.classList.add('fever-active');
+            document.getElementById('feverText').innerText = "FEVER MODE!";
+        } else {
+            document.getElementById('feverBar').parentElement.classList.remove('fever-active');
+            document.getElementById('feverText').innerText = "";
+        }
+    }
+
+    // --- GAME LOGIC ---
     function spawnItem() {
         const r = Math.random();
         let type = 'coin';
-        if(r > 0.98) type = 'magnet';
-        else if(r > 0.95) type = 'bag'; // big points
-        else if(r < 0.25) type = 'bomb'; // cucumber
-        
+        if (r < 0.25) type = 'cucumber'; // 25% Enemy
+
         items.push({
             x: Math.random() * (width - 40) + 20,
-            y: -50,
+            y: -40,
             type: type,
-            speed: Math.random() * 2 + 3 + (score/1000) // gets faster
+            vy: baseSpeed + Math.random() * 2
         });
     }
 
-    function loop() {
-        if(currentState !== STATE.PLAYING) return;
-        
-        ctx.clearRect(0,0,width,height);
-        frame++;
-
-        // Spawn
-        let spawnRate = isFever ? 15 : 45;
-        if(frame % spawnRate === 0) spawnItem();
-
-        // Player Movement
-        player.x += (mouseX - player.x) * 0.15;
-
-        // Draw Player
+    function drawCat(x, y) {
         ctx.save();
-        ctx.translate(player.x, player.y);
-        
-        // Shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.1)';
-        ctx.beginPath(); ctx.ellipse(0, 30, 30, 10, 0, 0, Math.PI*2); ctx.fill();
+        ctx.translate(x, y);
 
-        // Cat Body
-        ctx.fillStyle = isFever ? `hsl(${frame%360}, 100%, 80%)` : '#fff';
-        ctx.beginPath(); ctx.ellipse(0, 0, 40, 35, 0, 0, Math.PI*2); ctx.fill();
+        // Bobbing animation
+        const bounce = Math.sin(frameCount * 0.1) * 3;
+        ctx.translate(0, bounce);
+
+        // Body
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.ellipse(0, 20, 45, 35, 0, 0, Math.PI*2);
+        ctx.fill();
         
         // Ears
-        ctx.beginPath(); ctx.moveTo(-30,-20); ctx.lineTo(-40,-45); ctx.lineTo(-10,-30); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(30,-20); ctx.lineTo(40,-45); ctx.lineTo(10,-30); ctx.fill();
-        
+        ctx.beginPath(); ctx.moveTo(-35, -5); ctx.lineTo(-45, -35); ctx.lineTo(-15, -10); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(35, -5); ctx.lineTo(45, -35); ctx.lineTo(15, -10); ctx.fill();
+
+        // Inner Ears
+        ctx.fillStyle = '#ffcfd2';
+        ctx.beginPath(); ctx.moveTo(-35, -5); ctx.lineTo(-42, -28); ctx.lineTo(-20, -10); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(35, -5); ctx.lineTo(42, -28); ctx.lineTo(20, -10); ctx.fill();
+
         // Face
         ctx.fillStyle = '#594a4e';
-        ctx.beginPath(); ctx.arc(-15, -5, 4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(15, -5, 4, 0, Math.PI*2); ctx.fill();
-        // Mouth
-        ctx.beginPath(); ctx.arc(0, 5, 5, 0, Math.PI); ctx.stroke();
-        
-        // Hat
-        if(player.hat !== 'none') {
-            ctx.font = '40px Fredoka';
-            ctx.textAlign = 'center';
-            ctx.fillText(HATS[player.hat].icon, 0, -35);
-        }
-        
-        // Magnet Visual
-        if(magnetActive > 0) {
-            ctx.strokeStyle = '#8ecae6';
-            ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(0,0, 60, 0, Math.PI*2); ctx.stroke();
-            magnetActive--;
+        ctx.beginPath(); ctx.arc(-20, -5, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(20, -5, 4, 0, Math.PI*2); ctx.fill();
+
+        // Mouth (changes if close to item)
+        ctx.strokeStyle = '#594a4e'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(-5, 8, 5, 0, Math.PI); ctx.stroke();
+        ctx.beginPath(); ctx.arc(5, 8, 5, 0, Math.PI); ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawItem(it) {
+        ctx.save();
+        ctx.translate(it.x, it.y);
+
+        if (it.type === 'coin') {
+            ctx.beginPath(); ctx.arc(0,0, 18, 0, Math.PI*2);
+            ctx.fillStyle = '#ffca3a'; ctx.fill();
+            ctx.lineWidth=3; ctx.strokeStyle='#fff'; ctx.stroke();
+            ctx.font='20px Fredoka'; ctx.fillStyle='#e85d04'; ctx.textAlign='center'; ctx.fillText('$',0,7);
+        } else if (it.type === 'cucumber') {
+            ctx.fillStyle = '#70e000';
+            ctx.beginPath(); ctx.roundRect(-10, -25, 20, 50, 10); ctx.fill();
+            ctx.strokeStyle = '#38b000'; ctx.lineWidth=2;
+            ctx.beginPath(); ctx.moveTo(-5, -15); ctx.lineTo(5, -10); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(5, 5); ctx.stroke();
         }
 
         ctx.restore();
+    }
 
-        // Items Logic
-        for(let i=items.length-1; i>=0; i--) {
+    function gameLoop() {
+        if (!gameRunning || isPaused) return;
+
+        frameCount++;
+        ctx.clearRect(0, 0, width, height);
+
+        // Difficulty scaling
+        if (frameCount % 500 === 0) { baseSpeed += 0.5; spawnRate = Math.max(20, spawnRate - 2); }
+        if (frameCount % spawnRate === 0) spawnItem();
+
+        // Player Movement
+        player.x += (mouseX - player.x) * 0.2;
+        drawCat(player.x, player.y);
+
+        // Handle Items
+        for (let i = items.length - 1; i >= 0; i--) {
             let it = items[i];
-            
-            // Magnet Effect
-            if(magnetActive > 0 && it.type !== 'bomb') {
-                it.x += (player.x - it.x) * 0.1;
-                it.y += (player.y - it.y) * 0.1;
-            } else {
-                it.y += it.speed;
-            }
-
-            // Draw Item
-            ctx.font = '30px Arial';
-            ctx.textAlign = 'center';
-            let icon = '🪙';
-            if(it.type === 'bomb') icon = '🥒';
-            if(it.type === 'magnet') icon = '🧲';
-            if(it.type === 'bag') icon = '💰';
-            ctx.fillText(icon, it.x, it.y);
+            it.y += it.vy;
+            drawItem(it);
 
             // Collision
             let dx = player.x - it.x;
-            let dy = player.y - it.y;
+            let dy = (player.y - 20) - it.y;
             let dist = Math.sqrt(dx*dx + dy*dy);
-            
-            if(dist < 50) {
-                if(it.type === 'bomb') {
-                    if(!isFever) { // Invincible during fever
-                        gameOver();
-                        return; 
-                    }
-                } else {
-                    // Collect
-                    Audio.play('coin');
-                    let pts = 10;
-                    if(it.type === 'bag') pts = 100;
-                    if(isFever) pts *= 2;
-                    
-                    score += pts;
-                    
-                    if(it.type === 'magnet') magnetActive = 300; // 5 secs
 
-                    // Fever Logic
-                    if(!isFever) {
-                        fever += 10;
-                        document.getElementById('feverBar').style.width = fever + '%';
-                        if(fever >= 100) {
-                            isFever = true;
-                            magnetActive = 600; // 10s magnet during fever
-                            Audio.play('fever');
-                            document.getElementById('feverContainer').classList.add('fever-active');
-                            document.getElementById('feverText').innerText = "FEVER MODE! x2 POINTS";
-                            setTimeout(() => {
-                                isFever = false;
-                                fever = 0;
-                                document.getElementById('feverContainer').classList.remove('fever-active');
-                                document.getElementById('feverText').innerText = "";
-                            }, 5000);
-                        }
-                    }
+            if (dist < 45) {
+                if (it.type === 'cucumber') {
+                    gameOver();
+                    return;
+                } else {
+                    // Coin Caught
+                    let points = fever >= 100 ? 20 : 10;
+                    score += points;
+                    if (fever < 100) fever += 5;
+                    updateUI();
                 }
                 items.splice(i, 1);
-            } else if (it.y > height + 20) {
+            } else if (it.y > height + 50) {
+                if (it.type === 'coin') {
+                    fever = 0; // Reset fever if you miss a coin
+                    updateUI();
+                }
                 items.splice(i, 1);
             }
         }
-        
-        document.getElementById('scoreDisplay').innerText = score;
-        requestAnimationFrame(loop);
+
+        // Fever drain over time if full
+        if (fever >= 100 && frameCount % 10 === 0) {
+            fever -= 2;
+            if (fever < 100) fever = 0; // End fever instantly
+            updateUI();
+        }
+
+        requestAnimationFrame(gameLoop);
     }
-
-    // Init Menu
-    updateMenu();
-
 </script>
 </body>
 </html>
