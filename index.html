@@ -2,846 +2,621 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Super Kitty Catch DX</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kitty Coin Catcher</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
 
         :root {
-            --primary: #ff5d8f;
-            --secondary: #6d597a;
-            --accent: #ffb703;
-            --bg-grad: linear-gradient(135deg, #ffd6e7 0%, #fff5e6 100%);
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+            --dark: #2f3542;
+            --light: #f7f1e3;
+            --gold: #ffa502;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Fredoka', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; font-family: 'Nunito', sans-serif; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background: #222;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: #2f3542;
             overflow: hidden;
-            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
-        /* --- MAIN CARD --- */
-        .game-card {
-            width: 100%; max-width: 480px; height: 100%; max-height: 900px;
-            background: var(--bg-grad);
-            position: relative; display: flex; flex-direction: column; 
-            overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            max-height: 900px;
+            background: linear-gradient(180deg, #a8e6cf 0%, #dcedc1 100%);
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         @media (min-width: 500px) {
-            .game-card { border-radius: 30px; height: 95vh; border: 4px solid #fff; }
+            #game-container { border-radius: 20px; height: 95vh; }
         }
+
+        canvas { display: block; width: 100%; height: 100%; cursor: none;}
 
         /* --- UI LAYERS --- */
         .ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 10;
-            display: flex; flex-direction: column; justify-content: space-between; padding: 15px;
+            pointer-events: none; /* Let clicks pass through to canvas when playing */
+            display: flex; flex-direction: column;
+            z-index: 10;
         }
 
-        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        
-        .score-pill {
-            background: rgba(255,255,255,0.9); padding: 8px 16px; border-radius: 30px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px;
-            font-size: 1.2rem; font-weight: 800; color: var(--secondary);
-            border: 2px solid #fff;
+        .hud {
+            display: flex; justify-content: space-between; padding: 15px;
+            font-weight: 900; color: white; text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            font-size: 1.2rem;
         }
 
-        .life-bar { display: flex; gap: 5px; font-size: 1.5rem; filter: drop-shadow(0 2px 0 rgba(0,0,0,0.1)); }
-
-        .fever-container {
-            position: absolute; top: 60px; left: 15px; right: 15px; height: 8px;
-            background: rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden;
-            display: none; /* Hidden until gameplay */
+        .combo-meter {
+            position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 20px;
+            color: var(--primary); font-weight: 900; font-size: 1.2rem;
+            opacity: 0; transition: 0.2s; box-shadow: 0 4px 0 rgba(0,0,0,0.1);
         }
-        .fever-fill {
-            height: 100%; width: 0%; background: linear-gradient(90deg, #ff9a00, #ff0000);
-            transition: width 0.1s linear; box-shadow: 0 0 10px #ff9a00;
-        }
-        .fever-active .fever-fill { animation: rainbow 0.5s linear infinite; }
-        @keyframes rainbow { 0%{filter:hue-rotate(0deg);} 100%{filter:hue-rotate(360deg);} }
+        .combo-active { opacity: 1; transform: translateX(-50%) scale(1.1); }
 
-        /* --- SCREENS --- */
-        .screen {
-            position: absolute; inset: 0; background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px); z-index: 20;
+        /* --- MENUS --- */
+        .menu-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: 0.3s; padding: 20px; pointer-events: auto;
+            z-index: 20; pointer-events: auto;
+            transition: opacity 0.3s;
         }
-        .hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        .hidden { opacity: 0; pointer-events: none; }
 
-        h1 { font-size: 3.5rem; line-height: 0.9; color: var(--primary); text-align: center; text-shadow: 3px 3px 0 #fff; margin-bottom: 20px; }
-        h2 { color: var(--secondary); margin-bottom: 10px; }
+        h1 { font-size: 3rem; line-height: 1; color: var(--primary); margin-bottom: 10px; text-align: center; text-shadow: 3px 3px 0 #ffeaa7; }
+        p { color: #57606f; margin-bottom: 20px; font-weight: 700; }
 
         .btn {
             background: var(--primary); color: white; border: none; padding: 15px 40px;
-            border-radius: 50px; font-size: 1.5rem; font-weight: 800; cursor: pointer;
-            box-shadow: 0 6px 0 #c9184a, 0 15px 20px rgba(255, 93, 143, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s; margin: 8px; width: 100%; max-width: 300px;
+            font-size: 1.5rem; font-weight: 900; border-radius: 50px;
+            margin: 10px; cursor: pointer;
+            box-shadow: 0 6px 0 #c0392b; transform: translateY(0);
+            transition: 0.1s;
+            width: 80%; max-width: 300px;
             position: relative; overflow: hidden;
         }
-        .btn:active { transform: translateY(6px); box-shadow: 0 0 0 #c9184a; }
-        .btn-secondary { background: #4cc9f0; box-shadow: 0 6px 0 #3a86ff; }
-        .btn-secondary:active { box-shadow: 0 0 0 #3a86ff; }
-        
-        .btn-small { padding: 10px 20px; font-size: 1rem; width: auto; display: inline-block; margin-top: 10px;}
+        .btn:active { transform: translateY(6px); box-shadow: 0 0 0 #c0392b; }
+        .btn-blue { background: var(--secondary); box-shadow: 0 6px 0 #22a6b3; }
+        .btn-blue:active { transform: translateY(6px); box-shadow: 0 0 0 #22a6b3; }
+        .btn-small { width: auto; font-size: 1rem; padding: 10px 20px; }
 
-        /* --- CANVAS --- */
-        canvas { display: block; width: 100%; height: 100%; cursor: none; }
-        
-        /* --- SHOP UI --- */
-        .shop-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
-            width: 100%; overflow-y: auto; padding: 10px; max-height: 60vh;
-            padding-bottom: 50px;
+        /* --- SHOP STYLES --- */
+        .shop-container {
+            width: 100%; flex: 1; overflow-y: auto; padding: 10px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            padding-bottom: 80px;
         }
-        
+        .shop-header {
+            width: 100%; padding: 15px; background: white; 
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); z-index: 5;
+        }
         .shop-item {
-            background: #fff; border-radius: 20px; padding: 15px; text-align: center;
-            border: 3px solid #eee; position: relative; transition: 0.2s;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            background: white; border-radius: 15px; padding: 15px;
+            display: flex; flex-direction: column; align-items: center;
+            border: 3px solid #f1f2f6; position: relative;
+            transition: 0.2s;
         }
-        .shop-item.owned { border-color: #bde0fe; background: #f0f9ff; }
-        .shop-item.equipped { border-color: var(--primary); background: #fff0f6; box-shadow: 0 0 15px rgba(255,93,143,0.3); }
-        .shop-item.locked { opacity: 0.6; filter: grayscale(1); }
-
-        .item-preview { width: 60px; height: 60px; margin-bottom: 5px; }
-        .price-tag { 
-            background: #eee; padding: 4px 10px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; color: #555;
+        .shop-item.owned { border-color: #a8e6cf; background: #f0fff4; }
+        .shop-item.equipped { border-color: var(--primary); background: #fff0f3; transform: scale(1.02); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .shop-item canvas { width: 60px; height: 60px; margin-bottom: 5px; cursor: pointer; }
+        
+        .price-tag {
+            background: #dfe4ea; color: #747d8c; padding: 5px 12px; border-radius: 10px;
+            font-weight: 800; font-size: 0.9rem; margin-top: 5px;
         }
-        .can-afford { background: #d1fae5; color: #065f46; }
-
-        .tabs { display: flex; width: 100%; gap: 10px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 10px; background: #eee; border:none; border-radius: 12px; font-weight:bold; color:#888; }
-        .tab.active { background: var(--secondary); color: white; }
+        .can-afford { background: var(--secondary); color: white; cursor: pointer; }
+        .is-owned { background: transparent; color: var(--secondary); border: 2px solid var(--secondary); }
 
         /* --- ANIMATIONS --- */
         @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
-        .shaking { animation: shake 0.5s; }
-
-        .flash { animation: flashRed 0.2s; }
-        @keyframes flashRed { 0% { background: rgba(255,0,0,0.5); } 100% { background: transparent; } }
+        .shaking { animation: shake 0.3s ease-in-out; }
+        
+        .floating-text {
+            position: absolute; font-weight: 900; animation: floatUp 0.8s forwards;
+            pointer-events: none; z-index: 15; text-shadow: 1px 1px 0 #fff;
+        }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity:1;} 100% { transform: translateY(-40px) scale(1.5); opacity:0;} }
 
     </style>
 </head>
 <body>
 
-<div class="game-card" id="gameCard">
+<div id="game-container">
     
     <div class="ui-layer">
-        <div class="hud-top">
-            <div class="score-pill">🪙 <span id="scoreDisplay">0</span></div>
-            <div class="life-bar" id="livesDisplay">❤️❤️❤️</div>
+        <div class="hud">
+            <div>⭐ <span id="score-display">0</span></div>
+            <div>❤️ <span id="lives-display">3</span></div>
         </div>
-        <div class="fever-container" id="feverBarContainer">
-            <div class="fever-fill" id="feverFill"></div>
-        </div>
-        <div style="text-align: center; color: rgba(0,0,0,0.3); margin-top: auto; font-size: 0.9rem;">
-            Slide to move • Catch Coins • Dodge Bombs
-        </div>
+        <div id="combo-meter" class="combo-meter">COMBO x1</div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="game-canvas"></canvas>
 
-    <div class="screen" id="startScreen">
-        <div style="font-size: 6rem; margin-bottom: 20px;">🐱</div>
-        <h1>KITTY<br>RUSH</h1>
-        <div class="score-pill" style="margin-bottom: 20px;">Best: <span id="highScoreDisplay">0</span></div>
-        <button class="btn" onclick="startGame()">PLAY</button>
-        <button class="btn btn-secondary" onclick="openShop()">SHOP 🛒</button>
+    <div id="start-screen" class="menu-screen">
+        <div style="font-size: 5rem; margin-bottom: 20px;">🐱</div>
+        <h1>KITTY COIN<br>CATCHER</h1>
+        <p>Catch coins! Don't drop them!</p>
+        <button class="btn" onclick="game.start()">PLAY NOW</button>
+        <button class="btn btn-blue" onclick="menus.openShop()">SHOP 🛒</button>
+        <p style="margin-top:20px; font-size: 0.9rem;">Best Score: <span id="high-score">0</span></p>
     </div>
 
-    <div class="screen hidden" id="shopScreen">
-        <div class="hud-top" style="width:100%; margin-bottom: 15px;">
-            <button class="btn-small" onclick="closeShop()" style="background:#ccc; box-shadow:0 4px 0 #999;">← Back</button>
-            <div class="score-pill">🪙 <span id="walletDisplay">0</span></div>
+    <div id="shop-screen" class="menu-screen hidden" style="justify-content: flex-start;">
+        <div class="shop-header">
+            <button class="btn btn-blue btn-small" onclick="menus.closeShop()">← Back</button>
+            <div style="font-weight: 900; color: var(--gold); font-size: 1.2rem;">💰 <span id="shop-coins">0</span></div>
         </div>
-        <h2>MARKETPLACE</h2>
         
-        <div class="tabs">
-            <button class="tab active" onclick="setTab('skins')" id="tabSkins">SKINS</button>
-            <button class="tab" onclick="setTab('upgrades')" id="tabUpgrades">UPGRADES</button>
-        </div>
-
-        <div class="shop-grid" id="shopGrid">
+        <div class="shop-container" id="shop-grid">
             </div>
     </div>
 
-    <div class="screen hidden" id="gameOverScreen">
-        <h1 style="font-size: 3rem; color: #ff0000;">CRASH!</h1>
-        <h2 style="font-size: 1.5rem;">Score</h2>
-        <div style="font-size: 4rem; font-weight: 800; color: var(--accent); text-shadow: 2px 2px 0 #000; margin-bottom: 20px;" id="finalScore">0</div>
-        
-        <div class="score-pill" style="margin-bottom: 20px;">Total Coins: <span id="totalCoinsOver">0</span></div>
-
-        <button class="btn" onclick="startGame()">RETRY 🔄</button>
-        <button class="btn btn-secondary" onclick="openShop()">SPEND COINS 🛒</button>
-        <button class="btn-small" onclick="location.reload()" style="background:transparent; color:#888; box-shadow:none; margin-top:20px;">Main Menu</button>
+    <div id="game-over-screen" class="menu-screen hidden">
+        <h1 style="color: var(--primary);">OUCH!</h1>
+        <p>Score: <span id="final-score" style="font-size: 2rem; color: var(--gold);">0</span></p>
+        <div style="background: #f1f2f6; padding: 10px 20px; border-radius: 15px; margin-bottom: 20px;">
+            Total Coins: <span id="total-coins">0</span>
+        </div>
+        <button class="btn" onclick="game.start()">TRY AGAIN</button>
+        <button class="btn btn-blue" onclick="menus.openShop()">SPEND COINS</button>
     </div>
 
 </div>
 
 <script>
 /**
- * SUPER KITTY RUSH
- * A high-octane canvas game by Gemini
+ * KITTY COIN CATCHER - ENGINE
  */
 
-// --- CONFIG & DB ---
+// --- CONFIGURATION & DATA ---
+const CONFIG = {
+    gravity: 0.15,
+    baseSpeed: 3,
+    spawnRate: 60,
+    width: 0, 
+    height: 0
+};
+
 const DB = {
     skins: [
-        { id: 'cat_orange', name: 'Tabby', type: 'Common', price: 0, color: '#ffaa5e' },
-        { id: 'cat_black', name: 'Void', type: 'Common', price: 250, color: '#333' },
-        { id: 'cat_white', name: 'Snow', type: 'Common', price: 500, color: '#fff' },
-        { id: 'cat_pink', name: 'Berry', type: 'Rare', price: 1000, color: '#ff70a6' },
-        { id: 'cat_blue', name: 'Slime', type: 'Rare', price: 1500, color: '#4cc9f0' },
-        { id: 'cat_gold', name: 'Midas', type: 'Legendary', price: 5000, color: '#ffd700' },
-        { id: 'cat_robo', name: 'Mecha', type: 'Legendary', price: 3000, color: '#adb5bd' },
-        { id: 'cat_ninja', name: 'Shinobi', type: 'Rare', price: 2000, color: '#343a40' },
-        { id: 'cat_alien', name: 'Gnarp', type: 'Rare', price: 2500, color: '#70e000' },
-        { id: 'cat_ghost', name: 'Spooky', type: 'Legendary', price: 4000, color: 'rgba(255,255,255,0.6)' },
-        { id: 'cat_burger', name: 'Borgir', type: 'Legendary', price: 6000, color: '#f4a261' },
-        { id: 'cat_king', name: 'Royal', type: 'Ultra', price: 10000, color: '#9d4edd' }
+        { id: 'cat_default', name: 'Classic', price: 0, type: 'skin', render: 'renderDefault' },
+        { id: 'cat_black', name: 'Midnight', price: 200, type: 'skin', render: 'renderBlack' },
+        { id: 'cat_blue', name: 'Alien', price: 500, type: 'skin', render: 'renderAlien' },
+        { id: 'cat_ninja', name: 'Ninja', price: 1000, type: 'skin', render: 'renderNinja' },
+        { id: 'cat_robo', name: 'Robo-C', price: 2500, type: 'skin', render: 'renderRobo' },
+        { id: 'cat_devil', name: 'Imp', price: 5000, type: 'skin', render: 'renderDevil' },
+        { id: 'cat_king', name: 'Royal', price: 10000, type: 'skin', render: 'renderKing' }
     ],
     upgrades: [
-        { id: 'magnet', name: 'Magnet Time', base: 500, inc: 1.5, max: 5 },
-        { id: 'shield', name: 'Shield Time', base: 600, inc: 1.5, max: 5 },
-        { id: 'luck', name: 'Luck (More Powerups)', base: 1000, inc: 2.0, max: 3 }
+        { id: 'upg_magnet', name: 'Magnet Duration', price: 500, type: 'upgrade' },
+        { id: 'upg_luck', name: 'Lucky Clover', price: 1000, type: 'upgrade' }
     ]
 };
 
-// --- STATE MANAGEMENT ---
-const STATE = {
+// --- SAVE SYSTEM ---
+let SAVE = {
     coins: 0,
     highScore: 0,
-    inventory: ['cat_orange'],
-    equipped: 'cat_orange',
-    levels: { magnet: 0, shield: 0, luck: 0 }
+    inventory: ['cat_default'],
+    equipped: 'cat_default',
+    upgrades: { upg_magnet: 0, upg_luck: 0 }
 };
 
-// Load Data
-const saveStr = localStorage.getItem('kittyRush_v2');
-if(saveStr) Object.assign(STATE, JSON.parse(saveStr));
+if(localStorage.getItem('kittyCoinSave')) {
+    SAVE = JSON.parse(localStorage.getItem('kittyCoinSave'));
+}
 
 function saveGame() {
-    localStorage.setItem('kittyRush_v2', JSON.stringify(STATE));
-    updateUI();
+    localStorage.setItem('kittyCoinSave', JSON.stringify(SAVE));
+    updateShopUI();
 }
 
-// --- ENGINE VARIABLES ---
-const canvas = document.getElementById('gameCanvas');
+// --- CANVAS SETUP ---
+const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
-let W, H;
-let frame = 0;
-let isPlaying = false;
-let score = 0;
-let lives = 3;
-let speedMult = 1;
-let fever = 0;
-let feverActive = false;
-let activeTab = 'skins';
+const container = document.getElementById('game-container');
 
-// Physics
-const player = { x: 0, y: 0, w: 80, h: 80, targetX: 0, skin: 'cat_orange' };
-let entities = [];
-let particles = [];
-let texts = [];
-
-// Powerups
-let magnetActive = 0;
-let shieldActive = 0;
-
-// --- INITIALIZATION ---
 function resize() {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-    W = rect.width;
-    H = rect.height;
-    player.y = H - 110;
-    if(!isPlaying) {
-        player.x = W/2 - player.w/2;
-        player.targetX = player.x;
-    }
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    CONFIG.width = rect.width;
+    CONFIG.height = rect.height;
 }
 window.addEventListener('resize', resize);
-setTimeout(resize, 100);
+resize();
 
-// --- GAME LOOP ---
-function startGame() {
-    document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('gameOverScreen').classList.add('hidden');
-    document.getElementById('feverBarContainer').style.display = 'block';
-    
-    // Reset Game State
-    isPlaying = true;
-    score = 0;
-    lives = 3;
-    frame = 0;
-    speedMult = 1;
-    fever = 0;
-    feverActive = false;
-    entities = [];
-    particles = [];
-    texts = [];
-    magnetActive = 0;
-    shieldActive = 0;
-    
-    player.skin = STATE.equipped;
-    player.targetX = W/2 - player.w/2;
-    player.x = player.targetX;
-    
-    updateUI();
-    loop();
+// --- AUDIO (Synthesized for no-assets requirement) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    if(type === 'coin') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.linearRampToValueAtTime(1200, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'hit') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+    } else if (type === 'buy') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.linearRampToValueAtTime(600, now + 0.2);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+    }
 }
 
+// --- GAME ENGINE ---
+const game = {
+    active: false,
+    frame: 0,
+    score: 0,
+    lives: 3,
+    combo: 1,
+    entities: [],
+    particles: [],
+    magnetTimer: 0,
+    
+    player: { x: 0, y: 0, w: 70, h: 50, targetX: 0 },
+
+    start: function() {
+        document.querySelectorAll('.menu-screen').forEach(el => el.classList.add('hidden'));
+        this.active = true;
+        this.score = 0;
+        this.lives = 3;
+        this.combo = 1;
+        this.frame = 0;
+        this.entities = [];
+        this.particles = [];
+        this.magnetTimer = 0;
+        
+        this.player.y = CONFIG.height - 100;
+        this.player.x = CONFIG.width / 2;
+        this.player.targetX = CONFIG.width / 2;
+
+        updateHUD();
+        loop();
+    },
+
+    over: function() {
+        this.active = false;
+        SAVE.coins += this.score;
+        if(this.score > SAVE.highScore) SAVE.highScore = this.score;
+        saveGame();
+        
+        document.getElementById('game-over-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = this.score;
+        document.getElementById('total-coins').innerText = SAVE.coins;
+    }
+};
+
+// --- INPUT HANDLING ---
+function handleInput(e) {
+    if(!game.active) return;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    game.player.targetX = clientX - rect.left;
+}
+canvas.addEventListener('mousemove', handleInput);
+canvas.addEventListener('touchmove', handleInput, {passive: false});
+canvas.addEventListener('touchstart', handleInput, {passive: false});
+
+// --- RENDERERS (THE SKINS) ---
+const SkinDrawer = {
+    baseCat: function(ctx, x, y, color, faceColor='#333') {
+        // Body
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.ellipse(x, y, 35, 25, 0, 0, Math.PI*2);
+        ctx.fill();
+        // Ears
+        ctx.beginPath(); ctx.moveTo(x-25, y-10); ctx.lineTo(x-35, y-35); ctx.lineTo(x-10, y-20); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(x+25, y-10); ctx.lineTo(x+35, y-35); ctx.lineTo(x+10, y-20); ctx.fill();
+        // Face
+        ctx.fillStyle = faceColor;
+        ctx.beginPath(); ctx.arc(x-12, y-5, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x+12, y-5, 3, 0, Math.PI*2); ctx.fill();
+        ctx.font = '10px Arial'; ctx.textAlign = 'center'; ctx.fillText('w', x, y+5);
+    },
+    renderDefault: function(ctx, x, y) { this.baseCat(ctx, x, y, '#ff9ff3'); },
+    renderBlack: function(ctx, x, y) { this.baseCat(ctx, x, y, '#2f3542', '#fff'); },
+    renderAlien: function(ctx, x, y) { 
+        this.baseCat(ctx, x, y, '#7bed9f'); 
+        ctx.fillStyle = '#7bed9f'; ctx.fillRect(x-2, y-40, 4, 20);
+        ctx.beginPath(); ctx.arc(x, y-40, 5, 0, Math.PI*2); ctx.fill();
+    },
+    renderNinja: function(ctx, x, y) {
+        this.baseCat(ctx, x, y, '#2f3542', '#fff');
+        ctx.fillStyle = '#ff4757'; ctx.fillRect(x-35, y-15, 70, 10); // Headband
+    },
+    renderRobo: function(ctx, x, y) {
+        ctx.fillStyle = '#a4b0be';
+        ctx.fillRect(x-35, y-25, 70, 50); // Box body
+        ctx.fillStyle = '#ff4757'; ctx.fillRect(x-30, y-15, 60, 10); // Visor
+    },
+    renderDevil: function(ctx, x, y) {
+        this.baseCat(ctx, x, y, '#ff4757', '#fff');
+        // Horns
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.moveTo(x-15, y-20); ctx.lineTo(x-20, y-40); ctx.lineTo(x-5, y-20); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(x+15, y-20); ctx.lineTo(x+20, y-40); ctx.lineTo(x+5, y-20); ctx.fill();
+    },
+    renderKing: function(ctx, x, y) {
+        this.baseCat(ctx, x, y, '#ffa502');
+        // Crown
+        ctx.fillStyle = 'gold';
+        ctx.beginPath(); ctx.moveTo(x-20, y-25); ctx.lineTo(x-20, y-45); ctx.lineTo(x-10, y-30); 
+        ctx.lineTo(x, y-50); ctx.lineTo(x+10, y-30); ctx.lineTo(x+20, y-45); ctx.lineTo(x+20, y-25); ctx.fill();
+    }
+};
+
+// --- MAIN LOOP ---
 function loop() {
-    if(!isPlaying) return;
-    
-    // Logic
-    frame++;
-    updatePlayer();
-    updateSpawner();
-    updateEntities();
-    updateParticles();
-    
-    // Difficulty Ramp
-    if(frame % 600 === 0) speedMult += 0.1; // Faster every 10s
-    
-    // Fever Decay
-    if(feverActive) {
-        fever -= 0.5;
-        if(fever <= 0) { feverActive = false; fever = 0; }
-    } else {
-        fever = Math.max(0, fever - 0.05);
-    }
-    document.getElementById('feverFill').style.width = fever + '%';
-    if(feverActive) document.getElementById('feverBarContainer').classList.add('fever-active');
-    else document.getElementById('feverBarContainer').classList.remove('fever-active');
+    if(!game.active) return;
 
-    // Render
-    draw();
+    // 1. Update State
+    game.frame++;
     
-    requestAnimationFrame(loop);
-}
+    // Smooth Player Movement
+    game.player.x += (game.player.targetX - game.player.x) * 0.2;
+    // Boundary clamp
+    if(game.player.x < 35) game.player.x = 35;
+    if(game.player.x > CONFIG.width - 35) game.player.x = CONFIG.width - 35;
 
-// --- LOGIC ---
-function updatePlayer() {
-    // Smooth movement
-    player.x += (player.targetX - player.x) * 0.2;
+    // Magnet Logic
+    if(game.magnetTimer > 0) game.magnetTimer--;
+
+    // Spawning (Difficulty Ramp)
+    const currentSpeed = CONFIG.baseSpeed + (game.frame / 1000);
+    const spawnRate = Math.max(20, CONFIG.spawnRate - Math.floor(game.frame / 500));
     
-    // Clamp
-    if(player.x < 0) player.x = 0;
-    if(player.x > W - player.w) player.x = W - player.w;
-
-    if(magnetActive > 0) magnetActive--;
-    if(shieldActive > 0) shieldActive--;
-}
-
-function updateSpawner() {
-    // Spawn rate increases with speed
-    const spawnRate = Math.max(15, Math.floor(40 / speedMult));
-    
-    if(frame % spawnRate === 0) {
-        const typeRoll = Math.random();
+    if(game.frame % spawnRate === 0) {
         let type = 'coin';
-        
-        // Luck Logic
-        const luckBonus = STATE.levels.luck * 0.02;
-        
-        if(lives < 3 && typeRoll > 0.98) type = 'heart';
-        else if(typeRoll > 0.95 - luckBonus) type = Math.random()>0.5 ? 'magnet' : 'shield';
-        else if(typeRoll < 0.2 + (speedMult * 0.05)) type = 'bomb'; // More bombs later
-        
-        // Pattern: Wall (Hard Mode)
-        if(speedMult > 1.3 && Math.random() < 0.05) {
-            spawnWall();
-            return;
-        }
+        let r = Math.random();
+        if(r > 0.98) type = 'magnet';
+        else if (r > 0.95) type = 'heart';
+        else if (r < 0.25) type = 'bomb'; // 25% bomb chance
 
-        const size = type === 'coin' ? 30 : 40;
-        entities.push({
-            x: Math.random() * (W - size),
+        game.entities.push({
+            x: Math.random() * (CONFIG.width - 40) + 20,
             y: -50,
-            w: size, h: size,
             type: type,
-            vy: (3 + Math.random() * 2) * speedMult,
-            rot: 0, vrot: (Math.random()-0.5) * 0.2
+            speed: type === 'coin' ? currentSpeed : currentSpeed * 1.2,
+            rot: 0,
+            rotSpeed: (Math.random() - 0.5) * 0.2
         });
     }
-}
 
-function spawnWall() {
-    const gap = Math.floor(Math.random() * 4); // 4 columns
-    const colW = W / 4;
-    for(let i=0; i<4; i++) {
-        if(i === gap) continue;
-        entities.push({
-            x: i * colW + colW/2 - 20,
-            y: -50,
-            w: 40, h: 40,
-            type: 'bomb',
-            vy: 4 * speedMult,
-            rot: 0, vrot: 0.1
-        });
-    }
-}
-
-function updateEntities() {
-    for(let i = entities.length - 1; i >= 0; i--) {
-        const e = entities[i];
-        
-        // Physics
-        if(e.type === 'coin' && magnetActive > 0) {
-            e.x += (player.x + player.w/2 - e.x) * 0.15;
-            e.y += (player.y + player.h/2 - e.y) * 0.15;
-        } else {
-            e.y += e.vy;
-        }
-        e.rot += e.vrot;
-
-        // Collision
-        if(rectIntersect(player.x + 10, player.y + 10, player.w - 20, player.h - 20, e.x, e.y, e.w, e.h)) {
-            handleCollect(e);
-            entities.splice(i, 1);
-            continue;
-        }
-
-        // Cleanup
-        if(e.y > H) entities.splice(i, 1);
-    }
-}
-
-function handleCollect(e) {
-    const cx = e.x + e.w/2;
-    const cy = e.y + e.h/2;
-
-    if(e.type === 'bomb') {
-        if(shieldActive > 0 || feverActive) {
-            spawnText("BLOCKED!", cx, cy, '#fff');
-            playSound(400, 'sawtooth', 0.1);
-        } else {
-            lives--;
-            document.getElementById('gameCard').classList.add('shaking');
-            document.getElementById('gameCard').classList.add('flash');
-            setTimeout(()=> document.getElementById('gameCard').classList.remove('shaking'), 500);
-            setTimeout(()=> document.getElementById('gameCard').classList.remove('flash'), 200);
-            spawnParticles(cx, cy, '#000', 10);
-            spawnText("-1 HP", cx, cy, '#ff0000');
-            playSound(100, 'sawtooth', 0.5);
-            fever = 0; // Lost momentum
-            
-            if(lives <= 0) gameOver();
-        }
-    } else if (e.type === 'coin') {
-        let val = 10;
-        if(feverActive) val *= 2;
-        score += val;
-        
-        // Build Fever
-        if(!feverActive) {
-            fever += 5;
-            if(fever >= 100) {
-                fever = 100;
-                feverActive = true;
-                spawnText("FEVER TIME!!", W/2, H/2, '#fff', 30);
-                playSound(600, 'square', 0.5);
-            }
-        }
-        
-        spawnText("+" + val, cx, cy, '#ffb703');
-        spawnParticles(cx, cy, '#ffb703', 5);
-        playSound(800 + (fever*5), 'sine', 0.1);
-    } else {
-        // Powerups
-        if(e.type === 'heart') { lives = Math.min(3, lives+1); spawnText("HP UP", cx, cy, '#ff5d8f'); }
-        if(e.type === 'magnet') { 
-            magnetActive = 300 + (STATE.levels.magnet * 60); 
-            spawnText("MAGNET", cx, cy, '#4cc9f0'); 
-        }
-        if(e.type === 'shield') { 
-            shieldActive = 300 + (STATE.levels.shield * 60); 
-            spawnText("SHIELD", cx, cy, '#ffd166'); 
-        }
-        playSound(600, 'square', 0.2);
-    }
-    updateUI();
-}
-
-function updateParticles() {
-    for(let i=particles.length-1; i>=0; i--) {
-        const p = particles[i];
-        p.x += p.vx; p.y += p.vy;
-        p.vy += 0.5; // Gravity
-        p.life -= 0.05;
-        if(p.life <= 0) particles.splice(i, 1);
-    }
-    for(let i=texts.length-1; i>=0; i--) {
-        const t = texts[i];
-        t.y -= 2; t.life -= 0.02;
-        if(t.life <= 0) texts.splice(i, 1);
-    }
-}
-
-// --- RENDERER ---
-function draw() {
-    // Clear
-    ctx.fillStyle = '#ffecf2';
-    // Draw Background Gradient
-    const grad = ctx.createLinearGradient(0,0,0,H);
-    grad.addColorStop(0, '#ffd6e7');
-    grad.addColorStop(1, '#fff5e6');
+    // 2. Clear Canvas
+    ctx.fillStyle = '#a8e6cf';
+    const grad = ctx.createLinearGradient(0,0,0,CONFIG.height);
+    grad.addColorStop(0, '#a8e6cf');
+    grad.addColorStop(1, '#dcedc1');
     ctx.fillStyle = grad;
-    ctx.fillRect(0,0,W,H);
+    ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
 
-    // Fever Overlay
-    if(feverActive) {
-        ctx.fillStyle = `rgba(255, 200, 0, 0.1)`;
-        ctx.fillRect(0,0,W,H);
-    }
+    // 3. Process Entities
+    for(let i = game.entities.length - 1; i >= 0; i--) {
+        let e = game.entities[i];
+        
+        // Move
+        if(e.type === 'coin' && game.magnetTimer > 0) {
+            e.x += (game.player.x - e.x) * 0.15;
+            e.y += (game.player.y - e.y) * 0.15;
+        } else {
+            e.y += e.speed;
+        }
+        e.rot += e.rotSpeed;
 
-    // Draw Entities
-    entities.forEach(e => {
+        // Draw Entity
         ctx.save();
-        ctx.translate(e.x + e.w/2, e.y + e.h/2);
+        ctx.translate(e.x, e.y);
         ctx.rotate(e.rot);
         
         if(e.type === 'coin') {
             ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2);
-            ctx.fillStyle = '#ffb703'; ctx.fill();
-            ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
-            ctx.fillText('$', 0, 1);
-        } else if (e.type === 'bomb') {
-            ctx.beginPath(); ctx.arc(0,2,16,0,Math.PI*2);
-            ctx.fillStyle = '#222'; ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.font = '20px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-            ctx.fillText('💀', 0, 0);
-            // Fuse
-            ctx.beginPath(); ctx.moveTo(0,-14); ctx.quadraticCurveTo(5,-20, 10, -18); 
-            ctx.strokeStyle='#444'; ctx.lineWidth=2; ctx.stroke();
-        } else {
-            // Powerups
-            const icon = e.type === 'heart' ? '💖' : e.type === 'magnet' ? '🧲' : '🛡️';
-            ctx.font = '30px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-            ctx.fillText(icon, 0, 0);
+            ctx.fillStyle = '#ffd32a'; ctx.fill();
+            ctx.lineWidth=2; ctx.strokeStyle='#fff'; ctx.stroke();
+            ctx.fillStyle='#fff'; ctx.font='16px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('$', 0, 1);
+        } else if(e.type === 'bomb') {
+            ctx.beginPath(); ctx.arc(0,2,15,0,Math.PI*2);
+            ctx.fillStyle = '#2f3542'; ctx.fill();
+            ctx.fillStyle='#ff4757'; ctx.font='20px Arial'; ctx.textAlign='center'; ctx.fillText('☠️',0,5);
+        } else if(e.type === 'magnet') {
+            ctx.font='30px Arial'; ctx.textAlign='center'; ctx.fillText('🧲',0,5);
+        } else if(e.type === 'heart') {
+            ctx.font='30px Arial'; ctx.textAlign='center'; ctx.fillText('💖',0,5);
         }
         ctx.restore();
-    });
 
-    // Draw Player
-    drawPlayerSkin(player.x, player.y, player.w, player.h, player.skin);
+        // Collision Check
+        const dy = e.y - game.player.y;
+        const dx = e.x - game.player.x;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if(dist < 40) {
+            // HIT!
+            if(e.type === 'coin') {
+                const points = 10 * game.combo;
+                game.score += points;
+                game.combo++;
+                spawnText(`+${points}`, e.x, e.y);
+                playSound('coin');
+            } else if (e.type === 'bomb') {
+                game.lives--;
+                game.combo = 1; // Reset combo punishment
+                container.classList.add('shaking');
+                setTimeout(()=>container.classList.remove('shaking'), 300);
+                spawnText('OUCH!', e.x, e.y, '#ff4757');
+                playSound('hit');
+                if(game.lives <= 0) { game.over(); return; }
+            } else if (e.type === 'magnet') {
+                game.magnetTimer = 500 + (SAVE.upgrades.upg_magnet * 100);
+                spawnText('MAGNET!', e.x, e.y, '#1e90ff');
+                playSound('coin');
+            } else if (e.type === 'heart') {
+                if(game.lives < 3) game.lives++;
+                spawnText('HEAL!', e.x, e.y, '#ff6b6b');
+                playSound('coin');
+            }
+            
+            updateHUD();
+            game.entities.splice(i, 1);
+        } 
+        // Missed Coin Check
+        else if (e.y > CONFIG.height) {
+            if(e.type === 'coin') {
+                if(game.combo > 1) spawnText('Combo Lost', e.x, CONFIG.height-50, '#57606f');
+                game.combo = 1;
+                updateHUD();
+            }
+            game.entities.splice(i, 1);
+        }
+    }
 
-    // Draw Particles
-    particles.forEach(p => {
+    // 4. Draw Player (Using Procedural Skin System)
+    const skinFunc = SkinDrawer[DB.skins.find(s=>s.id === SAVE.equipped).render];
+    if(skinFunc) skinFunc(ctx, game.player.x, game.player.y);
+
+    // Magnet Visual
+    if(game.magnetTimer > 0) {
+        ctx.beginPath(); ctx.arc(game.player.x, game.player.y, 50, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(30, 144, 255, ${Math.abs(Math.sin(game.frame/10))})`;
+        ctx.lineWidth = 3; ctx.stroke();
+    }
+
+    // 5. Draw UI FX (Floating Text)
+    ctx.font = 'bold 20px Nunito';
+    ctx.textAlign = 'center';
+    for(let i=game.particles.length-1; i>=0; i--) {
+        let p = game.particles[i];
+        p.y -= 2; p.life -= 0.02;
         ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
-        ctx.beginPath(); ctx.fillRect(p.x, p.y, p.size, p.size);
+        ctx.fillStyle = p.color || '#fff';
+        ctx.fillText(p.text, p.x, p.y);
         ctx.globalAlpha = 1;
-    });
+        if(p.life <= 0) game.particles.splice(i, 1);
+    }
 
-    // Draw Texts
-    texts.forEach(t => {
-        ctx.globalAlpha = t.life;
-        ctx.font = `800 ${t.size}px Fredoka`;
-        ctx.fillStyle = t.color;
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 4;
-        ctx.textAlign = 'center';
-        ctx.strokeText(t.str, t.x, t.y);
-        ctx.fillText(t.str, t.x, t.y);
-        ctx.globalAlpha = 1;
-    });
+    requestAnimationFrame(loop);
 }
 
-// --- SKIN RENDERER (The Magic) ---
-function drawPlayerSkin(x, y, w, h, skinId) {
-    const cx = x + w/2;
-    const cy = y + h/2;
-    const skin = DB.skins.find(s=>s.id === skinId) || DB.skins[0];
-    const color = skin.color;
+// --- UTILS & UI UPDATES ---
+function spawnText(text, x, y, color) {
+    game.particles.push({ text, x, y, life: 1.0, color });
+}
+
+function updateHUD() {
+    document.getElementById('score-display').innerText = game.score;
+    let hearts = '';
+    for(let i=0; i<game.lives; i++) hearts += '❤️';
+    document.getElementById('lives-display').innerText = hearts;
     
-    // Effects (Shield/Magnet)
-    if(magnetActive > 0) {
-        ctx.beginPath(); ctx.arc(cx, cy, w*0.8, 0, Math.PI*2);
-        ctx.strokeStyle = `rgba(76, 201, 240, ${(Math.sin(frame*0.2)+1)/2})`; ctx.lineWidth=3; ctx.stroke();
-    }
-    if(shieldActive > 0 || feverActive) {
-        ctx.beginPath(); ctx.arc(cx, cy, w*0.7, 0, Math.PI*2);
-        ctx.strokeStyle = '#ffd166'; ctx.lineWidth=3; ctx.stroke();
-    }
-
-    ctx.save();
-    ctx.translate(cx, cy);
-    
-    // Lean effect
-    const lean = (player.targetX - player.x) * 0.05;
-    ctx.rotate(lean * Math.PI/180);
-
-    // BASE SHAPES
-    if(skinId === 'cat_ghost') ctx.globalAlpha = 0.6;
-
-    // Body
-    ctx.fillStyle = color;
-    if(skinId === 'cat_robo' || skinId === 'cat_burger') {
-        ctx.beginPath(); ctx.roundRect(-w/2, -h/2 + 10, w, h-10, 10); ctx.fill();
-    } else if (skinId === 'cat_alien') {
-        ctx.beginPath(); ctx.ellipse(0, 5, w/2, h/2 - 5, 0, 0, Math.PI*2); ctx.fill();
+    const cm = document.getElementById('combo-meter');
+    if(game.combo > 1) {
+        cm.innerText = `COMBO x${game.combo}`;
+        cm.classList.add('combo-active');
+        cm.style.color = `hsl(${game.combo * 20}, 80%, 50%)`;
     } else {
-        // Standard Cat Shape
-        ctx.beginPath(); 
-        ctx.moveTo(-w/2 + 10, h/2); 
-        ctx.lineTo(-w/2, 0); 
-        ctx.quadraticCurveTo(-w/2, -h/2 + 15, 0, -h/2 + 15);
-        ctx.quadraticCurveTo(w/2, -h/2 + 15, w/2, 0);
-        ctx.lineTo(w/2 - 10, h/2);
-        ctx.fill();
-    }
-
-    // Ears
-    if(skinId !== 'cat_burger' && skinId !== 'cat_alien') {
-        ctx.fillStyle = color;
-        ctx.beginPath(); ctx.moveTo(-20, -h/2 + 20); ctx.lineTo(-35, -h/2 - 10); ctx.lineTo(-5, -h/2 + 15); ctx.fill(); // L
-        ctx.beginPath(); ctx.moveTo(20, -h/2 + 20); ctx.lineTo(35, -h/2 - 10); ctx.lineTo(5, -h/2 + 15); ctx.fill(); // R
-    } else if (skinId === 'cat_alien') {
-        // Antenna
-        ctx.strokeStyle = color; ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.moveTo(0, -h/2 + 10); ctx.lineTo(0, -h/2 - 15); ctx.stroke();
-        ctx.fillStyle = '#ccff33'; ctx.beginPath(); ctx.arc(0, -h/2 - 15, 6, 0, Math.PI*2); ctx.fill();
-    }
-
-    // Face
-    ctx.fillStyle = (skinId === 'cat_black' || skinId === 'cat_ninja') ? '#fff' : '#333';
-    
-    if(skinId === 'cat_robo') {
-        // Robo Visor
-        ctx.fillStyle = '#000'; ctx.fillRect(-25, -10, 50, 15);
-        ctx.fillStyle = '#ff0000'; ctx.fillRect(-10 + Math.sin(frame*0.2)*10, -5, 20, 5);
-    } else if (skinId === 'cat_ninja') {
-        // Mask
-        ctx.fillStyle = '#222'; ctx.fillRect(-w/2, 0, w, 40);
-        // Eyes
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(-15, -5, 5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(15, -5, 5, 0, Math.PI*2); ctx.fill();
-    } else if (skinId === 'cat_king') {
-        // Crown
-        ctx.fillStyle = '#ffcc00';
-        ctx.beginPath(); ctx.moveTo(-25, -30); ctx.lineTo(-15, -50); ctx.lineTo(0, -30); ctx.lineTo(15, -50); ctx.lineTo(25, -30); ctx.lineTo(25, -20); ctx.lineTo(-25, -20); ctx.fill();
-        // Standard Face
-        ctx.fillStyle = '#333';
-        ctx.beginPath(); ctx.arc(-15, 0, 4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(15, 0, 4, 0, Math.PI*2); ctx.fill();
-    } else {
-        // Standard Eyes
-        ctx.beginPath(); ctx.arc(-15, 0, 4, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(15, 0, 4, 0, Math.PI*2); ctx.fill();
-        ctx.font = '10px Arial'; ctx.textAlign='center'; ctx.fillText('w', 0, 10);
-    }
-
-    // Accessories
-    if(skinId === 'cat_burger') {
-        ctx.fillStyle = '#6f4e37'; ctx.fillRect(-w/2, -5, w, 8); // Patty
-        ctx.fillStyle = '#90be6d'; ctx.fillRect(-w/2, 3, w, 5); // Lettuce
-        ctx.fillStyle = '#f4a261'; ctx.beginPath(); ctx.arc(0, -h/2+10, w/2, Math.PI, 0); ctx.fill(); // Bun Top
-    }
-
-    ctx.restore();
-    ctx.globalAlpha = 1;
-}
-
-
-// --- UTILS ---
-function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
-    return x2 < x1 + w1 && x2 + w2 > x1 && y2 < y1 + h1 && y2 + h2 > y1;
-}
-
-function spawnParticles(x, y, color, count) {
-    for(let i=0; i<count; i++) {
-        particles.push({
-            x: x, y: y,
-            vx: (Math.random()-0.5)*10,
-            vy: (Math.random()-0.5)*10,
-            life: 1, size: Math.random()*6+2, color: color
-        });
+        cm.classList.remove('combo-active');
     }
 }
 
-function spawnText(str, x, y, color, size=20) {
-    texts.push({ str, x, y, color, size, life: 1.0 });
-}
+// --- MENUS & SHOP SYSTEM ---
+const menus = {
+    openShop: function() {
+        document.getElementById('shop-screen').classList.remove('hidden');
+        updateShopUI();
+    },
+    closeShop: function() {
+        document.getElementById('shop-screen').classList.add('hidden');
+        saveGame();
+    }
+};
 
-function gameOver() {
-    isPlaying = false;
-    STATE.coins += score;
-    if(score > STATE.highScore) STATE.highScore = score;
-    saveGame();
-    
-    document.getElementById('finalScore').innerText = score;
-    document.getElementById('totalCoinsOver').innerText = STATE.coins;
-    document.getElementById('gameOverScreen').classList.remove('hidden');
-    document.getElementById('feverBarContainer').style.display = 'none';
-}
-
-function updateUI() {
-    document.getElementById('scoreDisplay').innerText = score;
-    document.getElementById('walletDisplay').innerText = STATE.coins;
-    document.getElementById('highScoreDisplay').innerText = STATE.highScore;
-    
-    let hStr = '';
-    for(let i=0; i<3; i++) hStr += i<lives ? '❤️' : '🖤';
-    document.getElementById('livesDisplay').innerText = hStr;
-}
-
-// --- INPUT ---
-function handleInput(e) {
-    if(!isPlaying) return;
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const scaleX = canvas.width / rect.width / (window.devicePixelRatio || 1); 
-    
-    let pos = (clientX - rect.left);
-    player.targetX = pos - player.w/2;
-}
-canvas.addEventListener('mousemove', handleInput);
-canvas.addEventListener('touchmove', (e)=>{ e.preventDefault(); handleInput(e); }, {passive:false});
-canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); handleInput(e); }, {passive:false});
-
-// --- AUDIO (Synthesized) ---
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(freq, type, dur) {
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + dur);
-}
-
-// --- SHOP LOGIC ---
-function openShop() {
-    document.getElementById('shopScreen').classList.remove('hidden');
-    setTab(activeTab);
-}
-function closeShop() {
-    document.getElementById('shopScreen').classList.add('hidden');
-    player.skin = STATE.equipped; // Update preview if game runs
-}
-
-function setTab(tab) {
-    activeTab = tab;
-    document.getElementById('tabSkins').className = tab === 'skins' ? 'tab active' : 'tab';
-    document.getElementById('tabUpgrades').className = tab === 'upgrades' ? 'tab active' : 'tab';
-    renderShop();
-}
-
-function renderShop() {
-    const grid = document.getElementById('shopGrid');
+function updateShopUI() {
+    document.getElementById('shop-coins').innerText = SAVE.coins;
+    document.getElementById('high-score').innerText = SAVE.highScore;
+    const grid = document.getElementById('shop-grid');
     grid.innerHTML = '';
-    
-    if(activeTab === 'skins') {
-        DB.skins.forEach(item => {
-            const owned = STATE.inventory.includes(item.id);
-            const equipped = STATE.equipped === item.id;
-            const canAfford = STATE.coins >= item.price;
-            
-            const div = document.createElement('div');
-            div.className = `shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''} ${!owned && !canAfford ? 'locked' : ''}`;
-            
-            // Draw Mini Preview
-            const cvs = document.createElement('canvas');
-            cvs.width=60; cvs.height=60; 
-            const c = cvs.getContext('2d');
-            
-            // Hacky mini-render context
-            const oldCtx = ctx; 
-            // We can't easily swap context for the main draw function, so we make a simple icon
-            c.fillStyle = item.color; c.beginPath(); c.arc(30,30,25,0,Math.PI*2); c.fill();
-            c.fillStyle = '#000'; c.fillText(item.name[0], 25, 35);
 
-            div.innerHTML = `
-                <div style="font-size:2rem;margin-bottom:5px;">🐱</div>
-                <div style="font-weight:bold; font-size:0.9rem; color:#555">${item.name}</div>
-                <div style="font-size:0.7rem; color:#888; margin-bottom:5px;">${item.type}</div>
-            `;
-            
-            const btn = document.createElement('div');
-            if(equipped) {
-                btn.className = 'price-tag'; btn.style.background = '#ff5d8f'; btn.style.color='white'; btn.innerText = 'EQUIPPED';
-            } else if (owned) {
-                btn.className = 'price-tag'; btn.innerText = 'EQUIP';
-                div.onclick = () => { STATE.equipped = item.id; saveGame(); renderShop(); playSound(400,'sine',0.1); };
-            } else {
-                btn.className = `price-tag ${canAfford ? 'can-afford' : ''}`;
-                btn.innerText = '🪙 ' + item.price;
-                if(canAfford) div.onclick = () => {
-                    STATE.coins -= item.price;
-                    STATE.inventory.push(item.id);
-                    STATE.equipped = item.id;
-                    saveGame(); renderShop(); playSound(600,'triangle',0.2);
+    // Render Skins
+    DB.skins.forEach(item => {
+        const owned = SAVE.inventory.includes(item.id);
+        const equipped = SAVE.equipped === item.id;
+        
+        const el = document.createElement('div');
+        el.className = `shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
+        
+        // Mini Canvas for Preview
+        const c = document.createElement('canvas');
+        c.width = 100; c.height = 100;
+        const cx = c.getContext('2d');
+        // Hacky preview render
+        SkinDrawer[item.render](cx, 50, 60);
+        
+        el.appendChild(c);
+        el.innerHTML += `<div>${item.name}</div>`;
+        
+        const btn = document.createElement('div');
+        if(equipped) {
+            btn.className = 'price-tag can-afford';
+            btn.innerText = 'EQUIPPED';
+        } else if (owned) {
+            btn.className = 'price-tag is-owned';
+            btn.innerText = 'EQUIP';
+            btn.onclick = () => { SAVE.equipped = item.id; updateShopUI(); playSound('buy'); };
+        } else {
+            const afford = SAVE.coins >= item.price;
+            btn.className = `price-tag ${afford ? 'can-afford' : ''}`;
+            btn.innerText = `🪙 ${item.price}`;
+            if(afford) {
+                btn.onclick = () => {
+                    SAVE.coins -= item.price;
+                    SAVE.inventory.push(item.id);
+                    SAVE.equipped = item.id;
+                    updateShopUI();
+                    playSound('buy');
                 };
             }
-            div.appendChild(btn);
-            grid.appendChild(div);
-        });
-    } else {
-        DB.upgrades.forEach(upg => {
-            const lvl = STATE.levels[upg.id];
-            const price = Math.floor(upg.base * Math.pow(upg.inc, lvl));
-            const isMax = lvl >= upg.max;
-            const canAfford = !isMax && STATE.coins >= price;
-            
-            const div = document.createElement('div');
-            div.className = `shop-item ${isMax ? 'locked' : ''}`;
-            div.innerHTML = `
-                <div style="font-size:2rem;">⬆️</div>
-                <div style="font-weight:bold; color:#555">${upg.name}</div>
-                <div style="color:var(--primary); font-weight:800;">Lvl ${lvl} / ${upg.max}</div>
-            `;
-            
-            const btn = document.createElement('div');
-            if(isMax) {
-                btn.className = 'price-tag'; btn.innerText = 'MAXED';
-            } else {
-                btn.className = `price-tag ${canAfford ? 'can-afford' : ''}`;
-                btn.innerText = '🪙 ' + price;
-                if(canAfford) div.onclick = () => {
-                    STATE.coins -= price;
-                    STATE.levels[upg.id]++;
-                    saveGame(); renderShop(); playSound(600,'triangle',0.2);
-                };
-            }
-            div.appendChild(btn);
-            grid.appendChild(div);
-        });
-    }
+        }
+        el.appendChild(btn);
+        grid.appendChild(el);
+    });
 }
-
-// Initial Save Check
-if(!localStorage.getItem('kittyRush_v2')) saveGame();
 
 </script>
 </body>
