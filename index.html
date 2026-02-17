@@ -3,31 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kitty Coin Catcher💣</title>
+    <title>Kitty Coin Catcher</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;800&display=swap');
 
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Fredoka', cursive, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Fredoka', sans-serif; }
 
         body {
-            background: #ffecf2;
-            background-image: 
-                radial-gradient(circle at 10% 20%, #fff0f6 10%, transparent 20%),
-                radial-gradient(circle at 90% 80%, #e3f2fd 15%, transparent 25%),
-                linear-gradient(135deg, #ffd6e7 0%, #fff5e6 100%);
+            background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fad0c4, #a18cd1);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
 
-        /* --- MAIN CARD --- */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- GAME CONTAINER --- */
         .game-card {
-            width: 100%; max-width: 500px; height: 95vh; max-height: 850px;
-            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px);
-            border-radius: 40px;
-            box-shadow: 0 20px 40px rgba(255, 182, 193, 0.4), inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+            width: 100%; max-width: 500px; height: 100vh; max-height: 900px;
+            background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(20px);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1), inset 0 0 0 2px rgba(255, 255, 255, 0.5);
             position: relative; display: flex; flex-direction: column; padding: 15px; overflow: hidden;
         }
 
@@ -35,69 +36,92 @@
         .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 40px; transition: opacity 0.3s ease, transform 0.3s ease;
-            z-index: 20; pointer-events: auto;
+            border-radius: 30px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 20; padding: 20px;
         }
-        .hidden { opacity: 0; pointer-events: none; transform: scale(0.95); z-index: 0; }
+        .hidden { opacity: 0; pointer-events: none; transform: scale(0.8) translateY(20px); z-index: 0; }
 
-        /* START SCREEN */
-        .start-screen { background: rgba(255, 255, 255, 0.6); z-index: 30; }
-        .game-title { font-size: 3.8rem; color: #ff8fa3; text-shadow: 4px 4px 0px #fff, 6px 6px 0px #ffc2d1; text-align: center; line-height: 1; margin-bottom: 10px; }
-        .game-desc { color: #6d597a; margin-bottom: 30px; text-align: center; background: #fff; padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        /* --- START SCREEN --- */
+        .start-screen { background: rgba(255,255,255,0.8); }
+        .title-box { text-align: center; margin-bottom: 30px; animation: float 3s ease-in-out infinite; }
+        .game-title { 
+            font-size: 3.5rem; color: #ff6b6b; line-height: 0.9; 
+            text-shadow: 3px 3px 0 #fff, 5px 5px 0 rgba(0,0,0,0.1); 
+            transform: rotate(-3deg);
+        }
+        .tagline { background: #ffe66d; color: #555; padding: 5px 15px; border-radius: 20px; font-weight: 600; margin-top: 10px; display: inline-block; transform: rotate(2deg); }
 
-        /* GAME OVER */
-        .game-over-overlay { background: rgba(255, 235, 238, 0.95); z-index: 45; }
+        /* --- CLOSET (UNLOCKABLES) --- */
+        .closet-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            background: #fff; padding: 15px; border-radius: 20px; margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); width: 100%;
+        }
+        .hat-item {
+            aspect-ratio: 1; border: 2px solid #eee; border-radius: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; transition: 0.2s;
+        }
+        .hat-item.locked { background: #f5f5f5; opacity: 0.7; filter: grayscale(1); }
+        .hat-item.unlocked { background: #e0f7fa; border-color: #4dd0e1; }
+        .hat-item.equipped { background: #ffeba1; border-color: #ffca28; transform: scale(1.05); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+        .hat-icon { font-size: 2rem; }
+        .lock-req { font-size: 0.7rem; color: #999; margin-top: 5px; font-weight: 800; }
 
         /* --- BUTTONS --- */
-        .btn-cute {
-            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3); border: none; padding: 15px 45px;
-            border-radius: 50px; font-size: 1.8rem; color: white; font-weight: 700; cursor: pointer;
-            box-shadow: 0 6px 0 #e06c85, 0 10px 20px rgba(255, 143, 163, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s; margin: 5px; width: fit-content;
+        .btn-main {
+            background: #ff6b6b; color: white; border: none; padding: 18px 50px;
+            border-radius: 50px; font-size: 1.5rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 8px 0 #d64545, 0 15px 20px rgba(214, 69, 69, 0.4);
+            transition: 0.1s; position: relative; overflow: hidden; width: 100%; max-width: 300px;
         }
-        .btn-cute:active { transform: translateY(6px); box-shadow: 0 0 0 #e06c85; }
-        .btn-secondary { background: linear-gradient(to bottom, #bde0fe, #a2d2ff); box-shadow: 0 6px 0 #89c2fa; font-size: 1.4rem; padding: 12px 30px; }
-        .btn-secondary:active { box-shadow: 0 0 0 #89c2fa; }
+        .btn-main:active { transform: translateY(8px); box-shadow: 0 0 0 #d64545; }
+        .btn-main::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: rgba(255,255,255,0.2); transform: rotate(45deg); animation: shine 3s infinite;
+        }
 
         /* --- HUD --- */
-        .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; position: relative; z-index: 15; }
-        
-        .stats-box { display: flex; gap: 10px; }
-        
-        .pill {
-            background: #fff; padding: 8px 16px; border-radius: 30px; color: #6d597a; font-weight: 700;
-            box-shadow: 0 4px 0 #ffe0e9; display: flex; align-items: center; gap: 8px; font-size: 1.2rem;
+        .hud { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; position: relative; z-index: 10; }
+        .score-pill { 
+            background: #fff; padding: 8px 20px; border-radius: 30px; font-size: 1.4rem; font-weight: 800; 
+            color: #ff6b6b; box-shadow: 0 4px 0 #eee; border: 2px solid #fff;
         }
-        
-        .hearts-container { color: #ff5d8f; letter-spacing: 2px; font-size: 1.4rem; }
+        .life-bar { display: flex; gap: 5px; }
+        .heart { font-size: 1.5rem; animation: pulse 1s infinite; }
+        .heart.lost { filter: grayscale(1) brightness(1.5); animation: none; opacity: 0.5; }
 
         /* --- CANVAS --- */
         .canvas-container {
-            flex: 1; width: 100%; background: linear-gradient(180deg, #e0f7fa 0%, #fff3e0 100%);
-            border-radius: 25px; border: 6px solid #fff; box-shadow: inset 0 5px 10px rgba(0,0,0,0.05);
-            position: relative; overflow: hidden; touch-action: none; cursor: none; /* Hide default cursor */
+            flex: 1; width: 100%; border-radius: 25px; 
+            background: rgba(255,255,255,0.6); 
+            border: 4px solid #fff; box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+            position: relative; overflow: hidden; cursor: none; touch-action: none;
         }
-        
-        /* Shake Animation Class */
-        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake { 
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-            40%, 60% { transform: translate3d(6px, 0, 0); }
-        }
-
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* Floating Combo Text */
-        .combo-text {
-            position: absolute; pointer-events: none; font-weight: 800;
-            text-shadow: 2px 2px 0 #fff; animation: floatUp 0.8s forwards;
-            z-index: 10;
+        /* --- ANIMATIONS --- */
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes shine { 0% { transform: translateX(-100%) rotate(45deg); } 20%, 100% { transform: translateX(100%) rotate(45deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        
+        /* Shake Effect */
+        .shake-screen { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+
+        /* Floating Text */
+        .float-text {
+            position: absolute; font-weight: 900; pointer-events: none; z-index: 15;
+            text-shadow: 2px 2px 0 #fff; animation: floatUpFade 0.8s forwards;
         }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
+        @keyframes floatUpFade { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 20% { transform: translateY(-10px) scale(1.2); opacity: 1; } 100% { transform: translateY(-50px) scale(1); opacity: 0; } }
+
+        /* Freeze Overlay */
+        .freeze-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(135, 206, 250, 0.3); pointer-events: none;
+            border: 10px solid #87cefa; border-radius: 25px;
+            display: none; z-index: 5; mix-blend-mode: multiply;
         }
     </style>
 </head>
@@ -106,535 +130,479 @@
     <div class="game-card" id="gameCard">
         
         <div class="hud">
-            <div class="stats-box">
-                <div class="pill">
-                    <span>🪙</span> <span id="scoreVal">0</span>
-                </div>
-                <div class="pill hearts-container" id="heartsDisplay">
-                    ❤️❤️❤️
-                </div>
-            </div>
-            <div class="pill" id="comboPill" style="display:none; color:#ff9f1c;">
-                🔥 <span id="comboVal">x1</span>
+            <div class="score-pill">🪙 <span id="scoreVal">0</span></div>
+            <div class="life-bar" id="livesContainer">
+                <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
             </div>
         </div>
 
         <div class="canvas-container" id="canvasContainer">
             <canvas id="gameCanvas"></canvas>
+            <div class="freeze-overlay" id="freezeOverlay"></div>
         </div>
-        <div class="footer-hint" style="text-align:center; color:#b0aac0; margin-top:8px; font-size: 0.9rem;">
-            👆 Drag to move! Avoid the bombs! 💣
+        <div style="text-align:center; color:#fff; font-size:0.8rem; margin-top:5px; font-weight:600; text-shadow:1px 1px 0 rgba(0,0,0,0.2);">
+            ⚠️ AVOID ICE CUBES & BOMBS!
         </div>
 
         <div class="screen start-screen" id="startScreen">
-            <div style="font-size: 4rem; margin-bottom: 10px;">🐱🧺</div>
-            <div class="game-title">KITTY<br>CATCHER<br>DX</div>
-            <div class="game-desc">
-                Catch candies 🍬<br>
-                Dodge bombs 💣<br>
-                Don't drop the coins!
+            <div class="title-box">
+                <div class="game-title">SUPER<br>KITTY</div>
+                <div class="tagline">Ultimate Edition</div>
             </div>
-            <button class="btn-cute" id="startBtn">PLAY ▶</button>
+
+            <div style="align-self: flex-start; width:100%; margin-bottom:5px; font-weight:bold; color:#555;">🐱 Dress Up (High Score: <span id="highScoreVal">0</span>)</div>
+            <div class="closet-grid" id="closetGrid">
+                </div>
+
+            <button class="btn-main" id="startBtn">PLAY ▶</button>
         </div>
 
-        <div class="screen game-over-overlay hidden" id="gameOverScreen">
-            <h2 style="color:#ff5d8f; font-size: 3rem; margin-bottom: 10px;">Ouch! 🤕</h2>
-            <div style="color: #6d597a; font-size: 1.2rem;">Final Score</div>
-            <div style="font-size: 5rem; color: #ff8fa3; text-shadow: 3px 3px 0 #fff; font-weight:800;" id="finalScore">0</div>
-            <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:20px; font-size: 1.2rem;"></div>
-            <button class="btn-cute" id="restartBtn">Try Again 🔄</button>
+        <div class="screen hidden" id="gameOverScreen" style="background: rgba(255, 240, 245, 0.95);">
+            <div style="font-size: 4rem;">😿</div>
+            <h2 style="color:#ff6b6b; font-size: 2.5rem; margin-bottom: 5px;">GAME OVER</h2>
+            <p style="color:#888; margin-bottom: 20px;">You dropped a coin (or blew up)!</p>
+            
+            <div style="background:#fff; padding:15px 30px; border-radius:20px; text-align:center; margin-bottom:20px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+                <div style="font-size:0.9rem; color:#aaa; text-transform:uppercase; letter-spacing:1px;">Final Score</div>
+                <div style="font-size:3rem; font-weight:800; color:#ff6b6b;" id="finalScore">0</div>
+            </div>
+
+            <div id="unlockMsg" style="color:#4dd0e1; font-weight:800; margin-bottom:15px; display:none;">✨ NEW HAT UNLOCKED! ✨</div>
+
+            <button class="btn-main" id="restartBtn" style="background: #4ecdc4; box-shadow: 0 8px 0 #3b9e96;">TRY AGAIN 🔄</button>
+            <button id="menuBtn" style="background:none; border:none; margin-top:15px; color:#999; font-weight:600; cursor:pointer;">🏠 Back to Menu</button>
         </div>
 
     </div>
 
     <script>
         /**
-         * 🐱 KITTY CATCHER DX - ENHANCED LOGIC
+         * 🐱 SUPER KITTY ENGINE
          */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
         
-        // --- DOM ELEMENTS ---
-        const screens = {
-            start: document.getElementById('startScreen'),
-            gameover: document.getElementById('gameOverScreen'),
-        };
-        const ui = {
-            score: document.getElementById('scoreVal'),
-            finalScore: document.getElementById('finalScore'),
-            hearts: document.getElementById('heartsDisplay'),
-            comboPill: document.getElementById('comboPill'),
-            comboVal: document.getElementById('comboVal'),
-            highScoreTag: document.getElementById('highScoreTag'),
-            card: document.getElementById('gameCard'),
-            container: document.getElementById('canvasContainer')
+        // --- CONFIG & STATE ---
+        const CONSTANTS = {
+            BASKET_W: 90, BASKET_H: 55,
+            GRAVITY: 0.15,
+            BASE_SPEED: 3.5,
+            MAX_LIVES: 3
         };
 
-        // --- GAME CONSTANTS ---
-        const BASKET_WIDTH = 90;
-        const BASKET_HEIGHT = 50;
-        const ITEM_SIZE = 24;
-        
-        // --- STATE ---
+        const HATS = [
+            { id: 'none', icon: '❌', score: 0 },
+            { id: 'bow', icon: '🎀', score: 100 },
+            { id: 'plant', icon: '🌱', score: 300 },
+            { id: 'crown', icon: '👑', score: 600 },
+            { id: 'propeller', icon: '🚁', score: 1000 },
+            { id: 'alien', icon: '👽', score: 2000 }
+        ];
+
+        let state = {
+            screen: 'START', // START, PLAY, OVER
+            score: 0,
+            highScore: localStorage.getItem('kitty_highscore') || 0,
+            lives: 3,
+            items: [],
+            particles: [],
+            frame: 0,
+            basketX: 0,
+            targetX: 0,
+            equippedHat: localStorage.getItem('kitty_hat') || 'none',
+            isFrozen: false,
+            freezeTimer: 0,
+            combo: 0,
+            difficultyMod: 1
+        };
+
         let width, height;
-        let gameState = 'START';
-        let score = 0;
-        let lives = 3;
-        let combo = 0;
-        
-        // Physics & Movement
-        let mouseX = 0;
-        let basketX = 0; // Current position
-        let targetX = 0; // Target position (mouse)
-        
-        // Game Speed Logic
-        let gameFrame = 0;
-        let spawnRate = 50;
-        let fallSpeedBase = 3;
-        
-        // Entities
-        let items = []; // Coins, Bombs, Powerups
-        let particles = [];
-        
-        // Audio Context
-        let audioCtx;
-        let isMuted = false;
+        let rect;
 
-        // --- RESIZE ---
-        function resize() {
-            const rect = ui.container.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            width = canvas.width;
-            height = canvas.height;
-            // Center basket initially
-            if(gameState === 'START') {
-                targetX = (width - BASKET_WIDTH) / 2;
-                basketX = targetX;
-            }
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        // --- AUDIO ENGINE (Synth) ---
-        function playSound(type) {
-            if (isMuted) return;
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // --- AUDIO SYSTEM (Synthesized) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTone(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             const t = audioCtx.currentTime;
 
             if (type === 'coin') {
-                // High pitch ping
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(800 + (combo * 50), t); // Pitch goes up with combo
-                osc.frequency.exponentialRampToValueAtTime(1200 + (combo * 50), t + 0.1);
+                osc.frequency.setValueAtTime(900 + (state.combo * 50), t);
+                osc.frequency.exponentialRampToValueAtTime(1400, t + 0.1);
                 gain.gain.setValueAtTime(0.1, t);
-                gain.gain.linearRampToValueAtTime(0, t + 0.1);
-                osc.start(t);
-                osc.stop(t + 0.1);
-            } else if (type === 'bomb') {
-                // Low noise crash
+                gain.gain.linearRampToValueAtTime(0, t + 0.15);
+                osc.start(t); osc.stop(t + 0.2);
+            } else if (type === 'hit') {
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(150, t);
-                osc.frequency.exponentialRampToValueAtTime(50, t + 0.4);
+                osc.frequency.exponentialRampToValueAtTime(50, t + 0.3);
                 gain.gain.setValueAtTime(0.2, t);
-                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
-                osc.start(t);
-                osc.stop(t + 0.4);
-            } else if (type === 'lifeup') {
-                // Magical chime
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(400, t);
-                osc.frequency.linearRampToValueAtTime(800, t + 0.2);
+                gain.gain.linearRampToValueAtTime(0, t + 0.3);
+                osc.start(t); osc.stop(t + 0.3);
+            } else if (type === 'freeze') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(600, t);
+                osc.frequency.linearRampToValueAtTime(200, t + 0.4);
                 gain.gain.setValueAtTime(0.1, t);
                 gain.gain.linearRampToValueAtTime(0, t + 0.4);
-                osc.start(t);
-                osc.stop(t + 0.4);
-            } else if (type === 'miss') {
-                // Dull thud
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(200, t);
-                osc.frequency.linearRampToValueAtTime(100, t + 0.1);
-                gain.gain.setValueAtTime(0.05, t);
-                gain.gain.linearRampToValueAtTime(0, t + 0.1);
-                osc.start(t);
-                osc.stop(t + 0.1);
+                osc.start(t); osc.stop(t + 0.4);
             }
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
         }
 
-        // --- GAME LOGIC ---
+        // --- SETUP & RESIZE ---
+        function resize() {
+            rect = document.getElementById('canvasContainer').getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            width = canvas.width;
+            height = canvas.height;
+            if(state.screen === 'START') {
+                state.basketX = (width - CONSTANTS.BASKET_W)/2;
+                state.targetX = state.basketX;
+            }
+        }
+        window.addEventListener('resize', resize);
+        
+        // --- CLOSET LOGIC ---
+        function renderCloset() {
+            const grid = document.getElementById('closetGrid');
+            grid.innerHTML = '';
+            document.getElementById('highScoreVal').innerText = state.highScore;
 
-        function initGame() {
-            score = 0;
-            lives = 3;
-            combo = 0;
-            items = [];
-            particles = [];
-            spawnRate = 60;
-            fallSpeedBase = 3.5; // Slightly faster start
-            gameFrame = 0;
-            
-            // Set initial position
-            const rect = ui.container.getBoundingClientRect();
-            targetX = (width - BASKET_WIDTH) / 2;
-            basketX = targetX;
-            mouseX = targetX + BASKET_WIDTH/2 + rect.left;
+            HATS.forEach(hat => {
+                const el = document.createElement('div');
+                const isUnlocked = state.highScore >= hat.score;
+                const isEquipped = state.equippedHat === hat.id;
+                
+                el.className = `hat-item ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'equipped' : ''}`;
+                el.innerHTML = `
+                    <div class="hat-icon">${hat.icon}</div>
+                    ${!isUnlocked ? `<div class="lock-req">${hat.score}pts</div>` : ''}
+                `;
+                
+                if(isUnlocked) {
+                    el.onclick = () => {
+                        state.equippedHat = hat.id;
+                        localStorage.setItem('kitty_hat', hat.id);
+                        renderCloset();
+                    };
+                }
+                grid.appendChild(el);
+            });
+        }
 
-            updateUI();
+        // --- GAME LOOP ---
+        function startGame() {
+            state.score = 0;
+            state.lives = 3;
+            state.items = [];
+            state.particles = [];
+            state.frame = 0;
+            state.combo = 0;
+            state.isFrozen = false;
+            state.difficultyMod = 1;
             
-            screens.start.classList.add('hidden');
-            screens.gameover.classList.add('hidden');
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            updateLivesUI();
             
-            gameState = 'PLAYING';
+            state.screen = 'PLAY';
             loop();
         }
 
-        function updateUI() {
-            ui.score.innerText = score;
-            // Draw hearts
-            let hStr = '';
-            for(let i=0; i<3; i++) {
-                hStr += i < lives ? '❤️' : '🖤';
-            }
-            ui.hearts.innerText = hStr;
-
-            // Combo
-            if(combo > 1) {
-                ui.comboPill.style.display = 'flex';
-                ui.comboVal.innerText = 'x' + combo;
-                ui.comboPill.style.transform = `scale(${1 + (combo*0.05)})`;
-            } else {
-                ui.comboPill.style.display = 'none';
-            }
-        }
-
         function spawnItem() {
-            const typeRoll = Math.random();
+            // Difficulty curve
+            const currentSpeed = CONSTANTS.BASE_SPEED * state.difficultyMod;
+            
             let type = 'coin';
-            let speed = fallSpeedBase;
+            const roll = Math.random();
 
-            // 1% Chance for Heart (if hurt)
-            if (lives < 3 && typeRoll > 0.98) {
-                type = 'heart';
-                speed = fallSpeedBase * 1.5; // Falls fast!
-            } 
-            // 30% Chance for Bomb
-            else if (typeRoll < 0.3) {
-                type = 'bomb';
-                speed = fallSpeedBase * 0.8; // Falls slower (tricky)
-            }
-            
-            const margin = 30;
-            const x = Math.random() * (width - margin*2) + margin;
-            
-            items.push({
-                x: x,
-                y: -30,
-                type: type,
-                speed: speed + (Math.random() * 1),
-                rot: 0,
-                rotSpeed: (Math.random() - 0.5) * 0.2
+            if (roll < 0.02) type = 'goldfish'; // Rare (2%)
+            else if (roll < 0.15) type = 'ice'; // Freeze (13%)
+            else if (roll < 0.35) type = 'bomb'; // Bomb (20%)
+            else if (roll < 0.37 && state.lives < 3) type = 'heart'; // Heal (rare)
+
+            const size = type === 'goldfish' ? 30 : 24;
+            const x = Math.random() * (width - size*2) + size;
+
+            state.items.push({
+                x, y: -40,
+                type,
+                speed: (type === 'goldfish' ? currentSpeed * 1.5 : currentSpeed) + Math.random(),
+                rot: 0, rotSpeed: (Math.random()-0.5)*0.2,
+                size
             });
         }
-
-        function createParticles(x, y, color, count = 5) {
-            for(let i=0; i<count; i++) {
-                particles.push({
-                    x: x, y: y,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: (Math.random() - 0.5) * 8,
-                    life: 1.0,
-                    color: color
-                });
-            }
-        }
-
-        function createFloatingText(x, y, text, color) {
-            const el = document.createElement('div');
-            el.className = 'combo-text';
-            el.innerText = text;
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-            el.style.color = color;
-            ui.container.appendChild(el);
-            setTimeout(() => el.remove(), 800);
-        }
-
-        function triggerShake() {
-            ui.card.classList.remove('shake');
-            void ui.card.offsetWidth; // trigger reflow
-            ui.card.classList.add('shake');
-        }
-
-        function takeDamage() {
-            if(gameState !== 'PLAYING') return;
-            lives--;
-            combo = 0;
-            playSound('bomb');
-            triggerShake();
-            updateUI();
-            
-            // Red flash
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-            ctx.fillRect(0,0,width,height);
-
-            if(lives <= 0) {
-                gameOver();
-            }
-        }
-
-        function gameOver() {
-            gameState = 'GAMEOVER';
-            ui.finalScore.innerText = score;
-            screens.gameover.classList.remove('hidden');
-            
-            // High Score Logic
-            const saved = localStorage.getItem('kittyHighScore') || 0;
-            if (score > saved) {
-                localStorage.setItem('kittyHighScore', score);
-                ui.highScoreTag.innerText = "✨ NEW HIGH SCORE! ✨";
-            } else {
-                ui.highScoreTag.innerText = "Best: " + saved;
-            }
-        }
-
-        // --- DRAWING ---
-
-        function drawBasket(x, y, targetX) {
-            const w = BASKET_WIDTH;
-            const h = BASKET_HEIGHT;
-
-            // Determine look direction based on closest item
-            let lookX = x + w/2;
-            let lowestY = -1000;
-            items.forEach(it => {
-                if (it.y > lowestY && it.y < y) {
-                    lowestY = it.y;
-                    lookX = it.x;
-                }
-            });
-            // Clamp look
-            const eyeOffset = Math.max(-8, Math.min(8, (lookX - (x + w/2)) / 5));
-
-            // Basket Body
-            ctx.fillStyle = '#fcd5ce';
-            ctx.strokeStyle = '#e5989b';
-            ctx.lineWidth = 3;
-            
-            // Handle (behind)
-            ctx.beginPath();
-            ctx.arc(x + w/2, y, w/2 - 5, Math.PI, 0);
-            ctx.stroke();
-
-            // Main Box
-            ctx.beginPath();
-            ctx.roundRect(x, y, w, h, 15);
-            ctx.fill();
-            ctx.stroke();
-
-            // Kitty Face
-            ctx.fillStyle = '#6d597a'; // Dark purple
-            
-            // Eyes (Move with logic)
-            ctx.beginPath();
-            ctx.arc(x + 30 + eyeOffset, y + 20, 4, 0, Math.PI*2); // L
-            ctx.arc(x + 60 + eyeOffset, y + 20, 4, 0, Math.PI*2); // R
-            ctx.fill();
-
-            // Mouth
-            ctx.beginPath();
-            ctx.arc(x + 45 + eyeOffset, y + 26, 3, 0, Math.PI);
-            ctx.stroke();
-
-            // Ears
-            ctx.fillStyle = '#fcd5ce';
-            ctx.beginPath();
-            ctx.moveTo(x + 10, y); ctx.lineTo(x + 20, y - 15); ctx.lineTo(x + 35, y);
-            ctx.fill(); ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(x + w - 35, y); ctx.lineTo(x + w - 20, y - 15); ctx.lineTo(x + w - 10, y);
-            ctx.fill(); ctx.stroke();
-            
-            // Paws (overlap rim)
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.ellipse(x + 20, y - 2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(x + w - 20, y - 2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
-        }
-
-        function drawItem(item) {
-            ctx.save();
-            ctx.translate(item.x, item.y);
-            ctx.rotate(item.rot);
-            
-            if (item.type === 'coin') {
-                // Candy Coin
-                ctx.beginPath();
-                ctx.arc(0, 0, 16, 0, Math.PI*2);
-                ctx.fillStyle = '#ffcf56'; ctx.fill();
-                ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
-                // Inner swirl
-                ctx.strokeStyle = '#eebb4d';
-                ctx.beginPath(); ctx.arc(0,0, 10, 0, Math.PI*1.5); ctx.stroke();
-                ctx.font = '16px Arial'; ctx.fillText('🍬', -9, 6);
-            } 
-            else if (item.type === 'bomb') {
-                // Bomb
-                ctx.fillStyle = '#333';
-                ctx.beginPath(); ctx.arc(0, 5, 14, 0, Math.PI*2); ctx.fill();
-                // Fuse
-                ctx.strokeStyle = '#555'; ctx.lineWidth=3;
-                ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(5, -18); ctx.stroke();
-                // Spark
-                ctx.fillStyle = '#f00';
-                ctx.beginPath(); ctx.arc(5, -18, (gameFrame%10)/2, 0, Math.PI*2); ctx.fill();
-                ctx.font = '16px Arial'; ctx.fillText('☠️', -8, 10);
-            }
-            else if (item.type === 'heart') {
-                // Life up
-                ctx.shadowColor = '#fff'; ctx.shadowBlur = 10;
-                ctx.font = '30px Arial';
-                ctx.fillText('💖', -15, 10);
-                ctx.shadowBlur = 0;
-            }
-            
-            ctx.restore();
-        }
-
-        // --- MAIN LOOP ---
 
         function loop() {
-            if (gameState !== 'PLAYING') return;
+            if (state.screen !== 'PLAY') return;
 
-            // 1. Clear & Background
             ctx.clearRect(0, 0, width, height);
-            
-            // 2. Logic Updates
-            gameFrame++;
-            
-            // Increase Difficulty over time
-            if (gameFrame % 600 === 0) { // Every ~10 seconds
-                if(spawnRate > 20) spawnRate -= 5;
-                fallSpeedBase += 0.5;
-            }
-            
-            // Spawning
-            if (gameFrame % spawnRate === 0) {
+            state.frame++;
+
+            // Difficulty ramping
+            if (state.frame % 600 === 0) state.difficultyMod += 0.1;
+
+            // Spawn logic
+            if (state.frame % Math.max(20, 50 - Math.floor(state.frame/500)) === 0) {
                 spawnItem();
             }
 
-            // Basket Movement (LERP for smoothness)
-            basketX += (targetX - basketX) * 0.15;
-            const basketY = height - BASKET_HEIGHT - 30;
+            // --- UPDATE BASKET ---
+            if (state.isFrozen) {
+                state.freezeTimer--;
+                if (state.freezeTimer <= 0) {
+                    state.isFrozen = false;
+                    document.getElementById('freezeOverlay').style.display = 'none';
+                }
+            } else {
+                // Lerp movement
+                state.basketX += (state.targetX - state.basketX) * 0.15;
+            }
+            
+            const basketY = height - CONSTANTS.BASKET_H - 20;
 
-            // Draw Basket
-            drawBasket(basketX, basketY, targetX);
+            // --- DRAW ITEMS ---
+            for (let i = state.items.length - 1; i >= 0; i--) {
+                const item = state.items[i];
+                item.y += item.speed;
+                item.rot += item.rotSpeed;
 
-            // 3. Process Items
-            for (let i = items.length - 1; i >= 0; i--) {
-                let p = items[i];
-                p.y += p.speed;
-                p.rot += p.rotSpeed;
+                ctx.save();
+                ctx.translate(item.x, item.y);
+                ctx.rotate(item.rot);
+                
+                let char = '🍬';
+                if (item.type === 'coin') {
+                    ctx.beginPath(); ctx.arc(0,0, item.size/2 + 5, 0, Math.PI*2);
+                    ctx.fillStyle = '#FFD700'; ctx.fill();
+                    ctx.border = '2px solid #fff';
+                } else if (item.type === 'bomb') char = '💣';
+                else if (item.type === 'ice') char = '🧊';
+                else if (item.type === 'goldfish') char = '🐠';
+                else if (item.type === 'heart') char = '💖';
 
-                drawItem(p);
+                ctx.font = `${item.size}px Arial`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(char, 0, 2);
+                ctx.restore();
 
-                // Collision Detection (Circle vs Rect approx)
-                // Hitbox for basket top
-                if (p.y > basketY && p.y < basketY + 20 &&
-                    p.x > basketX && p.x < basketX + BASKET_WIDTH) {
+                // --- COLLISION ---
+                // Hitbox logic
+                if (item.y > basketY && item.y < basketY + 40 &&
+                    item.x > state.basketX && item.x < state.basketX + CONSTANTS.BASKET_W) {
                     
-                    // CAUGHT!
-                    if (p.type === 'coin') {
-                        score += (10 + combo * 2);
-                        combo++;
-                        playSound('coin');
-                        createParticles(p.x, p.y, '#ffcf56');
-                        createFloatingText(p.x, p.y, "+"+(10+combo*2), "#ff8fa3");
-                    } 
-                    else if (p.type === 'bomb') {
-                        takeDamage();
-                        createParticles(p.x, p.y, '#333');
-                        createFloatingText(p.x, p.y, "OUCH!", "#ff0000");
-                    }
-                    else if (p.type === 'heart') {
-                        if(lives < 3) lives++;
-                        score += 50;
-                        playSound('lifeup');
-                        createParticles(p.x, p.y, '#ff5d8f');
-                        createFloatingText(p.x, p.y, "HP UP!", "#ff5d8f");
-                    }
-                    
-                    updateUI();
-                    items.splice(i, 1);
+                    handleCatch(item, i);
                     continue;
                 }
 
-                // MISSED (Floor)
-                if (p.y > height) {
-                    if (p.type === 'coin') {
-                        // Penalty for missing a coin
-                        lives--;
-                        combo = 0;
-                        playSound('miss');
-                        updateUI();
-                        createFloatingText(p.x, height-50, "MISS!", "#6d597a");
-                        if(lives <= 0) {
-                            takeDamage(); // Trigger game over
-                            return; 
-                        }
+                // --- MISS LOGIC ---
+                if (item.y > height) {
+                    if (item.type === 'coin') {
+                        loseLife();
+                        spawnFloater(item.x, height-50, "MISS!", "#999");
                     }
-                    items.splice(i, 1);
+                    state.items.splice(i, 1);
                 }
             }
 
-            // 4. Particles
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let pt = particles[i];
-                pt.x += pt.vx;
-                pt.y += pt.vy;
-                pt.life -= 0.05;
-                ctx.globalAlpha = pt.life;
-                ctx.fillStyle = pt.color;
-                ctx.beginPath(); ctx.arc(pt.x, pt.y, 4, 0, Math.PI*2); ctx.fill();
-                if (pt.life <= 0) particles.splice(i, 1);
-            }
-            ctx.globalAlpha = 1.0;
+            drawBasket(state.basketX, basketY);
+            updateParticles();
 
             requestAnimationFrame(loop);
         }
 
-        // --- INPUT HANDLING ---
-        function setTarget(clientX) {
-            const rect = ui.container.getBoundingClientRect();
-            // Offset to center the basket on finger
-            let x = clientX - rect.left - (BASKET_WIDTH / 2);
-            // Clamp
-            if (x < 0) x = 0;
-            if (x > width - BASKET_WIDTH) x = width - BASKET_WIDTH;
-            targetX = x;
-            mouseX = clientX;
+        function handleCatch(item, index) {
+            state.items.splice(index, 1);
+            
+            if (item.type === 'coin') {
+                state.combo++;
+                const pts = 10 + (state.combo * 2);
+                state.score += pts;
+                playTone('coin');
+                spawnParticle(item.x, item.y, '#FFD700');
+                spawnFloater(item.x, item.y, `+${pts}`, '#ff6b6b');
+            }
+            else if (item.type === 'goldfish') {
+                state.score += 100;
+                playTone('coin');
+                spawnParticle(item.x, item.y, '#ffa500', 10);
+                spawnFloater(item.x, item.y, `+100!`, '#ffa500');
+            }
+            else if (item.type === 'heart') {
+                if(state.lives < 3) state.lives++;
+                updateLivesUI();
+                spawnFloater(item.x, item.y, `Heal!`, '#ff69b4');
+            }
+            else if (item.type === 'bomb') {
+                loseLife();
+                state.combo = 0;
+                playTone('hit');
+                shakeScreen();
+                spawnParticle(item.x, item.y, '#333', 8);
+            }
+            else if (item.type === 'ice') {
+                state.isFrozen = true;
+                state.freezeTimer = 90; // 1.5 seconds
+                state.combo = 0;
+                playTone('freeze');
+                document.getElementById('freezeOverlay').style.display = 'block';
+                spawnFloater(item.x, item.y, `FROZEN!`, '#87cefa');
+            }
+
+            document.getElementById('scoreVal').innerText = state.score;
         }
 
-        const container = document.getElementById('canvasContainer');
-        container.addEventListener('mousemove', (e) => setTarget(e.clientX));
-        container.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            setTarget(e.touches[0].clientX);
-        }, { passive: false });
-        container.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            setTarget(e.touches[0].clientX);
-        }, { passive: false });
+        function loseLife() {
+            state.lives--;
+            updateLivesUI();
+            if(state.lives <= 0) gameOver();
+        }
+
+        function updateLivesUI() {
+            const container = document.getElementById('livesContainer');
+            container.innerHTML = '';
+            for(let i=0; i<3; i++) {
+                container.innerHTML += `<span class="heart ${i < state.lives ? '' : 'lost'}">❤️</span>`;
+            }
+        }
+
+        function drawBasket(x, y) {
+            const cx = x + CONSTANTS.BASKET_W/2;
+            
+            // Basket
+            ctx.fillStyle = state.isFrozen ? '#b3e5fc' : '#ffe0e9'; // Blue tint if frozen
+            ctx.strokeStyle = '#ffb7b2';
+            ctx.lineWidth = 4;
+            
+            ctx.beginPath();
+            ctx.roundRect(x, y, CONSTANTS.BASKET_W, CONSTANTS.BASKET_H, 15);
+            ctx.fill(); ctx.stroke();
+            
+            // Handle
+            ctx.beginPath(); ctx.arc(cx, y, 40, Math.PI, 0); ctx.stroke();
+
+            // Kitty Face
+            ctx.fillStyle = '#6d597a';
+            const lookOffset = Math.max(-10, Math.min(10, (state.targetX - state.basketX)/3));
+            
+            // Eyes
+            if (state.isFrozen) {
+                ctx.fillText('🌀', cx - 15, y+20);
+                ctx.fillText('🌀', cx + 15, y+20);
+            } else {
+                ctx.beginPath();
+                ctx.arc(cx - 15 + lookOffset, y+22, 4, 0, Math.PI*2);
+                ctx.arc(cx + 15 + lookOffset, y+22, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // Hat Render
+            if (state.equippedHat !== 'none') {
+                const hat = HATS.find(h => h.id === state.equippedHat);
+                if(hat) {
+                    ctx.font = "30px Arial";
+                    ctx.textAlign = 'center';
+                    // Rotate hat based on movement
+                    ctx.save();
+                    ctx.translate(cx, y - 5);
+                    ctx.rotate(lookOffset * 0.02);
+                    ctx.fillText(hat.icon, 0, 0);
+                    ctx.restore();
+                }
+            }
+        }
+
+        // --- EFFECTS ---
+        function spawnParticle(x, y, color, count=5) {
+            for(let i=0; i<count; i++) {
+                state.particles.push({
+                    x, y, 
+                    vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
+                    life: 1, color
+                });
+            }
+        }
+
+        function updateParticles() {
+            for(let i=state.particles.length-1; i>=0; i--) {
+                let p = state.particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+                if(p.life <= 0) state.particles.splice(i,1);
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function spawnFloater(x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'float-text';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = color;
+            el.innerText = text;
+            document.getElementById('canvasContainer').appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        function shakeScreen() {
+            const card = document.getElementById('gameCard');
+            card.classList.remove('shake-screen');
+            void card.offsetWidth;
+            card.classList.add('shake-screen');
+        }
+
+        function gameOver() {
+            state.screen = 'OVER';
+            document.getElementById('finalScore').innerText = state.score;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            
+            // Check unlocks
+            let newUnlock = false;
+            if (state.score > state.highScore) {
+                HATS.forEach(hat => {
+                    if (state.highScore < hat.score && state.score >= hat.score) newUnlock = true;
+                });
+                state.highScore = state.score;
+                localStorage.setItem('kitty_highscore', state.score);
+            }
+
+            const msg = document.getElementById('unlockMsg');
+            msg.style.display = newUnlock ? 'block' : 'none';
+        }
+
+        // --- INPUTS ---
+        function handleInput(x) {
+            if(state.screen !== 'PLAY') return;
+            const containerLeft = document.getElementById('canvasContainer').getBoundingClientRect().left;
+            let target = x - containerLeft - CONSTANTS.BASKET_W/2;
+            if (target < 0) target = 0;
+            if (target > width - CONSTANTS.BASKET_W) target = width - CONSTANTS.BASKET_W;
+            state.targetX = target;
+        }
+
+        const c = document.getElementById('canvasContainer');
+        c.addEventListener('mousemove', e => handleInput(e.clientX));
+        c.addEventListener('touchmove', e => { e.preventDefault(); handleInput(e.touches[0].clientX); }, {passive:false});
+        c.addEventListener('touchstart', e => { e.preventDefault(); handleInput(e.touches[0].clientX); }, {passive:false});
 
         // --- BUTTONS ---
-        document.getElementById('startBtn').onclick = initGame;
-        document.getElementById('restartBtn').onclick = initGame;
+        document.getElementById('startBtn').onclick = startGame;
+        document.getElementById('restartBtn').onclick = startGame;
+        document.getElementById('menuBtn').onclick = () => {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            renderCloset();
+        };
+
+        // Init
+        resize();
+        renderCloset();
 
     </script>
 </body>
