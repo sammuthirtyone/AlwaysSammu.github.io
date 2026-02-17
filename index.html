@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🐱 SUPER KITTY MARKET DX 🛍️</title>
+    <title>Kitty Coin Catcher</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
 
@@ -24,11 +24,15 @@
 
         /* --- MAIN CARD --- */
         .game-card {
-            width: 100%; max-width: 500px; height: 95vh; max-height: 850px;
+            width: 100%; max-width: 500px; height: 100vh; max-height: 850px;
             background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px);
             border-radius: 40px;
             box-shadow: 0 20px 40px rgba(255, 182, 193, 0.4), inset 0 0 0 2px rgba(255, 255, 255, 0.6);
             position: relative; display: flex; flex-direction: column; padding: 15px; overflow: hidden;
+        }
+
+        @media (max-width: 500px) {
+            .game-card { border-radius: 0; height: 100vh; max-height: 100vh; }
         }
 
         /* --- SCREENS --- */
@@ -36,7 +40,7 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             border-radius: 40px; transition: opacity 0.3s ease, transform 0.3s ease;
-            z-index: 20; pointer-events: auto; background: rgba(255,255,255,0.9);
+            z-index: 20; pointer-events: auto; background: rgba(255,255,255,0.95);
             padding: 20px;
         }
         .hidden { opacity: 0; pointer-events: none; transform: scale(0.95); z-index: 0; }
@@ -63,7 +67,9 @@
         .btn-close {
             position: absolute; top: 20px; right: 20px; background: #ff5d8f; width: 40px; height: 40px;
             border-radius: 50%; border: none; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer;
+            box-shadow: 0 3px 0 #c9184a;
         }
+        .btn-close:active { transform: translateY(3px); box-shadow: none; }
 
         /* --- HUD --- */
         .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; position: relative; z-index: 15; }
@@ -83,12 +89,12 @@
         canvas { display: block; width: 100%; height: 100%; }
 
         /* --- SHOP UI --- */
-        .shop-header { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 20px; }
-        .shop-wallet { background: #ffcf56; color: #fff; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 0 rgba(0,0,0,0.1); border: 2px solid #fff; }
+        .shop-header { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 20px; margin-top: 40px;}
+        .shop-wallet { background: #ffcf56; color: #fff; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 0 rgba(0,0,0,0.1); border: 2px solid #fff; box-shadow: 0 3px 0 #e6b744; }
         
         .shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; }
-        .tab-btn { flex: 1; padding: 10px; border: none; background: #fff; border-radius: 15px; font-weight: bold; color: #aaa; cursor: pointer; transition: 0.2s; }
-        .tab-btn.active { background: #ff8fa3; color: white; box-shadow: 0 4px 0 #e06c85; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: #fff; border-radius: 15px; font-weight: bold; color: #aaa; cursor: pointer; transition: 0.2s; box-shadow: 0 3px 0 #eee; }
+        .tab-btn.active { background: #ff8fa3; color: white; box-shadow: 0 3px 0 #e06c85; transform: translateY(1px); }
 
         .shop-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;
@@ -97,7 +103,9 @@
         .shop-item {
             background: #fff; border-radius: 20px; padding: 15px; text-align: center;
             border: 2px solid transparent; transition: 0.2s; position: relative;
+            box-shadow: 0 4px 0 #eee;
         }
+        .shop-item:active { transform: translateY(4px); box-shadow: none; }
         .shop-item.selected { border-color: #ff5d8f; background: #fff0f6; }
         .shop-item.locked { opacity: 0.7; filter: grayscale(0.8); }
         .shop-icon { font-size: 2.5rem; margin-bottom: 5px; display: block; }
@@ -109,14 +117,14 @@
         .item-cost.can-afford { background: #d1fae5; color: #065f46; }
         .owned-badge { font-size: 0.8rem; color: #ff5d8f; font-weight: bold; }
 
-        /* Floating Combo Text */
+        /* FX */
         .combo-text {
-            position: absolute; pointer-events: none; font-weight: 800;
+            position: absolute; pointer-events: none; font-weight: 800; font-size: 1.5rem;
             text-shadow: 2px 2px 0 #fff; animation: floatUp 0.8s forwards; z-index: 10;
         }
         @keyframes floatUp {
             0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
         }
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 
@@ -154,7 +162,7 @@
         </div>
 
         <div class="screen start-screen" id="startScreen">
-            <div style="font-size: 4rem; margin-bottom: 10px;" id="heroCat">🐱</div>
+            <div style="font-size: 5rem; margin-bottom: 10px; animation: bounce 2s infinite;" id="heroCat">🐱</div>
             <div class="game-title">KITTY<br>MARKET<br>DX</div>
             <div class="game-desc">
                 Catch coins to buy skins! 🛍️<br>
@@ -173,8 +181,8 @@
             <button class="btn-close" id="closeShopBtn">✕</button>
             
             <div class="shop-tabs">
-                <button class="tab-btn active" onclick="switchTab('skins')">Skins</button>
-                <button class="tab-btn" onclick="switchTab('upgrades')">Upgrades</button>
+                <button class="tab-btn active" id="tabSkins" onclick="switchTab('skins')">Skins</button>
+                <button class="tab-btn" id="tabUpgrades" onclick="switchTab('upgrades')">Upgrades</button>
             </div>
 
             <div class="shop-grid" id="shopGrid">
@@ -186,11 +194,11 @@
             <div style="color: #6d597a; font-size: 1.2rem;">Coins Collected</div>
             <div style="font-size: 4rem; color: #ffcf56; text-shadow: 2px 2px 0 #bfa04d; font-weight:800;" id="finalScore">0</div>
             
-            <div style="background:#fff; padding:10px 20px; border-radius:15px; margin: 10px 0; color:#555;">
+            <div style="background:#fff; padding:10px 20px; border-radius:15px; margin: 10px 0; color:#555; box-shadow: 0 4px 0 #eee;">
                 Total Bank: 🪙 <span id="totalBankDisplay">0</span>
             </div>
 
-            <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:15px;"></div>
+            <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:15px; font-size: 1.2rem;"></div>
             <button class="btn-cute" id="restartBtn">Play Again 🔄</button>
             <button class="btn-cute btn-shop" id="goShopFromOver">🛒 Spend Coins</button>
         </div>
@@ -200,8 +208,9 @@
     <script>
         /**
          * 🐱 SUPER KITTY MARKET DX
-         * Now with persistence, shopping, and powerups!
+         * Fully functional single-file game.
          */
+        
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
         
@@ -220,13 +229,15 @@
         let playerData = loadData();
 
         function loadData() {
-            const saved = localStorage.getItem('kittyMarketSave');
-            if(saved) return { ...DEFAULT_DATA, ...JSON.parse(saved) };
+            try {
+                const saved = localStorage.getItem('kittyMarketSave_v1');
+                if(saved) return { ...DEFAULT_DATA, ...JSON.parse(saved) };
+            } catch(e) { console.error("Save error", e); }
             return JSON.parse(JSON.stringify(DEFAULT_DATA));
         }
 
         function saveData() {
-            localStorage.setItem('kittyMarketSave', JSON.stringify(playerData));
+            localStorage.setItem('kittyMarketSave_v1', JSON.stringify(playerData));
             updateWalletUI();
         }
 
@@ -235,14 +246,14 @@
             skins: [
                 { id: 'skin_default', name: 'Classic', price: 0, icon: '🐱', colors: { body: '#fcd5ce', stroke: '#e5989b', face: '#6d597a' } },
                 { id: 'skin_void', name: 'Void', price: 200, icon: '🐈‍⬛', colors: { body: '#2d3436', stroke: '#000', face: '#ffffff' } },
-                { id: 'skin_tabby', name: 'Orange', price: 500, icon: '🐯', colors: { body: '#ffaa5e', stroke: '#d35400', face: '#5e3023' } },
-                { id: 'skin_pink', name: 'Berry', price: 1000, icon: '🧠', colors: { body: '#ff70a6', stroke: '#d90429', face: '#fff' } },
+                { id: 'skin_tabby', name: 'Garfy', price: 500, icon: '🐯', colors: { body: '#ffaa5e', stroke: '#d35400', face: '#5e3023' } },
+                { id: 'skin_pink', name: 'Berry', price: 1000, icon: '🍓', colors: { body: '#ff70a6', stroke: '#d90429', face: '#fff' } },
                 { id: 'skin_alien', name: 'Gnarp', price: 2500, icon: '👽', colors: { body: '#70e000', stroke: '#38b000', face: '#004b23' } },
                 { id: 'skin_robo', name: 'Mecha', price: 5000, icon: '🤖', colors: { body: '#adb5bd', stroke: '#495057', face: '#0dcaf0' } },
             ],
             upgrades: [
-                { id: 'upg_width', name: 'Big Basket', price: (lvl) => (lvl+1)*300, max: 5, desc: 'Catch easier!' },
-                { id: 'upg_luck', name: 'Lucky Cat', price: (lvl) => (lvl+1)*500, max: 3, desc: 'More powerups!' }
+                { id: 'upg_width', name: 'Big Basket', price: (lvl) => (lvl+1)*300, max: 5, desc: 'Catches items easier!' },
+                { id: 'upg_luck', name: 'Lucky Cat', price: (lvl) => (lvl+1)*500, max: 3, desc: 'More powerups & hearts!' }
             ]
         };
 
@@ -286,6 +297,7 @@
         let gameFrame = 0;
         let items = [];
         let particles = [];
+        let reqAnimId;
         
         // Powerups
         let magnetTimer = 0;
@@ -298,19 +310,28 @@
         // --- SETUP & RESIZE ---
         function resize() {
             const rect = ui.container.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            width = canvas.width;
-            height = canvas.height;
+            // High DPI Canvas
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            
+            width = rect.width;
+            height = rect.height;
+
             if(gameState === 'START') {
                 targetX = (width - currentBasketWidth) / 2;
                 basketX = targetX;
             }
         }
         window.addEventListener('resize', resize);
-        resize();
+        
+        // Initial setup
         updateWalletUI();
         updateHeroCat();
+        
+        // Wait for fonts to load slightly or just init
+        setTimeout(resize, 100);
 
         // --- SHOP SYSTEM ---
         function updateWalletUI() {
@@ -327,7 +348,8 @@
         window.switchTab = (tab) => {
             currentTab = tab;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if(tab === 'skins') document.getElementById('tabSkins').classList.add('active');
+            else document.getElementById('tabUpgrades').classList.add('active');
             renderShop();
         };
 
@@ -358,7 +380,8 @@
                 });
             } else {
                 ITEMS_DB.upgrades.forEach(item => {
-                    const level = playerData.upgrades[item.id.replace('upg_', '')];
+                    const key = item.id.replace('upg_', '');
+                    const level = playerData.upgrades[key];
                     const price = item.price(level);
                     const isMax = level >= item.max;
                     const canAfford = !isMax && playerData.coins >= price;
@@ -390,7 +413,7 @@
                     playSound('buy');
                 } else {
                     playSound('miss');
-                    return; // Can't afford
+                    return; 
                 }
             }
             saveData();
@@ -415,22 +438,31 @@
         }
 
         // --- AUDIO ENGINE ---
-        function playSound(type) {
-            if (isMuted) return;
+        function initAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
 
+        function playSound(type) {
+            if (isMuted) return;
+            // Only try to init if user interacted
+            if (!audioCtx) return; 
+
+            const t = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            const t = audioCtx.currentTime;
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
 
             if (type === 'coin') {
                 osc.type = 'sine';
+                // Pitch rises with combo
                 osc.frequency.setValueAtTime(800 + (combo * 50), t);
                 osc.frequency.exponentialRampToValueAtTime(1400, t + 0.1);
                 gain.gain.setValueAtTime(0.1, t);
-                gain.gain.linearRampToValueAtTime(0, t + 0.1);
-                osc.start(t); osc.stop(t + 0.1);
+                gain.gain.linearRampToValueAtTime(0, t + 0.15);
+                osc.start(t); osc.stop(t + 0.15);
             } 
             else if (type === 'buy') {
                 osc.type = 'triangle';
@@ -454,15 +486,21 @@
                 gain.gain.setValueAtTime(0.05, t);
                 gain.gain.linearRampToValueAtTime(0, t + 0.3);
                 osc.start(t); osc.stop(t + 0.3);
+            } else if (type === 'select') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, t);
+                gain.gain.setValueAtTime(0.05, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.1);
+                osc.start(t); osc.stop(t + 0.1);
             }
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
         }
 
         // --- GAME LOGIC ---
 
         function initGame() {
+            initAudio();
+            resize(); // Ensure size is correct
+            
             runScore = 0;
             lives = 3;
             combo = 0;
@@ -470,15 +508,14 @@
             particles = [];
             magnetTimer = 0;
             shieldActive = false;
+            gameFrame = 0;
             
             // Apply Upgrades
             currentBasketWidth = baseBasketWidth + (playerData.upgrades.width * 15);
             
-            // Pos
-            const rect = ui.container.getBoundingClientRect();
+            // Set basket pos
             targetX = (width - currentBasketWidth) / 2;
             basketX = targetX;
-            mouseX = targetX + currentBasketWidth/2 + rect.left;
 
             updateUI();
             
@@ -495,13 +532,13 @@
             
             let hStr = '';
             for(let i=0; i<3; i++) hStr += i < lives ? '❤️' : '🖤';
-            if(shieldActive) hStr = '🛡️' + hStr; // Show shield indicator
+            if(shieldActive) hStr = '🛡️' + hStr; 
             ui.hearts.innerText = hStr;
 
             if(combo > 1) {
                 ui.comboPill.style.display = 'flex';
                 ui.comboVal.innerText = 'x' + combo;
-                ui.comboPill.style.transform = `scale(${1 + (combo*0.05)})`;
+                ui.comboPill.style.transform = `scale(${1 + (Math.min(combo, 10)*0.05)})`;
             } else {
                 ui.comboPill.style.display = 'none';
             }
@@ -515,17 +552,14 @@
         }
 
         function spawnItem() {
-            // Luck Upgrade affects Powerup/Heart chance
             const luckMod = playerData.upgrades.luck * 0.005; 
-            
             const roll = Math.random();
             let type = 'coin';
-            let speed = 3 + (gameFrame/1000); // Speed increases over time
+            let speed = 3 + (gameFrame/1500); // Speed curve
 
             if (lives < 3 && roll > (0.98 - luckMod)) {
-                type = 'heart'; speed *= 1.5;
+                type = 'heart'; speed *= 1.3;
             } else if (roll > (0.97 - luckMod)) {
-                // Powerup
                 type = Math.random() > 0.5 ? 'magnet' : 'shield';
                 speed *= 1.2;
             } else if (roll < 0.3) {
@@ -535,7 +569,7 @@
             const margin = 30;
             items.push({
                 x: Math.random() * (width - margin*2) + margin,
-                y: -30,
+                y: -40,
                 type: type,
                 speed: speed,
                 rot: 0,
@@ -546,7 +580,6 @@
         function gameOver() {
             gameState = 'GAMEOVER';
             
-            // Bank coins
             playerData.coins += runScore;
             if(runScore > playerData.highScore) playerData.highScore = runScore;
             saveData();
@@ -567,7 +600,7 @@
             const h = 50;
             const skin = ITEMS_DB.skins.find(s => s.id === playerData.equippedSkin) || ITEMS_DB.skins[0];
 
-            // Magnet Effect visual
+            // FX Rings
             if(magnetTimer > 0) {
                 ctx.strokeStyle = `rgba(76, 201, 240, ${(Math.sin(gameFrame*0.2)+1)/2})`;
                 ctx.lineWidth = 4;
@@ -590,13 +623,20 @@
             // Box
             ctx.beginPath(); ctx.roundRect(x, y, w, h, 15); ctx.fill(); ctx.stroke();
 
-            // Face
+            // Face (Cat)
             ctx.fillStyle = skin.colors.face;
             ctx.beginPath(); 
-            // Look logic
+            // Eye logic: Look at nearest falling item
             let lookX = 0;
-            items.forEach(it => { if(it.y > 0 && it.y < y+50) lookX = (it.x - (x+w/2))/8; });
-            
+            let nearestY = -1000;
+            items.forEach(it => { 
+                if(it.y > nearestY && it.y < y+50) {
+                    nearestY = it.y;
+                    lookX = (it.x - (x+w/2)) / 10;
+                }
+            });
+            lookX = Math.max(-8, Math.min(8, lookX)); // Clamp look
+
             ctx.arc(x + 30 + lookX, y + 20, 4, 0, Math.PI*2); // Eye L
             ctx.arc(x + w - 30 + lookX, y + 20, 4, 0, Math.PI*2); // Eye R
             ctx.fill();
@@ -609,28 +649,30 @@
 
         function loop() {
             if (gameState !== 'PLAYING') return;
+            
+            // Clean slate
             ctx.clearRect(0, 0, width, height);
             
             gameFrame++;
             if (magnetTimer > 0) magnetTimer--;
 
-            // Difficulty
-            let spawnRate = Math.max(20, 50 - Math.floor(gameFrame/500));
+            // Spawn logic
+            let spawnRate = Math.max(20, 60 - Math.floor(gameFrame/300));
             if (gameFrame % spawnRate === 0) spawnItem();
 
             // Move Basket
-            basketX += (targetX - basketX) * 0.15;
-            const basketY = height - 80;
+            basketX += (targetX - basketX) * 0.2;
+            const basketY = height - 90; // Fixed offset from bottom
             drawBasket(basketX, basketY);
 
             // Process Items
             for (let i = items.length - 1; i >= 0; i--) {
                 let p = items[i];
                 
-                // Magnet Logic
+                // Magnet Pull
                 if (magnetTimer > 0 && p.type === 'coin') {
-                    p.x += (basketX + currentBasketWidth/2 - p.x) * 0.1;
-                    p.y += 5; // Fall faster
+                    p.x += (basketX + currentBasketWidth/2 - p.x) * 0.15;
+                    p.y += 5; 
                 } else {
                     p.y += p.speed;
                 }
@@ -646,25 +688,25 @@
                     ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI*2);
                     ctx.fillStyle = '#ffcf56'; ctx.fill();
                     ctx.lineWidth=2; ctx.strokeStyle='#fff'; ctx.stroke();
-                    ctx.fillStyle='#eebb4d'; ctx.font='16px Arial'; ctx.fillText('🍬', -9, 6);
+                    ctx.fillStyle='#eebb4d'; ctx.font='16px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('🍬', 0, 1);
                 } else if (p.type === 'bomb') {
                     ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(0, 5, 14, 0, Math.PI*2); ctx.fill();
-                    ctx.font='16px Arial'; ctx.fillText('☠️', -8, 10);
+                    ctx.font='20px Arial'; ctx.textAlign='center'; ctx.fillText('☠️', 0, 8);
                 } else if (p.type === 'magnet') {
-                    ctx.shadowBlur=10; ctx.shadowColor='#4cc9f0';
-                    ctx.font='28px Arial'; ctx.fillText('🧲', -14, 10);
+                    ctx.shadowBlur=15; ctx.shadowColor='#4cc9f0';
+                    ctx.font='30px Arial'; ctx.textAlign='center'; ctx.fillText('🧲', 0, 5);
                 } else if (p.type === 'shield') {
-                    ctx.shadowBlur=10; ctx.shadowColor='#ffd166';
-                    ctx.font='28px Arial'; ctx.fillText('🛡️', -14, 10);
+                    ctx.shadowBlur=15; ctx.shadowColor='#ffd166';
+                    ctx.font='30px Arial'; ctx.textAlign='center'; ctx.fillText('🛡️', 0, 5);
                 } else { // Heart
-                    ctx.shadowBlur=10; ctx.shadowColor='#ff5d8f';
-                    ctx.font='28px Arial'; ctx.fillText('💖', -14, 10);
+                    ctx.shadowBlur=15; ctx.shadowColor='#ff5d8f';
+                    ctx.font='30px Arial'; ctx.textAlign='center'; ctx.fillText('💖', 0, 5);
                 }
                 ctx.restore();
 
-                // Collision
-                if (p.y > basketY && p.y < basketY + 30 && p.x > basketX && p.x < basketX + currentBasketWidth) {
-                    // Catch!
+                // Collision Detection (AABB approx)
+                if (p.y > basketY && p.y < basketY + 40 && p.x > basketX - 10 && p.x < basketX + currentBasketWidth + 10) {
+                    
                     if (p.type === 'coin') {
                         runScore += (10 + combo * 2);
                         combo++;
@@ -674,20 +716,26 @@
                     } else if (p.type === 'bomb') {
                         if(shieldActive) {
                             shieldActive = false;
-                            playSound('powerup'); // Shield break sound
+                            playSound('powerup');
                             createFloatingText(p.x, p.y, "BLOCKED!", "#4cc9f0");
                         } else {
                             lives--;
                             combo = 0;
                             playSound('bomb');
                             ui.card.classList.remove('shake');
-                            void ui.card.offsetWidth;
+                            void ui.card.offsetWidth; // trigger reflow
                             ui.card.classList.add('shake');
+                            
+                            // Red flash
                             ctx.fillStyle = 'rgba(255,0,0,0.3)'; ctx.fillRect(0,0,width,height);
-                            if(lives <= 0) gameOver();
+                            
+                            if(lives <= 0) {
+                                gameOver();
+                                return; // Stop loop immediately
+                            }
                         }
                     } else if (p.type === 'magnet') {
-                        magnetTimer = 600; // 10 seconds
+                        magnetTimer = 600; // ~10 seconds at 60fps
                         playSound('powerup');
                         createFloatingText(p.x, p.y, "MAGNET!", "#4cc9f0");
                     } else if (p.type === 'shield') {
@@ -706,6 +754,7 @@
                     continue;
                 }
 
+                // Despawn
                 if (p.y > height) {
                     if(p.type === 'coin') {
                         combo = 0;
@@ -715,26 +764,26 @@
                 }
             }
 
-            // Particles
+            // Particles update
             for (let i = particles.length - 1; i >= 0; i--) {
                 let pt = particles[i];
                 pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.05;
                 ctx.globalAlpha = pt.life;
                 ctx.fillStyle = pt.color;
-                ctx.beginPath(); ctx.arc(pt.x, pt.y, 4, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(pt.x, pt.y, 5, 0, Math.PI*2); ctx.fill();
                 if (pt.life <= 0) particles.splice(i, 1);
             }
             ctx.globalAlpha = 1.0;
 
-            requestAnimationFrame(loop);
+            reqAnimId = requestAnimationFrame(loop);
         }
 
-        // --- UTILS ---
+        // --- VISUAL FX UTILS ---
         function createParticles(x, y, color) {
-            for(let i=0; i<5; i++) {
+            for(let i=0; i<8; i++) {
                 particles.push({
                     x: x, y: y,
-                    vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+                    vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
                     life: 1.0, color: color
                 });
             }
@@ -743,42 +792,82 @@
             const el = document.createElement('div');
             el.className = 'combo-text';
             el.innerText = text;
-            el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color;
+            el.style.left = x + 'px'; el.style.top = y + 'px';
+            el.style.color = color;
             ui.container.appendChild(el);
             setTimeout(() => el.remove(), 800);
         }
 
-        // --- INPUT ---
-        function setTarget(clientX) {
-            const rect = ui.container.getBoundingClientRect();
-            let x = clientX - rect.left - (currentBasketWidth / 2);
-            if (x < 0) x = 0;
-            if (x > width - currentBasketWidth) x = width - currentBasketWidth;
-            targetX = x;
+        // --- INPUT HANDLING ---
+        function handleInput(e) {
+            if (gameState !== 'PLAYING') return;
+            
+            // Prevent scroll
+            if(e.type === 'touchmove' || e.type === 'touchstart') e.preventDefault();
+
+            // Get pointer X relative to canvas
+            const rect = canvas.getBoundingClientRect();
+            // We use clientX. If touch, use first touch.
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            
+            // Map clientX to canvas coordinates
+            // (clientX - rect.left) gives pixels from left edge of canvas
+            let pos = (clientX - rect.left);
+            
+            // Center basket on finger
+            pos -= currentBasketWidth / 2;
+
+            // Clamp
+            if (pos < 0) pos = 0;
+            if (pos > width - currentBasketWidth) pos = width - currentBasketWidth;
+
+            targetX = pos;
         }
-        ui.container.addEventListener('mousemove', (e) => setTarget(e.clientX));
-        ui.container.addEventListener('touchmove', (e) => { e.preventDefault(); setTarget(e.touches[0].clientX); }, { passive: false });
-        ui.container.addEventListener('touchstart', (e) => { e.preventDefault(); setTarget(e.touches[0].clientX); }, { passive: false });
+
+        ui.container.addEventListener('mousemove', handleInput);
+        ui.container.addEventListener('touchmove', handleInput, { passive: false });
+        ui.container.addEventListener('touchstart', handleInput, { passive: false });
 
         // --- BUTTON BINDINGS ---
-        document.getElementById('startBtn').onclick = initGame;
-        document.getElementById('restartBtn').onclick = initGame;
-        
-        // Shop Navigation
-        document.getElementById('openShopBtn').onclick = () => {
-            renderShop();
-            screens.start.classList.add('hidden');
+        document.getElementById('startBtn').addEventListener('click', () => {
+            playSound('select');
+            initGame();
+        });
+
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            playSound('select');
+            initGame();
+        });
+
+        document.getElementById('openShopBtn').addEventListener('click', () => {
+            playSound('select');
             screens.shop.classList.remove('hidden');
-        };
-        document.getElementById('goShopFromOver').onclick = () => {
             renderShop();
+        });
+
+        document.getElementById('goShopFromOver').addEventListener('click', () => {
+            playSound('select');
             screens.gameover.classList.add('hidden');
-            screens.shop.classList.remove('hidden');
-        };
-        document.getElementById('closeShopBtn').onclick = () => {
-            screens.shop.classList.add('hidden');
             screens.start.classList.remove('hidden');
-        };
+            screens.shop.classList.remove('hidden');
+            renderShop();
+        });
+
+        document.getElementById('closeShopBtn').addEventListener('click', () => {
+            playSound('select');
+            screens.shop.classList.add('hidden');
+            updateHeroCat();
+        });
+
+        // Animation for Start Screen Cat
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-20px); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
 
     </script>
 </body>
