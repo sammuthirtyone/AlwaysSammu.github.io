@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🐱 SUPER KITTY CATCHER DX 💣</title>
+    <title>🐱 SUPER KITTY MARKET DX 🛍️</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
 
@@ -36,68 +36,94 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             border-radius: 40px; transition: opacity 0.3s ease, transform 0.3s ease;
-            z-index: 20; pointer-events: auto;
+            z-index: 20; pointer-events: auto; background: rgba(255,255,255,0.9);
+            padding: 20px;
         }
         .hidden { opacity: 0; pointer-events: none; transform: scale(0.95); z-index: 0; }
 
-        /* START SCREEN */
-        .start-screen { background: rgba(255, 255, 255, 0.6); z-index: 30; }
-        .game-title { font-size: 3.8rem; color: #ff8fa3; text-shadow: 4px 4px 0px #fff, 6px 6px 0px #ffc2d1; text-align: center; line-height: 1; margin-bottom: 10px; }
-        .game-desc { color: #6d597a; margin-bottom: 30px; text-align: center; background: #fff; padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-
-        /* GAME OVER */
-        .game-over-overlay { background: rgba(255, 235, 238, 0.95); z-index: 45; }
+        /* TEXT STYLES */
+        .game-title { font-size: 3.5rem; color: #ff8fa3; text-shadow: 4px 4px 0px #fff, 6px 6px 0px #ffc2d1; text-align: center; line-height: 0.9; margin-bottom: 10px; }
+        .game-desc { color: #6d597a; margin-bottom: 20px; text-align: center; background: #fff; padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
         /* --- BUTTONS --- */
         .btn-cute {
-            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3); border: none; padding: 15px 45px;
-            border-radius: 50px; font-size: 1.8rem; color: white; font-weight: 700; cursor: pointer;
+            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3); border: none; padding: 15px 40px;
+            border-radius: 50px; font-size: 1.5rem; color: white; font-weight: 700; cursor: pointer;
             box-shadow: 0 6px 0 #e06c85, 0 10px 20px rgba(255, 143, 163, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s; margin: 5px; width: fit-content;
+            transition: transform 0.1s, box-shadow 0.1s; margin: 5px; width: 80%;
         }
         .btn-cute:active { transform: translateY(6px); box-shadow: 0 0 0 #e06c85; }
-        .btn-secondary { background: linear-gradient(to bottom, #bde0fe, #a2d2ff); box-shadow: 0 6px 0 #89c2fa; font-size: 1.4rem; padding: 12px 30px; }
-        .btn-secondary:active { box-shadow: 0 0 0 #89c2fa; }
+        
+        .btn-shop {
+            background: linear-gradient(to bottom, #bde0fe, #a2d2ff); box-shadow: 0 6px 0 #89c2fa;
+            font-size: 1.2rem; padding: 12px 30px; margin-top: 10px;
+        }
+        .btn-shop:active { box-shadow: 0 0 0 #89c2fa; transform: translateY(6px); }
+
+        .btn-close {
+            position: absolute; top: 20px; right: 20px; background: #ff5d8f; width: 40px; height: 40px;
+            border-radius: 50%; border: none; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer;
+        }
 
         /* --- HUD --- */
         .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; position: relative; z-index: 15; }
-        
         .stats-box { display: flex; gap: 10px; }
-        
         .pill {
             background: #fff; padding: 8px 16px; border-radius: 30px; color: #6d597a; font-weight: 700;
-            box-shadow: 0 4px 0 #ffe0e9; display: flex; align-items: center; gap: 8px; font-size: 1.2rem;
+            box-shadow: 0 4px 0 #ffe0e9; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;
         }
-        
         .hearts-container { color: #ff5d8f; letter-spacing: 2px; font-size: 1.4rem; }
 
         /* --- CANVAS --- */
         .canvas-container {
             flex: 1; width: 100%; background: linear-gradient(180deg, #e0f7fa 0%, #fff3e0 100%);
             border-radius: 25px; border: 6px solid #fff; box-shadow: inset 0 5px 10px rgba(0,0,0,0.05);
-            position: relative; overflow: hidden; touch-action: none; cursor: none; /* Hide default cursor */
+            position: relative; overflow: hidden; touch-action: none; cursor: none;
         }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* --- SHOP UI --- */
+        .shop-header { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 20px; }
+        .shop-wallet { background: #ffcf56; color: #fff; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 0 rgba(0,0,0,0.1); border: 2px solid #fff; }
         
-        /* Shake Animation Class */
+        .shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: #fff; border-radius: 15px; font-weight: bold; color: #aaa; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: #ff8fa3; color: white; box-shadow: 0 4px 0 #e06c85; }
+
+        .shop-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;
+            overflow-y: auto; padding-bottom: 20px; max-height: 400px;
+        }
+        .shop-item {
+            background: #fff; border-radius: 20px; padding: 15px; text-align: center;
+            border: 2px solid transparent; transition: 0.2s; position: relative;
+        }
+        .shop-item.selected { border-color: #ff5d8f; background: #fff0f6; }
+        .shop-item.locked { opacity: 0.7; filter: grayscale(0.8); }
+        .shop-icon { font-size: 2.5rem; margin-bottom: 5px; display: block; }
+        .item-name { font-size: 0.9rem; font-weight: bold; color: #6d597a; display: block; margin-bottom: 5px; }
+        .item-cost { 
+            background: #eee; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; 
+            font-weight: bold; color: #555; display: inline-block; 
+        }
+        .item-cost.can-afford { background: #d1fae5; color: #065f46; }
+        .owned-badge { font-size: 0.8rem; color: #ff5d8f; font-weight: bold; }
+
+        /* Floating Combo Text */
+        .combo-text {
+            position: absolute; pointer-events: none; font-weight: 800;
+            text-shadow: 2px 2px 0 #fff; animation: floatUp 0.8s forwards; z-index: 10;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
+        }
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 
             10%, 90% { transform: translate3d(-2px, 0, 0); }
             20%, 80% { transform: translate3d(4px, 0, 0); }
             30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
             40%, 60% { transform: translate3d(6px, 0, 0); }
-        }
-
-        canvas { display: block; width: 100%; height: 100%; }
-
-        /* Floating Combo Text */
-        .combo-text {
-            position: absolute; pointer-events: none; font-weight: 800;
-            text-shadow: 2px 2px 0 #fff; animation: floatUp 0.8s forwards;
-            z-index: 10;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
         }
     </style>
 </head>
@@ -108,11 +134,12 @@
         <div class="hud">
             <div class="stats-box">
                 <div class="pill">
-                    <span>🪙</span> <span id="scoreVal">0</span>
+                    <span>🪙</span> <span id="runScore">0</span>
                 </div>
-                <div class="pill hearts-container" id="heartsDisplay">
-                    ❤️❤️❤️
-                </div>
+                <div class="pill hearts-container" id="heartsDisplay">❤️❤️❤️</div>
+            </div>
+            <div class="pill" id="powerupInd" style="display:none; color:#4cc9f0;">
+                🧲 <span id="powerTime">5s</span>
             </div>
             <div class="pill" id="comboPill" style="display:none; color:#ff9f1c;">
                 🔥 <span id="comboVal">x1</span>
@@ -123,100 +150,271 @@
             <canvas id="gameCanvas"></canvas>
         </div>
         <div class="footer-hint" style="text-align:center; color:#b0aac0; margin-top:8px; font-size: 0.9rem;">
-            👆 Drag to move! Avoid the bombs! 💣
+            👆 Drag to catch! Coins are saved automatically!
         </div>
 
         <div class="screen start-screen" id="startScreen">
-            <div style="font-size: 4rem; margin-bottom: 10px;">🐱🧺</div>
-            <div class="game-title">KITTY<br>CATCHER<br>DX</div>
+            <div style="font-size: 4rem; margin-bottom: 10px;" id="heroCat">🐱</div>
+            <div class="game-title">KITTY<br>MARKET<br>DX</div>
             <div class="game-desc">
-                Catch candies 🍬<br>
-                Dodge bombs 💣<br>
-                Don't drop the coins!
+                Catch coins to buy skins! 🛍️<br>
+                Avoid bombs! 💣<br>
+                Grab powerups! 🧲
             </div>
             <button class="btn-cute" id="startBtn">PLAY ▶</button>
+            <button class="btn-cute btn-shop" id="openShopBtn">🛒 SHOP</button>
         </div>
 
-        <div class="screen game-over-overlay hidden" id="gameOverScreen">
-            <h2 style="color:#ff5d8f; font-size: 3rem; margin-bottom: 10px;">Ouch! 🤕</h2>
-            <div style="color: #6d597a; font-size: 1.2rem;">Final Score</div>
-            <div style="font-size: 5rem; color: #ff8fa3; text-shadow: 3px 3px 0 #fff; font-weight:800;" id="finalScore">0</div>
-            <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:20px; font-size: 1.2rem;"></div>
-            <button class="btn-cute" id="restartBtn">Try Again 🔄</button>
+        <div class="screen hidden" id="shopScreen">
+            <div class="shop-header">
+                <h2 style="color:#6d597a;">Marketplace</h2>
+                <div class="shop-wallet">🪙 <span id="walletVal">0</span></div>
+            </div>
+            <button class="btn-close" id="closeShopBtn">✕</button>
+            
+            <div class="shop-tabs">
+                <button class="tab-btn active" onclick="switchTab('skins')">Skins</button>
+                <button class="tab-btn" onclick="switchTab('upgrades')">Upgrades</button>
+            </div>
+
+            <div class="shop-grid" id="shopGrid">
+                </div>
+        </div>
+
+        <div class="screen hidden" id="gameOverScreen">
+            <h2 style="color:#ff5d8f; font-size: 3rem; margin-bottom: 5px;">Ouch! 🤕</h2>
+            <div style="color: #6d597a; font-size: 1.2rem;">Coins Collected</div>
+            <div style="font-size: 4rem; color: #ffcf56; text-shadow: 2px 2px 0 #bfa04d; font-weight:800;" id="finalScore">0</div>
+            
+            <div style="background:#fff; padding:10px 20px; border-radius:15px; margin: 10px 0; color:#555;">
+                Total Bank: 🪙 <span id="totalBankDisplay">0</span>
+            </div>
+
+            <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:15px;"></div>
+            <button class="btn-cute" id="restartBtn">Play Again 🔄</button>
+            <button class="btn-cute btn-shop" id="goShopFromOver">🛒 Spend Coins</button>
         </div>
 
     </div>
 
     <script>
         /**
-         * 🐱 KITTY CATCHER DX - ENHANCED LOGIC
+         * 🐱 SUPER KITTY MARKET DX
+         * Now with persistence, shopping, and powerups!
          */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
         
+        // --- DATA & SAVES ---
+        const DEFAULT_DATA = {
+            coins: 0,
+            highScore: 0,
+            inventory: ['skin_default'],
+            equippedSkin: 'skin_default',
+            upgrades: {
+                width: 0, // Level 0-5
+                luck: 0   // Level 0-5
+            }
+        };
+
+        let playerData = loadData();
+
+        function loadData() {
+            const saved = localStorage.getItem('kittyMarketSave');
+            if(saved) return { ...DEFAULT_DATA, ...JSON.parse(saved) };
+            return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+
+        function saveData() {
+            localStorage.setItem('kittyMarketSave', JSON.stringify(playerData));
+            updateWalletUI();
+        }
+
+        // --- GAME CONFIGURATION ---
+        const ITEMS_DB = {
+            skins: [
+                { id: 'skin_default', name: 'Classic', price: 0, icon: '🐱', colors: { body: '#fcd5ce', stroke: '#e5989b', face: '#6d597a' } },
+                { id: 'skin_void', name: 'Void', price: 200, icon: '🐈‍⬛', colors: { body: '#2d3436', stroke: '#000', face: '#ffffff' } },
+                { id: 'skin_tabby', name: 'Orange', price: 500, icon: '🐯', colors: { body: '#ffaa5e', stroke: '#d35400', face: '#5e3023' } },
+                { id: 'skin_pink', name: 'Berry', price: 1000, icon: '🧠', colors: { body: '#ff70a6', stroke: '#d90429', face: '#fff' } },
+                { id: 'skin_alien', name: 'Gnarp', price: 2500, icon: '👽', colors: { body: '#70e000', stroke: '#38b000', face: '#004b23' } },
+                { id: 'skin_robo', name: 'Mecha', price: 5000, icon: '🤖', colors: { body: '#adb5bd', stroke: '#495057', face: '#0dcaf0' } },
+            ],
+            upgrades: [
+                { id: 'upg_width', name: 'Big Basket', price: (lvl) => (lvl+1)*300, max: 5, desc: 'Catch easier!' },
+                { id: 'upg_luck', name: 'Lucky Cat', price: (lvl) => (lvl+1)*500, max: 3, desc: 'More powerups!' }
+            ]
+        };
+
         // --- DOM ELEMENTS ---
         const screens = {
             start: document.getElementById('startScreen'),
             gameover: document.getElementById('gameOverScreen'),
+            shop: document.getElementById('shopScreen')
         };
         const ui = {
-            score: document.getElementById('scoreVal'),
+            score: document.getElementById('runScore'),
             finalScore: document.getElementById('finalScore'),
             hearts: document.getElementById('heartsDisplay'),
             comboPill: document.getElementById('comboPill'),
             comboVal: document.getElementById('comboVal'),
-            highScoreTag: document.getElementById('highScoreTag'),
+            powerPill: document.getElementById('powerupInd'),
+            powerTime: document.getElementById('powerTime'),
             card: document.getElementById('gameCard'),
-            container: document.getElementById('canvasContainer')
+            container: document.getElementById('canvasContainer'),
+            wallet: document.getElementById('walletVal'),
+            shopGrid: document.getElementById('shopGrid'),
+            totalBank: document.getElementById('totalBankDisplay'),
+            heroCat: document.getElementById('heroCat')
         };
 
-        // --- GAME CONSTANTS ---
-        const BASKET_WIDTH = 90;
-        const BASKET_HEIGHT = 50;
-        const ITEM_SIZE = 24;
-        
-        // --- STATE ---
+        // --- STATE VARIABLES ---
         let width, height;
         let gameState = 'START';
-        let score = 0;
+        let runScore = 0;
         let lives = 3;
         let combo = 0;
         
-        // Physics & Movement
+        // Physics
         let mouseX = 0;
-        let basketX = 0; // Current position
-        let targetX = 0; // Target position (mouse)
+        let basketX = 0;
+        let targetX = 0;
+        let baseBasketWidth = 90;
+        let currentBasketWidth = 90;
         
-        // Game Speed Logic
+        // Game Loop
         let gameFrame = 0;
-        let spawnRate = 50;
-        let fallSpeedBase = 3;
-        
-        // Entities
-        let items = []; // Coins, Bombs, Powerups
+        let items = [];
         let particles = [];
         
-        // Audio Context
+        // Powerups
+        let magnetTimer = 0;
+        let shieldActive = false;
+
+        // Audio
         let audioCtx;
         let isMuted = false;
 
-        // --- RESIZE ---
+        // --- SETUP & RESIZE ---
         function resize() {
             const rect = ui.container.getBoundingClientRect();
             canvas.width = rect.width;
             canvas.height = rect.height;
             width = canvas.width;
             height = canvas.height;
-            // Center basket initially
             if(gameState === 'START') {
-                targetX = (width - BASKET_WIDTH) / 2;
+                targetX = (width - currentBasketWidth) / 2;
                 basketX = targetX;
             }
         }
         window.addEventListener('resize', resize);
         resize();
+        updateWalletUI();
+        updateHeroCat();
 
-        // --- AUDIO ENGINE (Synth) ---
+        // --- SHOP SYSTEM ---
+        function updateWalletUI() {
+            ui.wallet.innerText = playerData.coins;
+            ui.totalBank.innerText = playerData.coins;
+        }
+
+        function updateHeroCat() {
+            const skin = ITEMS_DB.skins.find(s => s.id === playerData.equippedSkin);
+            ui.heroCat.innerText = skin ? skin.icon : '🐱';
+        }
+
+        let currentTab = 'skins';
+        window.switchTab = (tab) => {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderShop();
+        };
+
+        function renderShop() {
+            ui.shopGrid.innerHTML = '';
+            
+            if(currentTab === 'skins') {
+                ITEMS_DB.skins.forEach(item => {
+                    const owned = playerData.inventory.includes(item.id);
+                    const equipped = playerData.equippedSkin === item.id;
+                    const canAfford = playerData.coins >= item.price;
+                    
+                    const el = document.createElement('div');
+                    el.className = `shop-item ${equipped ? 'selected' : ''} ${!owned && !canAfford ? 'locked' : ''}`;
+                    el.onclick = () => handleBuySkin(item);
+                    
+                    let btnHTML = '';
+                    if(equipped) btnHTML = '<span class="owned-badge">EQUIPPED</span>';
+                    else if(owned) btnHTML = '<span class="owned-badge" style="color:#aaa">OWNED</span>';
+                    else btnHTML = `<span class="item-cost ${canAfford ? 'can-afford' : ''}">🪙 ${item.price}</span>`;
+
+                    el.innerHTML = `
+                        <span class="shop-icon">${item.icon}</span>
+                        <span class="item-name">${item.name}</span>
+                        ${btnHTML}
+                    `;
+                    ui.shopGrid.appendChild(el);
+                });
+            } else {
+                ITEMS_DB.upgrades.forEach(item => {
+                    const level = playerData.upgrades[item.id.replace('upg_', '')];
+                    const price = item.price(level);
+                    const isMax = level >= item.max;
+                    const canAfford = !isMax && playerData.coins >= price;
+
+                    const el = document.createElement('div');
+                    el.className = `shop-item ${isMax ? 'locked' : ''}`;
+                    if(!isMax) el.onclick = () => handleBuyUpgrade(item);
+
+                    el.innerHTML = `
+                        <span class="shop-icon">🆙</span>
+                        <span class="item-name">${item.name} <span style="color:#ff5d8f">Lvl ${level}</span></span>
+                        <div style="font-size:0.7rem; color:#888; margin-bottom:5px;">${item.desc}</div>
+                        ${isMax ? '<span class="owned-badge">MAXED</span>' : `<span class="item-cost ${canAfford ? 'can-afford' : ''}">🪙 ${price}</span>`}
+                    `;
+                    ui.shopGrid.appendChild(el);
+                });
+            }
+        }
+
+        function handleBuySkin(item) {
+            if(playerData.inventory.includes(item.id)) {
+                playerData.equippedSkin = item.id;
+                playSound('select');
+            } else {
+                if(playerData.coins >= item.price) {
+                    playerData.coins -= item.price;
+                    playerData.inventory.push(item.id);
+                    playerData.equippedSkin = item.id;
+                    playSound('buy');
+                } else {
+                    playSound('miss');
+                    return; // Can't afford
+                }
+            }
+            saveData();
+            renderShop();
+            updateHeroCat();
+        }
+
+        function handleBuyUpgrade(item) {
+            const key = item.id.replace('upg_', '');
+            const level = playerData.upgrades[key];
+            const price = item.price(level);
+            
+            if(level < item.max && playerData.coins >= price) {
+                playerData.coins -= price;
+                playerData.upgrades[key]++;
+                playSound('buy');
+                saveData();
+                renderShop();
+            } else {
+                playSound('miss');
+            }
+        }
+
+        // --- AUDIO ENGINE ---
         function playSound(type) {
             if (isMuted) return;
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -227,41 +425,35 @@
             const t = audioCtx.currentTime;
 
             if (type === 'coin') {
-                // High pitch ping
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(800 + (combo * 50), t); // Pitch goes up with combo
-                osc.frequency.exponentialRampToValueAtTime(1200 + (combo * 50), t + 0.1);
+                osc.frequency.setValueAtTime(800 + (combo * 50), t);
+                osc.frequency.exponentialRampToValueAtTime(1400, t + 0.1);
                 gain.gain.setValueAtTime(0.1, t);
                 gain.gain.linearRampToValueAtTime(0, t + 0.1);
-                osc.start(t);
-                osc.stop(t + 0.1);
-            } else if (type === 'bomb') {
-                // Low noise crash
+                osc.start(t); osc.stop(t + 0.1);
+            } 
+            else if (type === 'buy') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, t);
+                osc.frequency.linearRampToValueAtTime(800, t+0.1);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.linearRampToValueAtTime(0, t + 0.3);
+                osc.start(t); osc.stop(t+0.3);
+            }
+            else if (type === 'bomb') {
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(150, t);
                 osc.frequency.exponentialRampToValueAtTime(50, t + 0.4);
                 gain.gain.setValueAtTime(0.2, t);
                 gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
-                osc.start(t);
-                osc.stop(t + 0.4);
-            } else if (type === 'lifeup') {
-                // Magical chime
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(400, t);
-                osc.frequency.linearRampToValueAtTime(800, t + 0.2);
-                gain.gain.setValueAtTime(0.1, t);
-                gain.gain.linearRampToValueAtTime(0, t + 0.4);
-                osc.start(t);
-                osc.stop(t + 0.4);
-            } else if (type === 'miss') {
-                // Dull thud
+                osc.start(t); osc.stop(t + 0.4);
+            } else if (type === 'powerup') {
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(200, t);
-                osc.frequency.linearRampToValueAtTime(100, t + 0.1);
+                osc.frequency.setValueAtTime(600, t);
+                osc.frequency.linearRampToValueAtTime(1200, t + 0.2);
                 gain.gain.setValueAtTime(0.05, t);
-                gain.gain.linearRampToValueAtTime(0, t + 0.1);
-                osc.start(t);
-                osc.stop(t + 0.1);
+                gain.gain.linearRampToValueAtTime(0, t + 0.3);
+                osc.start(t); osc.stop(t + 0.3);
             }
             
             osc.connect(gain);
@@ -271,40 +463,41 @@
         // --- GAME LOGIC ---
 
         function initGame() {
-            score = 0;
+            runScore = 0;
             lives = 3;
             combo = 0;
             items = [];
             particles = [];
-            spawnRate = 60;
-            fallSpeedBase = 3.5; // Slightly faster start
-            gameFrame = 0;
+            magnetTimer = 0;
+            shieldActive = false;
             
-            // Set initial position
+            // Apply Upgrades
+            currentBasketWidth = baseBasketWidth + (playerData.upgrades.width * 15);
+            
+            // Pos
             const rect = ui.container.getBoundingClientRect();
-            targetX = (width - BASKET_WIDTH) / 2;
+            targetX = (width - currentBasketWidth) / 2;
             basketX = targetX;
-            mouseX = targetX + BASKET_WIDTH/2 + rect.left;
+            mouseX = targetX + currentBasketWidth/2 + rect.left;
 
             updateUI();
             
             screens.start.classList.add('hidden');
             screens.gameover.classList.add('hidden');
+            screens.shop.classList.add('hidden');
             
             gameState = 'PLAYING';
             loop();
         }
 
         function updateUI() {
-            ui.score.innerText = score;
-            // Draw hearts
+            ui.score.innerText = runScore;
+            
             let hStr = '';
-            for(let i=0; i<3; i++) {
-                hStr += i < lives ? '❤️' : '🖤';
-            }
+            for(let i=0; i<3; i++) hStr += i < lives ? '❤️' : '🖤';
+            if(shieldActive) hStr = '🛡️' + hStr; // Show shield indicator
             ui.hearts.innerText = hStr;
 
-            // Combo
             if(combo > 1) {
                 ui.comboPill.style.display = 'flex';
                 ui.comboVal.innerText = 'x' + combo;
@@ -312,261 +505,199 @@
             } else {
                 ui.comboPill.style.display = 'none';
             }
+
+            if(magnetTimer > 0) {
+                ui.powerPill.style.display = 'flex';
+                ui.powerTime.innerText = Math.ceil(magnetTimer/60) + 's';
+            } else {
+                ui.powerPill.style.display = 'none';
+            }
         }
 
         function spawnItem() {
-            const typeRoll = Math.random();
+            // Luck Upgrade affects Powerup/Heart chance
+            const luckMod = playerData.upgrades.luck * 0.005; 
+            
+            const roll = Math.random();
             let type = 'coin';
-            let speed = fallSpeedBase;
+            let speed = 3 + (gameFrame/1000); // Speed increases over time
 
-            // 1% Chance for Heart (if hurt)
-            if (lives < 3 && typeRoll > 0.98) {
-                type = 'heart';
-                speed = fallSpeedBase * 1.5; // Falls fast!
-            } 
-            // 30% Chance for Bomb
-            else if (typeRoll < 0.3) {
-                type = 'bomb';
-                speed = fallSpeedBase * 0.8; // Falls slower (tricky)
+            if (lives < 3 && roll > (0.98 - luckMod)) {
+                type = 'heart'; speed *= 1.5;
+            } else if (roll > (0.97 - luckMod)) {
+                // Powerup
+                type = Math.random() > 0.5 ? 'magnet' : 'shield';
+                speed *= 1.2;
+            } else if (roll < 0.3) {
+                type = 'bomb'; speed *= 0.9;
             }
             
             const margin = 30;
-            const x = Math.random() * (width - margin*2) + margin;
-            
             items.push({
-                x: x,
+                x: Math.random() * (width - margin*2) + margin,
                 y: -30,
                 type: type,
-                speed: speed + (Math.random() * 1),
+                speed: speed,
                 rot: 0,
                 rotSpeed: (Math.random() - 0.5) * 0.2
             });
         }
 
-        function createParticles(x, y, color, count = 5) {
-            for(let i=0; i<count; i++) {
-                particles.push({
-                    x: x, y: y,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: (Math.random() - 0.5) * 8,
-                    life: 1.0,
-                    color: color
-                });
-            }
-        }
-
-        function createFloatingText(x, y, text, color) {
-            const el = document.createElement('div');
-            el.className = 'combo-text';
-            el.innerText = text;
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-            el.style.color = color;
-            ui.container.appendChild(el);
-            setTimeout(() => el.remove(), 800);
-        }
-
-        function triggerShake() {
-            ui.card.classList.remove('shake');
-            void ui.card.offsetWidth; // trigger reflow
-            ui.card.classList.add('shake');
-        }
-
-        function takeDamage() {
-            if(gameState !== 'PLAYING') return;
-            lives--;
-            combo = 0;
-            playSound('bomb');
-            triggerShake();
-            updateUI();
-            
-            // Red flash
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-            ctx.fillRect(0,0,width,height);
-
-            if(lives <= 0) {
-                gameOver();
-            }
-        }
-
         function gameOver() {
             gameState = 'GAMEOVER';
-            ui.finalScore.innerText = score;
-            screens.gameover.classList.remove('hidden');
             
-            // High Score Logic
-            const saved = localStorage.getItem('kittyHighScore') || 0;
-            if (score > saved) {
-                localStorage.setItem('kittyHighScore', score);
-                ui.highScoreTag.innerText = "✨ NEW HIGH SCORE! ✨";
+            // Bank coins
+            playerData.coins += runScore;
+            if(runScore > playerData.highScore) playerData.highScore = runScore;
+            saveData();
+
+            ui.finalScore.innerText = runScore;
+            
+            if (runScore >= playerData.highScore && runScore > 0) {
+                document.getElementById('highScoreTag').innerText = "✨ NEW BEST! ✨";
             } else {
-                ui.highScoreTag.innerText = "Best: " + saved;
+                document.getElementById('highScoreTag').innerText = "Best: " + playerData.highScore;
             }
+
+            screens.gameover.classList.remove('hidden');
         }
 
-        // --- DRAWING ---
+        function drawBasket(x, y) {
+            const w = currentBasketWidth;
+            const h = 50;
+            const skin = ITEMS_DB.skins.find(s => s.id === playerData.equippedSkin) || ITEMS_DB.skins[0];
 
-        function drawBasket(x, y, targetX) {
-            const w = BASKET_WIDTH;
-            const h = BASKET_HEIGHT;
+            // Magnet Effect visual
+            if(magnetTimer > 0) {
+                ctx.strokeStyle = `rgba(76, 201, 240, ${(Math.sin(gameFrame*0.2)+1)/2})`;
+                ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.arc(x+w/2, y+20, w, 0, Math.PI*2); ctx.stroke();
+            }
+            if(shieldActive) {
+                ctx.strokeStyle = `rgba(255, 209, 102, 0.8)`;
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(x+w/2, y+20, w*0.8, 0, Math.PI*2); ctx.stroke();
+            }
 
-            // Determine look direction based on closest item
-            let lookX = x + w/2;
-            let lowestY = -1000;
-            items.forEach(it => {
-                if (it.y > lowestY && it.y < y) {
-                    lowestY = it.y;
-                    lookX = it.x;
-                }
-            });
-            // Clamp look
-            const eyeOffset = Math.max(-8, Math.min(8, (lookX - (x + w/2)) / 5));
-
-            // Basket Body
-            ctx.fillStyle = '#fcd5ce';
-            ctx.strokeStyle = '#e5989b';
+            // Body
+            ctx.fillStyle = skin.colors.body;
+            ctx.strokeStyle = skin.colors.stroke;
             ctx.lineWidth = 3;
+
+            // Handle
+            ctx.beginPath(); ctx.arc(x + w/2, y, w/2 - 5, Math.PI, 0); ctx.stroke();
+
+            // Box
+            ctx.beginPath(); ctx.roundRect(x, y, w, h, 15); ctx.fill(); ctx.stroke();
+
+            // Face
+            ctx.fillStyle = skin.colors.face;
+            ctx.beginPath(); 
+            // Look logic
+            let lookX = 0;
+            items.forEach(it => { if(it.y > 0 && it.y < y+50) lookX = (it.x - (x+w/2))/8; });
             
-            // Handle (behind)
-            ctx.beginPath();
-            ctx.arc(x + w/2, y, w/2 - 5, Math.PI, 0);
-            ctx.stroke();
-
-            // Main Box
-            ctx.beginPath();
-            ctx.roundRect(x, y, w, h, 15);
+            ctx.arc(x + 30 + lookX, y + 20, 4, 0, Math.PI*2); // Eye L
+            ctx.arc(x + w - 30 + lookX, y + 20, 4, 0, Math.PI*2); // Eye R
             ctx.fill();
-            ctx.stroke();
-
-            // Kitty Face
-            ctx.fillStyle = '#6d597a'; // Dark purple
-            
-            // Eyes (Move with logic)
-            ctx.beginPath();
-            ctx.arc(x + 30 + eyeOffset, y + 20, 4, 0, Math.PI*2); // L
-            ctx.arc(x + 60 + eyeOffset, y + 20, 4, 0, Math.PI*2); // R
-            ctx.fill();
-
-            // Mouth
-            ctx.beginPath();
-            ctx.arc(x + 45 + eyeOffset, y + 26, 3, 0, Math.PI);
-            ctx.stroke();
 
             // Ears
-            ctx.fillStyle = '#fcd5ce';
-            ctx.beginPath();
-            ctx.moveTo(x + 10, y); ctx.lineTo(x + 20, y - 15); ctx.lineTo(x + 35, y);
-            ctx.fill(); ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(x + w - 35, y); ctx.lineTo(x + w - 20, y - 15); ctx.lineTo(x + w - 10, y);
-            ctx.fill(); ctx.stroke();
-            
-            // Paws (overlap rim)
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.ellipse(x + 20, y - 2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(x + w - 20, y - 2, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = skin.colors.body;
+            ctx.beginPath(); ctx.moveTo(x + 10, y); ctx.lineTo(x + 20, y - 15); ctx.lineTo(x + 35, y); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x + w - 35, y); ctx.lineTo(x + w - 20, y - 15); ctx.lineTo(x + w - 10, y); ctx.fill(); ctx.stroke();
         }
-
-        function drawItem(item) {
-            ctx.save();
-            ctx.translate(item.x, item.y);
-            ctx.rotate(item.rot);
-            
-            if (item.type === 'coin') {
-                // Candy Coin
-                ctx.beginPath();
-                ctx.arc(0, 0, 16, 0, Math.PI*2);
-                ctx.fillStyle = '#ffcf56'; ctx.fill();
-                ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
-                // Inner swirl
-                ctx.strokeStyle = '#eebb4d';
-                ctx.beginPath(); ctx.arc(0,0, 10, 0, Math.PI*1.5); ctx.stroke();
-                ctx.font = '16px Arial'; ctx.fillText('🍬', -9, 6);
-            } 
-            else if (item.type === 'bomb') {
-                // Bomb
-                ctx.fillStyle = '#333';
-                ctx.beginPath(); ctx.arc(0, 5, 14, 0, Math.PI*2); ctx.fill();
-                // Fuse
-                ctx.strokeStyle = '#555'; ctx.lineWidth=3;
-                ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(5, -18); ctx.stroke();
-                // Spark
-                ctx.fillStyle = '#f00';
-                ctx.beginPath(); ctx.arc(5, -18, (gameFrame%10)/2, 0, Math.PI*2); ctx.fill();
-                ctx.font = '16px Arial'; ctx.fillText('☠️', -8, 10);
-            }
-            else if (item.type === 'heart') {
-                // Life up
-                ctx.shadowColor = '#fff'; ctx.shadowBlur = 10;
-                ctx.font = '30px Arial';
-                ctx.fillText('💖', -15, 10);
-                ctx.shadowBlur = 0;
-            }
-            
-            ctx.restore();
-        }
-
-        // --- MAIN LOOP ---
 
         function loop() {
             if (gameState !== 'PLAYING') return;
-
-            // 1. Clear & Background
             ctx.clearRect(0, 0, width, height);
             
-            // 2. Logic Updates
             gameFrame++;
-            
-            // Increase Difficulty over time
-            if (gameFrame % 600 === 0) { // Every ~10 seconds
-                if(spawnRate > 20) spawnRate -= 5;
-                fallSpeedBase += 0.5;
-            }
-            
-            // Spawning
-            if (gameFrame % spawnRate === 0) {
-                spawnItem();
-            }
+            if (magnetTimer > 0) magnetTimer--;
 
-            // Basket Movement (LERP for smoothness)
+            // Difficulty
+            let spawnRate = Math.max(20, 50 - Math.floor(gameFrame/500));
+            if (gameFrame % spawnRate === 0) spawnItem();
+
+            // Move Basket
             basketX += (targetX - basketX) * 0.15;
-            const basketY = height - BASKET_HEIGHT - 30;
+            const basketY = height - 80;
+            drawBasket(basketX, basketY);
 
-            // Draw Basket
-            drawBasket(basketX, basketY, targetX);
-
-            // 3. Process Items
+            // Process Items
             for (let i = items.length - 1; i >= 0; i--) {
                 let p = items[i];
-                p.y += p.speed;
+                
+                // Magnet Logic
+                if (magnetTimer > 0 && p.type === 'coin') {
+                    p.x += (basketX + currentBasketWidth/2 - p.x) * 0.1;
+                    p.y += 5; // Fall faster
+                } else {
+                    p.y += p.speed;
+                }
+                
                 p.rot += p.rotSpeed;
 
-                drawItem(p);
+                // Draw Item
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot);
+                
+                if (p.type === 'coin') {
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI*2);
+                    ctx.fillStyle = '#ffcf56'; ctx.fill();
+                    ctx.lineWidth=2; ctx.strokeStyle='#fff'; ctx.stroke();
+                    ctx.fillStyle='#eebb4d'; ctx.font='16px Arial'; ctx.fillText('🍬', -9, 6);
+                } else if (p.type === 'bomb') {
+                    ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(0, 5, 14, 0, Math.PI*2); ctx.fill();
+                    ctx.font='16px Arial'; ctx.fillText('☠️', -8, 10);
+                } else if (p.type === 'magnet') {
+                    ctx.shadowBlur=10; ctx.shadowColor='#4cc9f0';
+                    ctx.font='28px Arial'; ctx.fillText('🧲', -14, 10);
+                } else if (p.type === 'shield') {
+                    ctx.shadowBlur=10; ctx.shadowColor='#ffd166';
+                    ctx.font='28px Arial'; ctx.fillText('🛡️', -14, 10);
+                } else { // Heart
+                    ctx.shadowBlur=10; ctx.shadowColor='#ff5d8f';
+                    ctx.font='28px Arial'; ctx.fillText('💖', -14, 10);
+                }
+                ctx.restore();
 
-                // Collision Detection (Circle vs Rect approx)
-                // Hitbox for basket top
-                if (p.y > basketY && p.y < basketY + 20 &&
-                    p.x > basketX && p.x < basketX + BASKET_WIDTH) {
-                    
-                    // CAUGHT!
+                // Collision
+                if (p.y > basketY && p.y < basketY + 30 && p.x > basketX && p.x < basketX + currentBasketWidth) {
+                    // Catch!
                     if (p.type === 'coin') {
-                        score += (10 + combo * 2);
+                        runScore += (10 + combo * 2);
                         combo++;
                         playSound('coin');
+                        createFloatingText(p.x, p.y, `+${10+combo*2}`, "#ff8fa3");
                         createParticles(p.x, p.y, '#ffcf56');
-                        createFloatingText(p.x, p.y, "+"+(10+combo*2), "#ff8fa3");
-                    } 
-                    else if (p.type === 'bomb') {
-                        takeDamage();
-                        createParticles(p.x, p.y, '#333');
-                        createFloatingText(p.x, p.y, "OUCH!", "#ff0000");
-                    }
-                    else if (p.type === 'heart') {
-                        if(lives < 3) lives++;
-                        score += 50;
-                        playSound('lifeup');
-                        createParticles(p.x, p.y, '#ff5d8f');
+                    } else if (p.type === 'bomb') {
+                        if(shieldActive) {
+                            shieldActive = false;
+                            playSound('powerup'); // Shield break sound
+                            createFloatingText(p.x, p.y, "BLOCKED!", "#4cc9f0");
+                        } else {
+                            lives--;
+                            combo = 0;
+                            playSound('bomb');
+                            ui.card.classList.remove('shake');
+                            void ui.card.offsetWidth;
+                            ui.card.classList.add('shake');
+                            ctx.fillStyle = 'rgba(255,0,0,0.3)'; ctx.fillRect(0,0,width,height);
+                            if(lives <= 0) gameOver();
+                        }
+                    } else if (p.type === 'magnet') {
+                        magnetTimer = 600; // 10 seconds
+                        playSound('powerup');
+                        createFloatingText(p.x, p.y, "MAGNET!", "#4cc9f0");
+                    } else if (p.type === 'shield') {
+                        shieldActive = true;
+                        playSound('powerup');
+                        createFloatingText(p.x, p.y, "SHIELD!", "#ffd166");
+                    } else if (p.type === 'heart') {
+                        if(lives<3) lives++;
+                        runScore+=50;
+                        playSound('powerup');
                         createFloatingText(p.x, p.y, "HP UP!", "#ff5d8f");
                     }
                     
@@ -575,30 +706,19 @@
                     continue;
                 }
 
-                // MISSED (Floor)
                 if (p.y > height) {
-                    if (p.type === 'coin') {
-                        // Penalty for missing a coin
-                        lives--;
+                    if(p.type === 'coin') {
                         combo = 0;
-                        playSound('miss');
                         updateUI();
-                        createFloatingText(p.x, height-50, "MISS!", "#6d597a");
-                        if(lives <= 0) {
-                            takeDamage(); // Trigger game over
-                            return; 
-                        }
                     }
                     items.splice(i, 1);
                 }
             }
 
-            // 4. Particles
+            // Particles
             for (let i = particles.length - 1; i >= 0; i--) {
                 let pt = particles[i];
-                pt.x += pt.vx;
-                pt.y += pt.vy;
-                pt.life -= 0.05;
+                pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.05;
                 ctx.globalAlpha = pt.life;
                 ctx.fillStyle = pt.color;
                 ctx.beginPath(); ctx.arc(pt.x, pt.y, 4, 0, Math.PI*2); ctx.fill();
@@ -609,32 +729,56 @@
             requestAnimationFrame(loop);
         }
 
-        // --- INPUT HANDLING ---
-        function setTarget(clientX) {
-            const rect = ui.container.getBoundingClientRect();
-            // Offset to center the basket on finger
-            let x = clientX - rect.left - (BASKET_WIDTH / 2);
-            // Clamp
-            if (x < 0) x = 0;
-            if (x > width - BASKET_WIDTH) x = width - BASKET_WIDTH;
-            targetX = x;
-            mouseX = clientX;
+        // --- UTILS ---
+        function createParticles(x, y, color) {
+            for(let i=0; i<5; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8,
+                    life: 1.0, color: color
+                });
+            }
+        }
+        function createFloatingText(x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'combo-text';
+            el.innerText = text;
+            el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color;
+            ui.container.appendChild(el);
+            setTimeout(() => el.remove(), 800);
         }
 
-        const container = document.getElementById('canvasContainer');
-        container.addEventListener('mousemove', (e) => setTarget(e.clientX));
-        container.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            setTarget(e.touches[0].clientX);
-        }, { passive: false });
-        container.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            setTarget(e.touches[0].clientX);
-        }, { passive: false });
+        // --- INPUT ---
+        function setTarget(clientX) {
+            const rect = ui.container.getBoundingClientRect();
+            let x = clientX - rect.left - (currentBasketWidth / 2);
+            if (x < 0) x = 0;
+            if (x > width - currentBasketWidth) x = width - currentBasketWidth;
+            targetX = x;
+        }
+        ui.container.addEventListener('mousemove', (e) => setTarget(e.clientX));
+        ui.container.addEventListener('touchmove', (e) => { e.preventDefault(); setTarget(e.touches[0].clientX); }, { passive: false });
+        ui.container.addEventListener('touchstart', (e) => { e.preventDefault(); setTarget(e.touches[0].clientX); }, { passive: false });
 
-        // --- BUTTONS ---
+        // --- BUTTON BINDINGS ---
         document.getElementById('startBtn').onclick = initGame;
         document.getElementById('restartBtn').onclick = initGame;
+        
+        // Shop Navigation
+        document.getElementById('openShopBtn').onclick = () => {
+            renderShop();
+            screens.start.classList.add('hidden');
+            screens.shop.classList.remove('hidden');
+        };
+        document.getElementById('goShopFromOver').onclick = () => {
+            renderShop();
+            screens.gameover.classList.add('hidden');
+            screens.shop.classList.remove('hidden');
+        };
+        document.getElementById('closeShopBtn').onclick = () => {
+            screens.shop.classList.add('hidden');
+            screens.start.classList.remove('hidden');
+        };
 
     </script>
 </body>
