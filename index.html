@@ -3,466 +3,689 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kitty Coin Catcher · extreme speed</title>
+    <meta name="description" content="Catch coins, avoid bombs, and unlock 25+ cute skins in this hyper-casual arcade game!">
+    <title>Kitty Coin Catcher: Hyper Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Fredoka', cursive, sans-serif; }
+        
+        :root {
+            --primary: #ff5d8f;
+            --secondary: #6d597a;
+            --accent: #ffcf56;
+            --bg-gradient: linear-gradient(135deg, #ffd6e7 0%, #fff5e6 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Fredoka', sans-serif; }
+        
         body {
-            background: #ffecf2;
-            background-image: radial-gradient(circle at 10% 20%, #fff0f6 10%, transparent 20%),
-                              radial-gradient(circle at 90% 80%, #e3f2fd 15%, transparent 25%),
-                              linear-gradient(135deg, #ffd6e7 0%, #fff5e6 100%);
-            min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            background: #222; /* Dark background for the area outside the game on desktop */
+            height: 100vh; width: 100vw;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-        .game-card {
-            width: 100%; max-width: 500px; height: 100vh; max-height: 850px;
-            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px);
-            border-radius: 40px; box-shadow: 0 20px 40px rgba(255, 182, 193, 0.4), inset 0 0 0 2px rgba(255, 255, 255, 0.6);
-            position: relative; display: flex; flex-direction: column; padding: 15px; overflow: hidden;
+
+        /* Game Container - Fixed Aspect Ratio logic for CrazyGames iframe */
+        .game-wrapper {
+            position: relative;
+            width: 100%; height: 100%;
+            max-width: 550px; max-height: 900px;
+            background: var(--bg-gradient);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex; flex-direction: column;
         }
-        @media (max-width: 500px) { .game-card { border-radius: 0; height: 100vh; max-height: 100vh; } }
+
+        /* Desktop border radius */
+        @media (min-width: 551px) { .game-wrapper { border-radius: 20px; height: 95vh; } }
+
+        /* UI Layer */
+        .ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+            display: flex; flex-direction: column;
+        }
+
+        /* HUD */
+        .hud {
+            padding: 15px; display: flex; justify-content: space-between; align-items: center;
+            pointer-events: auto;
+        }
+
+        .pill {
+            background: rgba(255,255,255,0.9);
+            padding: 8px 16px; border-radius: 30px;
+            color: var(--secondary); font-weight: 700; font-size: 1.2rem;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 8px;
+            transition: transform 0.1s;
+        }
+        
+        .btn-icon {
+            width: 45px; height: 45px; border-radius: 50%; border: none;
+            background: #fff; font-size: 1.5rem; cursor: pointer;
+            box-shadow: 0 4px 0 #ddd; color: var(--secondary);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-icon:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Canvas */
+        #gameCanvas {
+            display: block; width: 100%; height: 100%;
+            touch-action: none;
+        }
+
+        /* Menus (Start, Shop, Game Over, Pause) */
         .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 40px; transition: opacity 0.3s ease, transform 0.3s ease;
-            z-index: 20; pointer-events: auto; background: rgba(255,255,255,0.95); padding: 20px;
+            z-index: 20; padding: 20px;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: auto;
         }
-        .hidden { opacity: 0; pointer-events: none; transform: scale(0.95); z-index: 0; }
-        .game-title { font-size: 3.5rem; color: #ff8fa3; text-shadow: 4px 4px 0px #fff, 6px 6px 0px #ffc2d1; text-align: center; line-height: 0.9; margin-bottom: 10px; }
-        .game-desc { color: #6d597a; margin-bottom: 20px; text-align: center; background: #fff; padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .btn-cute {
-            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3); border: none; padding: 15px 40px;
-            border-radius: 50px; font-size: 1.5rem; color: white; font-weight: 700; cursor: pointer;
+        .screen.hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+
+        h1 { font-size: 3.5rem; color: var(--primary); text-align: center; line-height: 0.9; text-shadow: 3px 3px 0 #fff; margin-bottom: 20px; }
+        h2 { color: var(--secondary); margin-bottom: 10px; }
+
+        .btn-main {
+            background: linear-gradient(to bottom, #ffbcd9, #ff8fa3);
+            border: none; padding: 15px 50px; border-radius: 50px;
+            font-size: 1.8rem; color: white; font-weight: 800; cursor: pointer;
             box-shadow: 0 6px 0 #e06c85, 0 10px 20px rgba(255, 143, 163, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s; margin: 5px; width: 80%;
+            margin: 10px; transition: 0.1s; width: 80%; max-width: 300px;
         }
-        .btn-cute:active { transform: translateY(6px); box-shadow: 0 0 0 #e06c85; }
-        .btn-shop {
-            background: linear-gradient(to bottom, #bde0fe, #a2d2ff); box-shadow: 0 6px 0 #89c2fa;
-            font-size: 1.2rem; padding: 12px 30px; margin-top: 10px;
+        .btn-main:active { transform: translateY(6px); box-shadow: 0 0 0 #e06c85; }
+        
+        .btn-secondary {
+            background: #fff; color: var(--secondary);
+            border: 2px solid #eee; padding: 12px 30px; border-radius: 40px;
+            font-size: 1.2rem; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 0 #ddd; margin-top: 10px;
         }
-        .btn-shop:active { box-shadow: 0 0 0 #89c2fa; transform: translateY(6px); }
-        .btn-close {
-            position: absolute; top: 20px; right: 20px; background: #ff5d8f; width: 40px; height: 40px;
-            border-radius: 50%; border: none; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer;
-            box-shadow: 0 3px 0 #c9184a;
-        }
-        .btn-close:active { transform: translateY(3px); box-shadow: none; }
-        .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; position: relative; z-index: 15; }
-        .stats-box { display: flex; gap: 10px; }
-        .pill {
-            background: #fff; padding: 8px 16px; border-radius: 30px; color: #6d597a; font-weight: 700;
-            box-shadow: 0 4px 0 #ffe0e9; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;
-        }
-        .hearts-container { color: #ff5d8f; letter-spacing: 2px; font-size: 1.4rem; }
-        .canvas-container {
-            flex: 1; width: 100%; background: linear-gradient(180deg, #e0f7fa 0%, #fff3e0 100%);
-            border-radius: 25px; border: 6px solid #fff; box-shadow: inset 0 5px 10px rgba(0,0,0,0.05);
-            position: relative; overflow: hidden; touch-action: none; cursor: none;
-        }
-        canvas { display: block; width: 100%; height: 100%; }
-        .shop-header { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 20px; margin-top: 40px;}
-        .shop-wallet { background: #ffcf56; color: #fff; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; text-shadow: 1px 1px 0 rgba(0,0,0,0.1); border: 2px solid #fff; box-shadow: 0 3px 0 #e6b744; }
-        .shop-tabs { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; }
-        .tab-btn { flex: 1; padding: 10px; border: none; background: #fff; border-radius: 15px; font-weight: bold; color: #aaa; cursor: pointer; transition: 0.2s; box-shadow: 0 3px 0 #eee; }
-        .tab-btn.active { background: #ff8fa3; color: white; box-shadow: 0 3px 0 #e06c85; transform: translateY(1px); }
+        .btn-secondary:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Shop Grid */
         .shop-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;
-            overflow-y: auto; padding-bottom: 20px; max-height: 400px;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+            width: 100%; max-height: 50vh; overflow-y: auto; padding: 5px;
         }
         .shop-item {
-            background: #fff; border-radius: 20px; padding: 15px; text-align: center;
-            border: 2px solid transparent; transition: 0.2s; position: relative;
-            box-shadow: 0 4px 0 #eee;
+            background: #fff; padding: 15px; border-radius: 20px;
+            text-align: center; border: 2px solid transparent;
+            box-shadow: 0 4px 0 #eee; cursor: pointer; position: relative;
         }
-        .shop-item:active { transform: translateY(4px); box-shadow: none; }
-        .shop-item.selected { border-color: #ff5d8f; background: #fff0f6; }
-        .shop-item.locked { opacity: 0.7; filter: grayscale(0.8); }
-        .shop-icon { font-size: 2.5rem; margin-bottom: 5px; display: block; }
-        .item-name { font-size: 0.9rem; font-weight: bold; color: #6d597a; display: block; margin-bottom: 5px; }
-        .item-cost { background: #eee; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: bold; color: #555; display: inline-block; }
-        .item-cost.can-afford { background: #d1fae5; color: #065f46; }
-        .owned-badge { font-size: 0.8rem; color: #ff5d8f; font-weight: bold; }
-        .combo-text {
-            position: absolute; pointer-events: none; font-weight: 800; font-size: 1.5rem;
-            text-shadow: 2px 2px 0 #fff; animation: floatUp 0.8s forwards; z-index: 10;
+        .shop-item.active { border-color: var(--primary); background: #fff0f6; }
+        .shop-item.locked { opacity: 0.6; filter: grayscale(1); }
+
+        /* Floating Text Animation */
+        .float-text {
+            position: absolute; font-weight: 900; font-size: 1.5rem;
+            color: #fff; text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            pointer-events: none; animation: floatUp 0.8s forwards;
         }
         @keyframes floatUp {
             0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+            100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
         }
-        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake { 
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-            40%, 60% { transform: translate3d(6px, 0, 0); }
-        }
+
+        /* Utility */
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
+        
+        .hidden-el { display: none !important; }
     </style>
 </head>
 <body>
-<div class="game-card" id="gameCard">
-    <div class="hud">
-        <div class="stats-box">
-            <div class="pill"><span>🪙</span> <span id="runScore">0</span></div>
-            <div class="pill hearts-container" id="heartsDisplay">❤️❤️❤️</div>
+
+<div class="game-wrapper" id="gameWrapper">
+    <div class="ui-layer">
+        <div class="hud">
+            <div class="pill">🪙 <span id="scoreVal">0</span></div>
+            <div class="pill" id="livesVal" style="color:var(--primary)">❤️❤️❤️</div>
+            <button class="btn-icon" id="pauseBtn">⏸️</button>
         </div>
-        <div class="pill" id="powerupInd" style="display:none; color:#4cc9f0;">🧲 <span id="powerTime">5s</span></div>
-        <div class="pill" id="comboPill" style="display:none; color:#ff9f1c;">🔥 <span id="comboVal">x1</span></div>
-    </div>
-
-    <div class="canvas-container" id="canvasContainer">
-        <canvas id="gameCanvas"></canvas>
-    </div>
-    <div class="footer-hint" style="text-align:center; color:#b0aac0; margin-top:8px; font-size: 0.9rem;">
-        👆 KITTY COIN CATCHER · 2x SPEED · REAL SKINS
-    </div>
-
-    <!-- START SCREEN with correct name -->
-    <div class="screen start-screen" id="startScreen">
-        <div style="font-size: 5rem; margin-bottom: 10px; animation: bounce 2s infinite;" id="heroCat">⚡😺⚡</div>
-        <div class="game-title">KITTY<br>COIN CATCHER</div>
-        <div class="game-desc">
-            💥 EXTREME SPEED · 50% BOMBS<br>
-            🐯 25+ SKINS with UNIQUE EMOJI<br>
-            🔊 SOUND ON – HYPER MODE
+        <div style="position:absolute; bottom: 20px; width: 100%; text-align: center; opacity: 0.7; font-size: 14px; font-weight: bold; color: #6d597a;">
+            <span id="controlHint">🖱️ / 👆 / ⬅️➡️ to Move</span>
         </div>
-        <button class="btn-cute" id="startBtn">⚡ PLAY NOW</button>
-        <button class="btn-cute btn-shop" id="openShopBtn">🛒 SKIN SHOP</button>
     </div>
 
-    <!-- SHOP SCREEN -->
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="screen" id="startScreen">
+        <div style="font-size: 6rem; animation: floatUp 2s infinite ease-in-out; transform-origin: center;">😺</div>
+        <h1>KITTY<br>COIN CATCHER</h1>
+        <button class="btn-main" id="playBtn">PLAY</button>
+        <button class="btn-secondary" id="shopBtn">🛒 SKINS & UPGRADES</button>
+        <div style="margin-top: 20px; display: flex; gap: 15px;">
+            <button class="btn-icon" id="musicToggle">🎵</button>
+            <button class="btn-icon" id="sfxToggle">🔊</button>
+        </div>
+    </div>
+
     <div class="screen hidden" id="shopScreen">
-        <div class="shop-header">
-            <h2 style="color:#6d597a;">🐾 KITTY BAZAAR</h2>
-            <div class="shop-wallet">🪙 <span id="walletVal">0</span></div>
+        <div class="hud" style="width:100%; margin-bottom: 20px;">
+            <button class="btn-icon" id="closeShop">✕</button>
+            <div class="pill">🪙 <span id="walletVal">0</span></div>
         </div>
-        <button class="btn-close" id="closeShopBtn">✕</button>
-        <div class="shop-tabs">
-            <button class="tab-btn active" id="tabSkins">SKINS (25+)</button>
-            <button class="tab-btn" id="tabUpgrades">UPGRADES</button>
-            <button class="tab-btn" id="tabItems">CONSUMABLES</button>
-        </div>
+        <h2>SKIN SHOP</h2>
         <div class="shop-grid" id="shopGrid"></div>
     </div>
 
-    <!-- GAME OVER SCREEN -->
+    <div class="screen hidden" id="pauseScreen">
+        <h1>PAUSED</h1>
+        <button class="btn-main" id="resumeBtn">RESUME</button>
+        <button class="btn-secondary" id="quitBtn">QUIT</button>
+    </div>
+
     <div class="screen hidden" id="gameOverScreen">
-        <h2 style="color:#ff5d8f; font-size: 3rem; margin-bottom: 5px;">GAME OVER 🤕</h2>
-        <div style="color: #6d597a; font-size: 1.2rem;">Coins this run</div>
-        <div style="font-size: 4rem; color: #ffcf56; text-shadow: 2px 2px 0 #bfa04d; font-weight:800;" id="finalScore">0</div>
-        <div style="background:#fff; padding:10px 20px; border-radius:15px; margin: 10px 0; color:#555; box-shadow: 0 4px 0 #eee;">
-            Total Bank: 🪙 <span id="totalBankDisplay">0</span>
-        </div>
-        <div id="highScoreTag" style="color:#ffcf56; font-weight:bold; margin-bottom:15px; font-size: 1.2rem;"></div>
-        <button class="btn-cute" id="restartBtn">CATCH AGAIN 🔄</button>
-        <button class="btn-cute btn-shop" id="goShopFromOver">🛒 SHOP</button>
+        <h1>GAME OVER</h1>
+        <h2 style="font-size: 4rem; color: var(--accent); text-shadow: 2px 2px 0 #aaa;" id="finalScore">0</h2>
+        <p style="color: #888; margin-bottom: 20px; font-weight: bold;">BEST: <span id="bestScore">0</span></p>
+        <button class="btn-main" id="restartBtn">TRY AGAIN</button>
+        <button class="btn-secondary" id="homeBtn">MAIN MENU</button>
     </div>
 </div>
 
 <script>
-(function() {
-    // ---------- MASSIVE SKIN DATABASE (each with unique emoji & shape) ----------
-    const SKINS_DB = [
-        { id: 'skin_default', name: 'Classic', price: 0, icon: '😺', shape: 'cat', ears: true, tail: 'normal', colors: { body: '#fcd5ce', stroke: '#e5989b', face: '#6d597a', ears: '#e5989b', eyes: '#2d1b0e' } },
-        { id: 'skin_tiger', name: 'Tiger', price: 600, icon: '🐯', shape: 'tiger', ears: true, tail: 'striped', colors: { body: '#ffaa5e', stroke: '#d35400', face: '#5e3023', ears: '#d35400', eyes: '#f6e58d' } },
-        { id: 'skin_void', name: 'Void', price: 300, icon: '🐈‍⬛', shape: 'cat', ears: true, tail: 'fluffy', colors: { body: '#2d3436', stroke: '#000', face: '#ffffff', ears: '#1e1e1e', eyes: '#b8860b' } },
-        { id: 'skin_pink', name: 'Berry', price: 1000, icon: '🍓', shape: 'bear', ears: true, tail: 'stub', colors: { body: '#ff70a6', stroke: '#d90429', face: '#fff', ears: '#d90429', eyes: '#590d22' } },
-        { id: 'skin_alien', name: 'Gnarp', price: 2500, icon: '👽', shape: 'alien', ears: false, tail: 'long', colors: { body: '#70e000', stroke: '#38b000', face: '#004b23', ears: '#38b000', eyes: '#fdffb8' } },
-        { id: 'skin_robo', name: 'Mecha', price: 5000, icon: '🤖', shape: 'robot', ears: false, tail: 'mechanical', colors: { body: '#adb5bd', stroke: '#495057', face: '#0dcaf0', ears: '#495057', eyes: '#ffbe0b' } },
-        { id: 'skin_golden', name: 'Golden', price: 10000, icon: '🏆', shape: 'cat', ears: true, tail: 'sparkly', colors: { body: '#ffd966', stroke: '#b8860b', face: '#7a4c0d', ears: '#b8860b', eyes: '#3b280b' } },
-        { id: 'skin_pumpkin', name: 'Spice', price: 3000, icon: '🎃', shape: 'pumpkin', ears: false, tail: 'vine', colors: { body: '#ff9f1c', stroke: '#9e5a0d', face: '#2e1b0e', ears: '#9e5a0d', eyes: '#f8f32b' } },
-        { id: 'skin_ice', name: 'Glacier', price: 4200, icon: '❄️', shape: 'cat', ears: true, tail: 'icicle', colors: { body: '#cfe1fc', stroke: '#5aa9e6', face: '#003459', ears: '#5aa9e6', eyes: '#a2d6f9' } },
-        { id: 'skin_cherry', name: 'Sakura', price: 3500, icon: '🌸', shape: 'cat', ears: true, tail: 'flower', colors: { body: '#ffb7c5', stroke: '#e2808e', face: '#b2495c', ears: '#e2808e', eyes: '#911f47' } },
-        { id: 'skin_toxic', name: 'Slime', price: 6000, icon: '🧪', shape: 'blob', ears: false, tail: 'drippy', colors: { body: '#b7e4c7', stroke: '#40916c', face: '#1b4d3f', ears: '#40916c', eyes: '#d9ed92' } },
-        { id: 'skin_mummy', name: 'Mummy', price: 2800, icon: '🩻', shape: 'mummy', ears: false, tail: 'bandage', colors: { body: '#e9e3d5', stroke: '#a7a28b', face: '#4d4730', ears: '#a7a28b', eyes: '#f3c26b' } },
-        { id: 'skin_astronaut', name: 'Astro', price: 7500, icon: '👩‍🚀', shape: 'astronaut', ears: false, tail: 'antenna', colors: { body: '#cddafd', stroke: '#3466aa', face: '#13294b', ears: '#3466aa', eyes: '#f8f0e5' } },
-        { id: 'skin_bee', name: 'Bee', price: 2000, icon: '🐝', shape: 'bee', ears: false, tail: 'stinger', colors: { body: '#f6d743', stroke: '#cb8c1c', face: '#2f241b', ears: '#cb8c1c', eyes: '#202020' } },
-        { id: 'skin_rave', name: 'Rave', price: 8800, icon: '🪩', shape: 'cat', ears: true, tail: 'disco', colors: { body: '#cc66ff', stroke: '#9900ff', face: '#ffd966', ears: '#9900ff', eyes: '#caffbf' } },
-        { id: 'skin_cyber', name: 'Cyber', price: 9999, icon: '👾', shape: 'cyber', ears: false, tail: 'glitch', colors: { body: '#4ea8de', stroke: '#1e3c5c', face: '#80ffdb', ears: '#1e3c5c', eyes: '#ff70a6' } },
-        { id: 'skin_dino', name: 'Dino', price: 4500, icon: '🦖', shape: 'dino', ears: false, tail: 'spiky', colors: { body: '#86c166', stroke: '#3d6e3d', face: '#f7e967', ears: '#3d6e3d', eyes: '#2b4d2b' } },
-        { id: 'skin_dragon', name: 'Dragon', price: 12000, icon: '🐉', shape: 'dragon', ears: true, tail: 'flame', colors: { body: '#e03a3a', stroke: '#9d0208', face: '#faa307', ears: '#9d0208', eyes: '#ffba08' } },
-        { id: 'skin_ghost', name: 'Ghost', price: 3300, icon: '👻', shape: 'ghost', ears: false, tail: 'float', colors: { body: '#e9ecef', stroke: '#adb5bd', face: '#212529', ears: '#adb5bd', eyes: '#6c757d' } },
-        { id: 'skin_santa', name: 'Santa', price: 7000, icon: '🎅', shape: 'cat', ears: true, tail: 'present', colors: { body: '#e63946', stroke: '#a81124', face: '#f1faee', ears: '#a81124', eyes: '#1e1e2f' } },
-        { id: 'skin_witch', name: 'Witch', price: 5500, icon: '🧙', shape: 'witch', ears: false, tail: 'broom', colors: { body: '#7b2cbf', stroke: '#3c096c', face: '#ffba08', ears: '#3c096c', eyes: '#f48c06' } },
-        { id: 'skin_zombie', name: 'Zombie', price: 4700, icon: '🧟', shape: 'zombie', ears: true, tail: 'rotten', colors: { body: '#6a994e', stroke: '#31572c', face: '#a7c957', ears: '#31572c', eyes: '#bc6c25' } },
-        { id: 'skin_angel', name: 'Angel', price: 8200, icon: '😇', shape: 'cat', ears: true, tail: 'halo', colors: { body: '#f8f0e5', stroke: '#e0d3c3', face: '#b2967c', ears: '#e0d3c3', eyes: '#66806d' } },
-        { id: 'skin_devil', name: 'Devil', price: 8200, icon: '😈', shape: 'cat', ears: true, tail: 'pitchfork', colors: { body: '#590d22', stroke: '#800f2f', face: '#ffba08', ears: '#800f2f', eyes: '#e85d04' } },
-        { id: 'skin_unicorn', name: 'Unicorn', price: 15000, icon: '🦄', shape: 'unicorn', ears: true, tail: 'rainbow', colors: { body: '#f7b2b7', stroke: '#de6b8a', face: '#fcf6bd', ears: '#de6b8a', eyes: '#9b5de5' } },
+/**
+ * KITTY COIN CATCHER - CRAZYGAMES EDITION
+ * Optimized for performance, keyboard support, and audio integration.
+ */
+
+// --- AUDIO ENGINE (Synthesizer - No External Files) ---
+const AudioEngine = (() => {
+    let ctx = null;
+    let masterGain = null;
+    let musicInterval = null;
+    let musicOn = true;
+    let sfxOn = true;
+    let isInit = false;
+
+    // A simple happy melody sequence
+    const MELODY = [
+        659.25, 659.25, 0, 659.25, 0, 523.25, 659.25, 0, 783.99, 0, 0, 0, 392.00, 0, 0, 0,
+        523.25, 0, 0, 392.00, 0, 0, 329.63, 0, 0, 440.00, 0, 493.88, 0, 466.16, 440.00, 0
     ];
+    let noteIndex = 0;
 
-    const UPGRADES_DB = [
-        { id: 'upg_width', name: 'Big Basket', price: (lvl) => (lvl+1)*500, max: 6, desc: 'wider catch' },
-        { id: 'upg_luck', name: 'Lucky Cat', price: (lvl) => (lvl+1)*800, max: 5, desc: 'more powerups' },
-        { id: 'upg_combo', name: 'Combo+', price: (lvl) => (lvl+1)*1000, max: 4, desc: 'longer combo' }
-    ];
-
-    const CONSUMABLES_DB = [
-        { id: 'cons_heart', name: 'Extra ❤️', price: 150, icon: '💖', desc: 'restore 1 life' },
-        { id: 'cons_magnet', name: 'Magnet', price: 250, icon: '🧲', desc: '+6s magnet' },
-        { id: 'cons_shield', name: 'Shield', price: 300, icon: '🛡️', desc: 'block bomb' },
-        { id: 'cons_bomb', name: 'Nuke', price: 800, icon: '☢️', desc: 'clear all bombs' }
-    ];
-
-    // ---------- PLAYER DATA ----------
-    const DEFAULT_DATA = {
-        coins: 1200, highScore: 0, inventory: ['skin_default'], equippedSkin: 'skin_default',
-        upgrades: { width: 0, luck: 0, combo: 0 },
-        consumables: { cons_heart: 0, cons_magnet: 0, cons_shield: 0, cons_bomb: 0 }
-    };
-    function loadData() { try { let s = localStorage.getItem('kittycoincatcher_v1'); if(s) return { ...DEFAULT_DATA, ...JSON.parse(s) }; } catch(e){} return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
-    let playerData = loadData();
-    function saveData() { localStorage.setItem('kittycoincatcher_v1', JSON.stringify(playerData)); updateWalletUI(); }
-
-    // ---------- DOM ----------
-    const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d', { alpha: false });
-    const screens = { start: document.getElementById('startScreen'), gameover: document.getElementById('gameOverScreen'), shop: document.getElementById('shopScreen') };
-    const ui = {
-        score: document.getElementById('runScore'), finalScore: document.getElementById('finalScore'),
-        hearts: document.getElementById('heartsDisplay'), comboPill: document.getElementById('comboPill'),
-        comboVal: document.getElementById('comboVal'), powerPill: document.getElementById('powerupInd'),
-        powerTime: document.getElementById('powerTime'), card: document.getElementById('gameCard'),
-        container: document.getElementById('canvasContainer'), wallet: document.getElementById('walletVal'),
-        shopGrid: document.getElementById('shopGrid'), totalBank: document.getElementById('totalBankDisplay'),
-        heroCat: document.getElementById('heroCat')
-    };
-
-    // ---------- AUDIO ----------
-    let audioCtx = null;
-    function initAudio() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } }
-    function playSound(type, pitch=0) { if (!audioCtx || audioCtx.state!=='running') return; let t = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); 
-        if (type==='coin') { osc.type='sine'; osc.frequency.setValueAtTime(700+pitch*60,t); osc.frequency.exponentialRampToValueAtTime(1400+pitch*80,t+0.1); gain.gain.setValueAtTime(0.1,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.2); }
-        else if (type==='bomb') { osc.type='sawtooth'; osc.frequency.setValueAtTime(130,t); osc.frequency.exponentialRampToValueAtTime(40,t+0.5); gain.gain.setValueAtTime(0.25,t); gain.gain.exponentialRampToValueAtTime(0.01,t+0.5); }
-        else if (type==='powerup') { osc.type='square'; osc.frequency.setValueAtTime(550,t); osc.frequency.linearRampToValueAtTime(1100,t+0.15); gain.gain.setValueAtTime(0.12,t); gain.gain.linearRampToValueAtTime(0,t+0.3); }
-        else if (type==='buy') { osc.type='triangle'; osc.frequency.setValueAtTime(400,t); osc.frequency.linearRampToValueAtTime(750,t+0.1); gain.gain.setValueAtTime(0.1,t); gain.gain.linearRampToValueAtTime(0,t+0.25); }
-        osc.start(t); osc.stop(t+(type==='bomb'?0.5:0.3));
-    }
-
-    // ---------- SHOP ----------
-    function updateWalletUI() { ui.wallet.innerText = playerData.coins; ui.totalBank.innerText = playerData.coins; }
-    function updateHeroCat() { let skin = SKINS_DB.find(s=>s.id===playerData.equippedSkin) || SKINS_DB[0]; ui.heroCat.innerText = skin.icon; }
-
-    let currentTab = 'skins';
-    document.getElementById('tabSkins').onclick = ()=>switchTab('skins');
-    document.getElementById('tabUpgrades').onclick = ()=>switchTab('upgrades');
-    document.getElementById('tabItems').onclick = ()=>switchTab('items');
-    function switchTab(tab) { currentTab=tab; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById(tab==='skins'?'tabSkins':tab==='upgrades'?'tabUpgrades':'tabItems').classList.add('active'); renderShop(); }
-
-    function renderShop() {
-        ui.shopGrid.innerHTML = '';
-        if (currentTab === 'skins') {
-            SKINS_DB.forEach(item => {
-                let owned = playerData.inventory.includes(item.id);
-                let equipped = playerData.equippedSkin === item.id;
-                let canAfford = playerData.coins >= item.price;
-                let el = document.createElement('div');
-                el.className = `shop-item ${equipped ? 'selected' : ''} ${!owned && !canAfford ? 'locked' : ''}`;
-                el.onclick = () => handleBuySkin(item);
-                let btnHTML = equipped ? '<span class="owned-badge">EQUIPPED</span>' : owned ? '<span class="owned-badge" style="color:#aaa">OWNED</span>' : `<span class="item-cost ${canAfford?'can-afford':''}">🪙 ${item.price}</span>`;
-                el.innerHTML = `<span class="shop-icon">${item.icon}</span><span class="item-name">${item.name}</span>${btnHTML}`;
-                ui.shopGrid.appendChild(el);
-            });
-        } else if (currentTab === 'upgrades') {
-            UPGRADES_DB.forEach(upg => {
-                let key = upg.id.replace('upg_','');
-                let level = playerData.upgrades[key]||0;
-                let price = upg.price(level);
-                let isMax = level>=upg.max;
-                let canAfford = !isMax && playerData.coins>=price;
-                let el = document.createElement('div'); el.className = `shop-item ${isMax?'locked':''}`;
-                if(!isMax) el.onclick = ()=>handleBuyUpgrade(upg);
-                el.innerHTML = `<span class="shop-icon">🆙</span><span class="item-name">${upg.name} Lv.${level}</span><div style="font-size:0.7rem;">${upg.desc}</div>${isMax?'<span class="owned-badge">MAX</span>':`<span class="item-cost ${canAfford?'can-afford':''}">🪙 ${price}</span>`}`;
-                ui.shopGrid.appendChild(el);
-            });
-        } else {
-            CONSUMABLES_DB.forEach(cons => {
-                let qty = playerData.consumables[cons.id]||0;
-                let canAfford = playerData.coins>=cons.price;
-                let el = document.createElement('div'); el.className = 'shop-item';
-                el.onclick = ()=>handleBuyConsumable(cons);
-                el.innerHTML = `<span class="shop-icon">${cons.icon}</span><span class="item-name">${cons.name} x${qty}</span><div style="font-size:0.7rem;">${cons.desc}</div><span class="item-cost ${canAfford?'can-afford':''}">🪙 ${cons.price}</span>`;
-                ui.shopGrid.appendChild(el);
-            });
+    function init() {
+        if (isInit) return;
+        const CtxClass = window.AudioContext || window.webkitAudioContext;
+        if (CtxClass) {
+            ctx = new CtxClass();
+            masterGain = ctx.createGain();
+            masterGain.gain.value = 0.3; // Master volume
+            masterGain.connect(ctx.destination);
+            isInit = true;
         }
     }
 
-    function handleBuySkin(item) {
-        if (playerData.inventory.includes(item.id)) { if (playerData.equippedSkin !== item.id) { playerData.equippedSkin = item.id; playSound('select'); } }
-        else if (playerData.coins >= item.price) { playerData.coins -= item.price; playerData.inventory.push(item.id); playerData.equippedSkin = item.id; playSound('buy'); }
-        else { playSound('select'); return; }
-        saveData(); renderShop(); updateHeroCat();
-    }
-    function handleBuyUpgrade(upg) {
-        let key = upg.id.replace('upg_',''); let level = playerData.upgrades[key]||0; let price = upg.price(level);
-        if (level < upg.max && playerData.coins >= price) { playerData.coins -= price; playerData.upgrades[key]++; playSound('buy'); saveData(); renderShop(); } else playSound('select');
-    }
-    function handleBuyConsumable(cons) {
-        if (playerData.coins >= cons.price) { playerData.coins -= cons.price; playerData.consumables[cons.id] = (playerData.consumables[cons.id]||0)+1; playSound('buy'); saveData(); renderShop(); } else playSound('select');
-    }
-
-    // ---------- GAME STATE (HYPERSPEED) ----------
-    let width, height, gameState='START', runScore=0, lives=3, combo=0, comboDecay=0;
-    const COMBO_FRAMES = 70;
-    let gameFrame=0, items=[], particles=[], magnetTimer=0, shieldActive=false;
-    let basketX=0, targetX=0, baseWidth=70, currentWidth=70;
-
-    function initGame() {
-        initAudio(); resize();
-        runScore=0; lives=3; combo=0; comboDecay=0; items=[]; particles=[]; magnetTimer=0; shieldActive=false; gameFrame=0;
-        currentWidth = baseWidth + (playerData.upgrades.width * 12);
-        targetX = (width - currentWidth)/2; basketX = targetX;
-        updateUI();
-        screens.start.classList.add('hidden'); screens.gameover.classList.add('hidden'); screens.shop.classList.add('hidden');
-        gameState = 'PLAYING';
-        loop();
+    function playTone(freq, type, duration, vol, slideTo = null) {
+        if (!ctx || !sfxOn) return;
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + duration);
+        
+        gain.gain.setValueAtTime(vol, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + duration);
+        
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(t);
+        osc.stop(t + duration);
     }
 
-    function updateUI() {
-        ui.score.innerText = runScore;
-        let hStr = ''; for(let i=0;i<3;i++) hStr += i<lives ? '❤️' : '🖤';
-        if(shieldActive) hStr = '🛡️'+hStr;
-        ui.hearts.innerText = hStr;
-        ui.comboPill.style.display = combo>1 ? 'flex' : 'none';
-        if(combo>1) ui.comboVal.innerText = 'x'+combo;
-        ui.powerPill.style.display = magnetTimer>0 ? 'flex' : 'none';
-        if(magnetTimer>0) ui.powerTime.innerText = Math.ceil(magnetTimer/60)+'s';
-    }
-
-    // HYPERSPEED SPAWN: base speed 7.0 (2x faster)
-    function spawnItem() {
-        let type = 'coin';
-        let speed = 7.0 + (gameFrame/600);
-        let r = Math.random();
-        if (r < 0.5) type = 'bomb';
-        else if (r < 0.58 && lives<3) type = 'heart';
-        else if (r < 0.63) type = Math.random()>0.5?'magnet':'shield';
-        items.push({ x: 30+Math.random()*(width-60), y: -40, type, speed, rot:0, rotSpeed:(Math.random()-0.5)*0.2 });
-    }
-
-    // GENUINE SKIN DRAWING – full shape + emoji
-    function drawBasket(x, y) {
-        const skin = SKINS_DB.find(s => s.id === playerData.equippedSkin) || SKINS_DB[0];
-        const w = currentWidth; const h = 50;
-
-        ctx.fillStyle = skin.colors.body;
-        ctx.strokeStyle = skin.colors.stroke;
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.roundRect(x, y, w, h, 15); ctx.fill(); ctx.stroke();
-        ctx.beginPath(); ctx.arc(x + w/2, y, w/2 - 8, Math.PI, 0); ctx.stroke();
-
-        if (skin.ears) {
-            ctx.fillStyle = skin.colors.ears;
-            ctx.beginPath(); ctx.moveTo(x+10, y); ctx.lineTo(x+20, y-20); ctx.lineTo(x+35, y); ctx.closePath(); ctx.fill(); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x+w-35, y); ctx.lineTo(x+w-20, y-20); ctx.lineTo(x+w-10, y); ctx.closePath(); ctx.fill(); ctx.stroke();
-        }
-
-        ctx.fillStyle = skin.colors.eyes || '#2d1b0e';
-        let lookX = 0; items.forEach(it => { if(it.y < y+70 && it.y > y-20) lookX = (it.x - (x+w/2)) / 8; });
-        lookX = Math.max(-12, Math.min(12, lookX));
-        ctx.beginPath(); ctx.arc(x + 25 + lookX, y + 20, 5, 0, 2*Math.PI); ctx.fill();
-        ctx.beginPath(); ctx.arc(x + w - 25 + lookX, y + 20, 5, 0, 2*Math.PI); ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(x + 23 + lookX, y + 18, 2, 0, 2*Math.PI); ctx.fill();
-        ctx.beginPath(); ctx.arc(x + w - 27 + lookX, y + 18, 2, 0, 2*Math.PI); ctx.fill();
-
-        // tail
-        ctx.fillStyle = skin.colors.body;
-        if (skin.tail === 'striped') {
-            ctx.fillRect(x + w/2 + 8, y + 38, 20, 6);
-            ctx.fillStyle = '#b3410e'; ctx.fillRect(x + w/2 + 12, y + 39, 5, 4);
-        } else if (skin.tail === 'fluffy') {
-            ctx.beginPath(); ctx.ellipse(x + w/2 + 15, y + 42, 12, 8, 0, 0, 2*Math.PI); ctx.fill();
-        } else if (skin.tail === 'long') {
-            ctx.fillRect(x + w/2 + 5, y + 35, 30, 6);
-        } else if (skin.tail === 'stinger') {
-            ctx.beginPath(); ctx.moveTo(x + w/2 + 15, y+40); ctx.lineTo(x + w/2 + 30, y+48); ctx.lineTo(x + w/2 + 15, y+52); ctx.fill();
-        } else if (skin.tail === 'sparkly') {
-            ctx.fillStyle = '#ffd966'; ctx.beginPath(); ctx.arc(x + w/2 + 20, y+40, 8, 0, 2*Math.PI); ctx.fill();
-        } else if (skin.tail === 'flame') {
-            ctx.fillStyle = '#faa307'; ctx.beginPath(); ctx.moveTo(x + w/2 + 10, y+40); ctx.lineTo(x + w/2 + 30, y+35); ctx.lineTo(x + w/2 + 25, y+50); ctx.fill();
-        } else if (skin.tail === 'rainbow') {
-            for (let i=0; i<5; i++) { ctx.fillStyle = ['#ff0000','#ffa500','#ffff00','#00ff00','#0000ff'][i]; ctx.fillRect(x + w/2 + 10 + i*5, y+38, 5, 8); }
-        }
-
-        // draw skin icon emoji above basket
-        ctx.font = '26px "Fredoka", sans-serif';
-        ctx.fillStyle = '#000';
-        ctx.fillText(skin.icon, x + w/2 - 15, y - 15);
-    }
-
-    function gameOver() {
-        gameState = 'GAMEOVER';
-        playerData.coins += runScore;
-        if (runScore > playerData.highScore) playerData.highScore = runScore;
-        saveData();
-        ui.finalScore.innerText = runScore;
-        document.getElementById('highScoreTag').innerText = (runScore >= playerData.highScore && runScore>0) ? "✨ NEW BEST ✨" : "Best: "+playerData.highScore;
-        screens.gameover.classList.remove('hidden');
-    }
-
-    function loop() {
-        if (gameState !== 'PLAYING') return;
-        ctx.clearRect(0, 0, width, height);
-        gameFrame++;
-
-        if (magnetTimer>0) magnetTimer--;
-        if (gameFrame % Math.max(8, 22 - Math.floor(gameFrame/150)) === 0) spawnItem();
-
-        if (combo>1) { if (comboDecay<=0) combo=0; else comboDecay--; }
-
-        basketX += (targetX - basketX) * 0.2;
-        const basketY = height - 90;
-        drawBasket(basketX, basketY);
-
-        for (let i=items.length-1; i>=0; i--) {
-            let p = items[i];
-            if (magnetTimer>0 && p.type==='coin') { p.x += (basketX+currentWidth/2-p.x)*0.15; p.y+=9; } else p.y += p.speed;
-            p.rot += p.rotSpeed;
-            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-            if (p.type==='coin') { ctx.fillStyle='#ffcf56'; ctx.beginPath(); ctx.arc(0,0,14,0,2*Math.PI); ctx.fill(); ctx.fillStyle='#b88b3d'; ctx.font='18px Arial'; ctx.fillText('🪙', -12, 6); }
-            else if (p.type==='bomb') { ctx.fillStyle='#333'; ctx.beginPath(); ctx.arc(0,5,14,0,2*Math.PI); ctx.fill(); ctx.font='22px Arial'; ctx.fillText('💣', -12, 10); }
-            else if (p.type==='magnet') { ctx.font='28px Arial'; ctx.fillText('🧲', -12, 8); }
-            else if (p.type==='shield') { ctx.font='28px Arial'; ctx.fillText('🛡️', -12, 8); }
-            else if (p.type==='heart') { ctx.font='28px Arial'; ctx.fillText('❤️', -12, 8); }
-            ctx.restore();
-
-            if (p.y > basketY && p.y < basketY+40 && p.x > basketX-5 && p.x < basketX+currentWidth+5) {
-                if (p.type==='coin') { runScore += 10+combo*6; combo++; comboDecay = COMBO_FRAMES + playerData.upgrades.combo*20; playSound('coin', combo); createFloatingText(p.x, p.y, `+${10+combo*4}`); createParticles(p.x,p.y,'#ffcf56'); }
-                else if (p.type==='bomb') {
-                    if (shieldActive) { shieldActive = false; playSound('powerup'); createFloatingText(p.x, p.y, 'BLOCK'); }
-                    else { lives--; combo=0; playSound('bomb'); ui.card.classList.add('shake'); setTimeout(()=>ui.card.classList.remove('shake'),500); if(lives<=0) { gameOver(); return; } }
-                } else if (p.type==='magnet') { magnetTimer = 500; playSound('powerup'); createFloatingText(p.x,p.y,'MAGNET'); }
-                else if (p.type==='shield') { shieldActive = true; playSound('powerup'); createFloatingText(p.x,p.y,'SHIELD'); }
-                else if (p.type==='heart') { if(lives<3) lives++; runScore+=40; playSound('powerup'); createFloatingText(p.x,p.y,'❤️'); }
-                updateUI(); items.splice(i,1); continue;
+    function startMusic() {
+        if (!ctx || !musicOn || musicInterval) return;
+        // 120 BPM = 2 beats per second = 8 sixteenth notes per second
+        // Interval = 1000 / 8 = 125ms
+        musicInterval = setInterval(() => {
+            if (ctx.state === 'suspended') ctx.resume();
+            const freq = MELODY[noteIndex % MELODY.length];
+            if (freq > 0) {
+                playTone(freq, 'triangle', 0.1, 0.1); // Lead
+                playTone(freq / 2, 'sine', 0.1, 0.1); // Bass
             }
-            if (p.y > height) { if(p.type==='coin') { combo=0; } items.splice(i,1); }
-        }
-
-        for (let i=particles.length-1; i>=0; i--) {
-            let pt=particles[i]; pt.x+=pt.vx; pt.y+=pt.vy; pt.life-=0.05;
-            ctx.globalAlpha=pt.life; ctx.fillStyle=pt.color; ctx.beginPath(); ctx.arc(pt.x,pt.y,5,0,2*Math.PI); ctx.fill();
-            if(pt.life<=0) particles.splice(i,1);
-        } ctx.globalAlpha=1;
-        requestAnimationFrame(loop);
+            noteIndex++;
+        }, 125);
     }
 
-    function createParticles(x,y,c) { for(let i=0;i<8;i++) particles.push({x,y,vx:(Math.random()-0.5)*10,vy:(Math.random()-0.5)*10,life:1.0,color:c}); }
-    function createFloatingText(x,y,txt) { let el=document.createElement('div'); el.className='combo-text'; el.innerText=txt; el.style.left=x+'px'; el.style.top=y+'px'; ui.container.appendChild(el); setTimeout(()=>el.remove(),800); }
-    function resize() { let rect=ui.container.getBoundingClientRect(); let dpr=window.devicePixelRatio||1; canvas.width=rect.width*dpr; canvas.height=rect.height*dpr; ctx.scale(dpr,dpr); width=rect.width; height=rect.height; targetX=(width-currentWidth)/2; basketX=targetX; }
+    function stopMusic() {
+        if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+    }
 
-    function handleInput(e) { if(gameState!=='PLAYING') return; e.preventDefault?.(); let clientX = e.touches?e.touches[0].clientX:e.clientX; let rect=canvas.getBoundingClientRect(); let pos = (clientX - rect.left) - currentWidth/2; if(pos<0)pos=0; if(pos>width-currentWidth)pos=width-currentWidth; targetX=pos; }
-    ui.container.addEventListener('mousemove',handleInput); ui.container.addEventListener('touchmove',handleInput,{passive:false}); ui.container.addEventListener('touchstart',handleInput,{passive:false});
-
-    document.getElementById('startBtn').onclick = () => { initAudio(); playSound('select'); initGame(); };
-    document.getElementById('restartBtn').onclick = () => { initAudio(); playSound('select'); initGame(); };
-    document.getElementById('openShopBtn').onclick = () => { initAudio(); playSound('select'); screens.shop.classList.remove('hidden'); renderShop(); };
-    document.getElementById('goShopFromOver').onclick = () => { initAudio(); playSound('select'); screens.gameover.classList.add('hidden'); screens.start.classList.remove('hidden'); screens.shop.classList.remove('hidden'); renderShop(); };
-    document.getElementById('closeShopBtn').onclick = () => { playSound('select'); screens.shop.classList.add('hidden'); updateHeroCat(); };
-    window.addEventListener('resize', resize);
-    setTimeout(resize, 50);
-    updateWalletUI(); updateHeroCat();
+    return {
+        init: () => init(),
+        toggleMusic: () => { musicOn = !musicOn; if(musicOn) startMusic(); else stopMusic(); return musicOn; },
+        toggleSfx: () => { sfxOn = !sfxOn; return sfxOn; },
+        playJump: () => playTone(400, 'square', 0.1, 0.1, 600),
+        playCoin: () => playTone(1200, 'sine', 0.1, 0.1, 2000), // High ping
+        playBomb: () => playTone(150, 'sawtooth', 0.4, 0.2, 50),
+        playPowerup: () => playTone(600, 'sine', 0.3, 0.2, 1200),
+        startMusic: startMusic,
+        stopMusic: stopMusic
+    };
 })();
+
+// --- GAME DATA & CONFIG ---
+const GameData = {
+    coins: 0,
+    bestScore: 0,
+    equipped: 'cat_default',
+    inventory: ['cat_default'],
+    upgrades: { width: 0, luck: 0 }
+};
+
+const SKINS = [
+    { id: 'cat_default', name: 'Classic', price: 0, icon: '😺', color: '#ffcdb2' },
+    { id: 'cat_tiger', name: 'Tiger', price: 500, icon: '🐯', color: '#ffb703' },
+    { id: 'cat_void', name: 'Void', price: 1000, icon: '🐈‍⬛', color: '#495057' },
+    { id: 'cat_alien', name: 'Gnarp', price: 2500, icon: '👽', color: '#70e000' },
+    { id: 'cat_robot', name: 'Mecha', price: 5000, icon: '🤖', color: '#adb5bd' },
+    { id: 'cat_dragon', name: 'Dragon', price: 10000, icon: '🐲', color: '#d90429' },
+];
+
+// Load/Save
+function loadGame() {
+    const s = localStorage.getItem('kittyCoinSave');
+    if (s) {
+        const d = JSON.parse(s);
+        GameData.coins = d.coins || 0;
+        GameData.bestScore = d.bestScore || 0;
+        GameData.inventory = d.inventory || ['cat_default'];
+        GameData.equipped = d.equipped || 'cat_default';
+    }
+}
+function saveGame() { localStorage.setItem('kittyCoinSave', JSON.stringify(GameData)); }
+
+// --- ENGINE VARIABLES ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+let lastTime = 0;
+let gameState = 'MENU'; // MENU, PLAY, PAUSE, OVER
+let width, height;
+
+// Entities
+let player = { x: 0, y: 0, w: 70, h: 50, vx: 0, targetX: 0 };
+let objects = []; // Falling items
+let particles = [];
+let floatingTexts = [];
+let score = 0;
+let lives = 3;
+let difficulty = 1;
+let spawnTimer = 0;
+
+// Input
+const keys = { left: false, right: false };
+let mouseX = null;
+
+// --- RESIZE & SCALING ---
+function resize() {
+    const wrapper = document.getElementById('gameWrapper');
+    width = wrapper.clientWidth;
+    height = wrapper.clientHeight;
+    canvas.width = width;
+    canvas.height = height;
+    player.y = height - 90;
+    if(gameState === 'MENU') player.targetX = width/2 - player.w/2;
+}
+window.addEventListener('resize', resize);
+
+// --- INPUT HANDLING ---
+function handleInput(x) {
+    if (gameState !== 'PLAY') return;
+    mouseX = x;
+    player.targetX = Math.max(0, Math.min(width - player.w, x - player.w/2));
+}
+canvas.addEventListener('mousemove', e => handleInput(e.offsetX));
+canvas.addEventListener('touchmove', e => { e.preventDefault(); handleInput(e.touches[0].clientX - canvas.getBoundingClientRect().left); }, {passive: false});
+
+window.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+    if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') togglePause();
+});
+window.addEventListener('keyup', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+});
+window.addEventListener('blur', () => { if(gameState === 'PLAY') togglePause(); });
+
+// --- GAME LOGIC ---
+function resetGame() {
+    score = 0;
+    lives = 3;
+    difficulty = 1;
+    objects = [];
+    particles = [];
+    floatingTexts = [];
+    player.x = width/2 - player.w/2;
+    player.targetX = player.x;
+    mouseX = null; // Reset mouse control
+    updateUI();
+}
+
+function spawnObject() {
+    const typeRoll = Math.random();
+    let type = 'coin';
+    if (typeRoll > 0.85) type = 'bomb';
+    else if (typeRoll > 0.82 && lives < 3) type = 'heart';
+    
+    // Difficulty scaling
+    const speedBase = 200 + (difficulty * 20); 
+    
+    objects.push({
+        x: Math.random() * (width - 40),
+        y: -50,
+        type: type,
+        speed: speedBase,
+        w: type === 'bomb' ? 30 : 25,
+        rotation: 0,
+        rotSpeed: (Math.random() - 0.5) * 5
+    });
+}
+
+function update(dt) {
+    // 1. Player Movement (Hybrid Mouse/Keyboard)
+    if (keys.left) player.targetX -= 600 * dt;
+    if (keys.right) player.targetX += 600 * dt;
+    
+    // Clamp target
+    player.targetX = Math.max(0, Math.min(width - player.w, player.targetX));
+    
+    // Smooth Lerp
+    player.x += (player.targetX - player.x) * 15 * dt;
+
+    // 2. Object Spawning
+    spawnTimer -= dt;
+    if (spawnTimer <= 0) {
+        spawnObject();
+        spawnTimer = Math.max(0.3, 1.0 - (difficulty * 0.05)); // Spawn faster over time
+    }
+
+    // 3. Difficulty ramp
+    difficulty += dt * 0.05;
+
+    // 4. Object Physics & Collision
+    for (let i = objects.length - 1; i >= 0; i--) {
+        let o = objects[i];
+        o.y += o.speed * dt;
+        o.rotation += o.rotSpeed * dt;
+
+        // Collision Box (AABB)
+        if (
+            o.x < player.x + player.w &&
+            o.x + o.w > player.x &&
+            o.y < player.y + player.h &&
+            o.y + o.w > player.y
+        ) {
+            handleCollision(o);
+            objects.splice(i, 1);
+            continue;
+        }
+
+        if (o.y > height) objects.splice(i, 1);
+    }
+
+    // 5. Particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= dt;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+    
+    // 6. Floating Text
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        floatingTexts[i].life -= dt;
+        if(floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+    }
+}
+
+function handleCollision(o) {
+    if (o.type === 'coin') {
+        score += 10;
+        AudioEngine.playCoin();
+        addFloatingText(o.x, o.y, "+10", "#ffcf56");
+        spawnParticles(o.x, o.y, "#ffcf56");
+    } else if (o.type === 'bomb') {
+        lives--;
+        AudioEngine.playBomb();
+        addFloatingText(o.x, o.y, "OUCH!", "#ff0000");
+        document.getElementById('gameWrapper').classList.add('shake');
+        setTimeout(() => document.getElementById('gameWrapper').classList.remove('shake'), 400);
+        if (lives <= 0) gameOver();
+    } else if (o.type === 'heart') {
+        lives++;
+        AudioEngine.playPowerup();
+        addFloatingText(o.x, o.y, "❤️", "#ff5d8f");
+    }
+    updateUI();
+}
+
+function draw() {
+    // Clear
+    ctx.fillStyle = '#fff0f6'; // Fallback
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw Player
+    const skin = SKINS.find(s => s.id === GameData.equipped) || SKINS[0];
+    
+    // Basket/Body
+    ctx.fillStyle = skin.color;
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 3;
+    
+    ctx.beginPath();
+    ctx.roundRect(player.x, player.y, player.w, player.h, 15);
+    ctx.fill();
+    ctx.stroke();
+
+    // Ears
+    ctx.beginPath();
+    ctx.moveTo(player.x + 10, player.y);
+    ctx.lineTo(player.x + 20, player.y - 15);
+    ctx.lineTo(player.x + 30, player.y);
+    ctx.moveTo(player.x + player.w - 30, player.y);
+    ctx.lineTo(player.x + player.w - 20, player.y - 15);
+    ctx.lineTo(player.x + player.w - 10, player.y);
+    ctx.fill();
+    ctx.stroke();
+
+    // Face (looks at mouse)
+    let lookX = (player.targetX - player.x) * 0.1;
+    ctx.fillStyle = "#333";
+    ctx.beginPath();
+    ctx.arc(player.x + 25 + lookX, player.y + 20, 5, 0, Math.PI*2);
+    ctx.arc(player.x + player.w - 25 + lookX, player.y + 20, 5, 0, Math.PI*2);
+    ctx.fill();
+
+    // Falling Objects
+    for (let o of objects) {
+        ctx.save();
+        ctx.translate(o.x + o.w/2, o.y + o.w/2);
+        ctx.rotate(o.rotation);
+        
+        if (o.type === 'coin') {
+            ctx.fillStyle = "#ffcf56";
+            ctx.beginPath();
+            ctx.arc(0, 0, o.w/2, 0, Math.PI*2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("🪙", 0, 0);
+        } else if (o.type === 'bomb') {
+            ctx.fillStyle = "#333";
+            ctx.beginPath();
+            ctx.arc(0, 0, o.w/2, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = "#ff0000";
+            ctx.font = "bold 18px Arial";
+            ctx.fillText("💣", -5, 5);
+        }
+        ctx.restore();
+    }
+
+    // Floating Text
+    for (let t of floatingTexts) {
+        ctx.fillStyle = t.color;
+        ctx.font = "bold 24px Fredoka";
+        ctx.fillText(t.text, t.x, t.y - (1.0 - t.life) * 50);
+    }
+}
+
+function updateUI() {
+    document.getElementById('scoreVal').textContent = score;
+    let hearts = "";
+    for(let i=0; i<3; i++) hearts += (i < lives) ? "❤️" : "🖤";
+    document.getElementById('livesVal').textContent = hearts;
+}
+
+function gameOver() {
+    gameState = "OVER";
+    GameData.coins += score;
+    if(score > GameData.bestScore) GameData.bestScore = score;
+    saveGame();
+    AudioEngine.stopMusic();
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('bestScore').textContent = GameData.bestScore;
+    document.getElementById('gameOverScreen').classList.remove('hidden');
+}
+
+// --- INITIALIZATION ---
+window.onload = () => {
+    loadGame();
+    resize();
+    AudioEngine.init();
+    
+    // Bind Buttons
+    document.getElementById('playBtn').onclick = () => {
+        AudioEngine.startMusic();
+        document.getElementById('startScreen').classList.add('hidden');
+        resetGame();
+        gameState = "PLAY";
+        animate();
+    };
+    
+    document.getElementById('restartBtn').onclick = () => {
+        document.getElementById('gameOverScreen').classList.add('hidden');
+        resetGame();
+        gameState = "PLAY";
+        AudioEngine.startMusic();
+    };
+
+    // Shop Logic
+    document.getElementById('shopBtn').onclick = () => {
+        document.getElementById('startScreen').classList.add('hidden');
+        document.getElementById('shopScreen').classList.remove('hidden');
+        renderShop();
+    };
+    document.getElementById('closeShop').onclick = () => {
+        document.getElementById('shopScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+    };
+
+    document.getElementById('pauseBtn').onclick = togglePause;
+    document.getElementById('resumeBtn').onclick = togglePause;
+    document.getElementById('quitBtn').onclick = () => {
+        gameState = "MENU";
+        document.getElementById('pauseScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+        AudioEngine.stopMusic();
+    };
+
+    // Audio Toggles
+    document.getElementById('musicToggle').onclick = (e) => {
+        const isOn = AudioEngine.toggleMusic();
+        e.target.textContent = isOn ? "🎵" : "🔇";
+    };
+    document.getElementById('sfxToggle').onclick = (e) => {
+        const isOn = AudioEngine.toggleSfx();
+        e.target.textContent = isOn ? "🔊" : "🔇";
+    };
+
+    requestAnimationFrame(loop);
+};
+
+function loop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
+
+    if (gameState === "PLAY") {
+        update(dt);
+        draw(ctx);
+    }
+    requestAnimationFrame(loop);
+}
+
+function togglePause() {
+    if (gameState === "PLAY") {
+        gameState = "PAUSE";
+        document.getElementById('pauseScreen').classList.remove('hidden');
+        AudioEngine.stopMusic();
+    } else if (gameState === "PAUSE") {
+        gameState = "PLAY";
+        document.getElementById('pauseScreen').classList.add('hidden');
+        AudioEngine.startMusic();
+        lastTime = performance.now(); // Reset time to prevent huge delta jump
+    }
+}
+
+// --- HELPER FUNCTIONS ---
+function renderShop() {
+    const grid = document.getElementById('shopGrid');
+    grid.innerHTML = "";
+    document.getElementById('walletVal').innerText = GameData.coins;
+    
+    SKINS.forEach(skin => {
+        const isOwned = GameData.inventory.includes(skin.id);
+        const isEquipped = GameData.equipped === skin.id;
+        
+        const el = document.createElement('div');
+        el.className = `shop-item ${isEquipped ? 'active' : ''} ${!isOwned && GameData.coins < skin.price ? 'locked' : ''}`;
+        
+        el.innerHTML = `
+            <div style="font-size: 3rem;">${skin.icon}</div>
+            <div style="font-weight:bold; margin: 5px 0;">${skin.name}</div>
+            <div style="font-size: 0.9rem; color: #888;">
+                ${isEquipped ? "EQUIPPED" : isOwned ? "OWNED" : "🪙 " + skin.price}
+            </div>
+        `;
+        
+        el.onclick = () => {
+            if (isOwned) {
+                GameData.equipped = skin.id;
+                saveGame();
+                renderShop();
+                AudioEngine.playCoin();
+            } else if (GameData.coins >= skin.price) {
+                GameData.coins -= skin.price;
+                GameData.inventory.push(skin.id);
+                GameData.equipped = skin.id;
+                saveGame();
+                renderShop();
+                AudioEngine.playPowerup();
+            } else {
+                AudioEngine.playBomb(); // Error sound
+            }
+        };
+        grid.appendChild(el);
+    });
+}
+
+function addFloatingText(x, y, text, color) {
+    floatingTexts.push({x, y, text, color, life: 1.0});
+}
 </script>
 </body>
 </html>
