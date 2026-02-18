@@ -469,7 +469,7 @@
 /**
  * KITTY CATCH - CRAZYGAMES OPTIMIZED VERSION
  * Features: CrazyGames SDK Integration with Data Module Cloud Saves
- * Version: 2.1.0 - Clean SDK Implementation
+ * Version: 2.2.0 - Strict Initialization Order
  */
 
 // --- CONFIGURATION ---
@@ -478,7 +478,7 @@ const CONSTANTS = {
     PLAYER_HEIGHT: 55,
     COLORS: { coin: '#ffb703', bomb: '#ef233c', heart: '#ff8fa3' },
     GAME_VERSION: '2.0.0',
-    AD_TIMEOUT: 60000, // 60s between midgame ads to prevent spam
+    AD_TIMEOUT: 60000, 
     SAVE_KEY: 'kittyCatchData'
 };
 
@@ -557,9 +557,7 @@ const CrazyManager = (() => {
         loadingComplete: () => {
             if (gameInstance) {
                 gameInstance.loadingStop();
-                // We are in the menu now, so we technically aren't in "gameplay" yet
-                // But usually, initial state is non-gameplay.
-                // We call gameplayStop to be safe and ensure the "Invite" button etc works for menu context.
+                // Ensure the SDK knows we are in the menu/idle state
                 if (gameInstance.gameplayStop) {
                     gameInstance.gameplayStop();
                 }
@@ -664,6 +662,9 @@ const CrazyManager = (() => {
         isAdShowing: () => isAdShowing
     };
 })();
+
+// Expose to window for debugging/detection
+window.CrazyManager = CrazyManager;
 
 // Helper function to update loading status
 function updateLoadingStatus(text, progress) {
