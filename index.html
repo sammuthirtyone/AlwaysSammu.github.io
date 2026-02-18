@@ -8,390 +8,40 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
         
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            user-select: none; 
-            -webkit-tap-highlight-color: transparent; 
-            font-family: 'Fredoka', sans-serif;
-        }
-        
-        body {
-            background: #1a1a2e;
-            height: 100vh; 
-            width: 100vw;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            overflow: hidden;
-        }
-
-        .game-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            max-width: 600px;
-            max-height: 900px;
-        }
-
-        .game-container {
-            position: relative;
-            width: 100%; 
-            height: 100%;
-            background: linear-gradient(180deg, #e0c3fc 0%, #8ec5fc 100%);
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-            overflow: hidden;
-            display: flex; 
-            flex-direction: column;
-            border-radius: 0;
-        }
-
-        @media (min-width: 601px) { 
-            .game-container { 
-                border-radius: 24px; 
-                height: 95vh; 
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Fredoka', sans-serif; }
+        body { background: #1a1a2e; height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .game-wrapper { position: relative; width: 100%; height: 100%; max-width: 600px; max-height: 900px; }
+        .game-container { position: relative; width: 100%; height: 100%; background: linear-gradient(180deg, #e0c3fc 0%, #8ec5fc 100%); box-shadow: 0 0 40px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; }
+        @media (min-width: 601px) { .game-container { border-radius: 24px; height: 95vh; } }
 
         /* Loading Screen */
-        .loading-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(180deg, #e0c3fc 0%, #8ec5fc 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            transition: opacity 0.5s;
-        }
+        .loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #e0c3fc 0%, #8ec5fc 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.5s; }
+        .loading-screen.hidden { opacity: 0; pointer-events: none; }
+        .loading-spinner { width: 60px; height: 60px; border: 6px solid rgba(255,255,255,0.3); border-top-color: #ff8fa3; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        .loading-text { font-size: 1.2rem; color: #5e548e; font-weight: 600; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .loading-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid rgba(255,255,255,0.3);
-            border-top-color: #ff8fa3;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        .loading-text {
-            font-size: 1.2rem;
-            color: #5e548e;
-            font-weight: 600;
-        }
-
-        .loading-progress {
-            width: 200px;
-            height: 4px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 4px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-
-        .loading-progress-bar {
-            width: 0%;
-            height: 100%;
-            background: #ff8fa3;
-            transition: width 0.3s;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .ui-layer {
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%;
-            pointer-events: none; 
-            z-index: 10;
-        }
-
-        .hud {
-            padding: 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start;
-            pointer-events: auto;
-        }
-
-        .stat-pill {
-            background: #fff; 
-            padding: 8px 16px; 
-            border-radius: 50px;
-            border: 3px solid #fff;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.1);
-            color: #5e548e; 
-            font-weight: 700; 
-            font-size: 1.2rem;
-            display: flex; 
-            align-items: center; 
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .btn-round {
-            width: 50px; 
-            height: 50px; 
-            border-radius: 50%; 
-            border: none;
-            background: #fff; 
-            font-size: 1.5rem; 
-            cursor: pointer;
-            box-shadow: 0 4px 0 #c8b6ff; 
-            color: #5e548e;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            transition: all 0.1s;
-            pointer-events: auto;
-        }
+        /* UI Elements */
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; transition: opacity 0.3s; }
+        .hud { padding: 20px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; }
+        .stat-pill { background: #fff; padding: 8px 16px; border-radius: 50px; border: 3px solid #fff; box-shadow: 0 6px 0 rgba(0,0,0,0.1); color: #5e548e; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .btn-round { width: 50px; height: 50px; border-radius: 50%; border: none; background: #fff; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 0 #c8b6ff; color: #5e548e; display: flex; align-items: center; justify-content: center; transition: all 0.1s; pointer-events: auto; }
+        .btn-round:active { transform: translateY(4px); box-shadow: none; }
         
-        .btn-round:active { 
-            transform: translateY(4px); 
-            box-shadow: none; 
-        }
-
-        .btn-round:disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .screen {
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(8px);
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center;
-            z-index: 20; 
-            padding: 20px;
-            transition: opacity 0.3s, visibility 0.3s;
-            pointer-events: auto;
-        }
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; padding: 20px; transition: opacity 0.3s; }
+        .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         
-        .hidden { 
-            opacity: 0; 
-            visibility: hidden; 
-            pointer-events: none; 
-        }
+        h1 { font-size: 3.5rem; color: #ff8fa3; text-align: center; line-height: 1; text-shadow: 3px 3px 0 #fff; margin-bottom: 30px; }
+        .btn-main { background: linear-gradient(to bottom, #ff8fa3, #ff5d8f); border: none; padding: 18px 60px; border-radius: 60px; font-size: 2rem; color: white; font-weight: 800; cursor: pointer; box-shadow: 0 8px 0 #c9184a; width: 80%; max-width: 350px; text-transform: uppercase; }
+        .btn-main:active { transform: translateY(8px); box-shadow: 0 0 0 #c9184a; }
+        
+        .exit-fullscreen-btn { position: absolute; bottom: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 2px solid #5e548e; color: #5e548e; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 30; }
+        .exit-fullscreen-btn.visible { display: flex; }
+        
+        .sync-indicator { position: absolute; top: 20px; right: 80px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; color: #5e548e; border: 1px solid #5e548e; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .sync-indicator.visible { opacity: 1; }
 
-        h1 { 
-            font-size: 3.5rem; 
-            color: #ff8fa3; 
-            text-align: center; 
-            line-height: 1; 
-            text-shadow: 3px 3px 0 #fff; 
-            margin-bottom: 30px; 
-            animation: bounce 2s infinite;
-        }
-
-        .btn-main {
-            background: linear-gradient(to bottom, #ff8fa3, #ff5d8f);
-            border: none; 
-            padding: 18px 60px; 
-            border-radius: 60px;
-            font-size: 2rem; 
-            color: white; 
-            font-weight: 800; 
-            cursor: pointer;
-            box-shadow: 0 8px 0 #c9184a, 0 15px 20px rgba(255, 93, 143, 0.4);
-            margin: 10px; 
-            transition: 0.1s; 
-            width: 80%; 
-            max-width: 350px;
-            text-transform: uppercase; 
-            letter-spacing: 2px;
-        }
-        
-        .btn-main:active { 
-            transform: translateY(8px); 
-            box-shadow: 0 0 0 #c9184a; 
-        }
-        
-        .btn-main:disabled {
-            opacity: 0.5;
-            transform: none;
-            pointer-events: none;
-        }
-        
-        .btn-sec {
-            background: #fff; 
-            color: #5e548e;
-            border: 3px solid #efefef; 
-            padding: 12px 40px; 
-            border-radius: 40px;
-            font-size: 1.3rem; 
-            font-weight: 700; 
-            cursor: pointer;
-            box-shadow: 0 5px 0 #ddd; 
-            margin-top: 15px;
-            transition: all 0.1s;
-        }
-        
-        .btn-sec:active { 
-            transform: translateY(5px); 
-            box-shadow: none; 
-        }
-
-        /* Exit Fullscreen Button (Required by CrazyGames) */
-        .exit-fullscreen-btn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.9);
-            border: 2px solid #5e548e;
-            color: #5e548e;
-            font-size: 1.2rem;
-            font-weight: bold;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 30;
-            pointer-events: auto;
-        }
-
-        .exit-fullscreen-btn.visible {
-            display: flex;
-        }
-
-        .shop-container {
-            background: #fff; 
-            border-radius: 20px; 
-            padding: 20px;
-            width: 100%; 
-            max-width: 400px; 
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        
-        .shop-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 15px; 
-        }
-        
-        .shop-item {
-            background: #f8f9fa; 
-            padding: 15px; 
-            border-radius: 15px;
-            text-align: center; 
-            border: 3px solid transparent;
-            cursor: pointer; 
-            transition: 0.2s;
-        }
-        
-        .shop-item.owned { 
-            background: #e2eafc; 
-            opacity: 0.8;
-        }
-        
-        .shop-item.equipped { 
-            border-color: #ff8fa3; 
-            background: #ffe5ec; 
-            transform: scale(1.02);
-        }
-        
-        .shop-item.locked { 
-            opacity: 0.5; 
-            filter: grayscale(1);
-            cursor: not-allowed;
-        }
-        
-        .shop-item:active:not(.locked) { 
-            transform: scale(0.95); 
-        }
-
-        canvas { 
-            display: block; 
-            width: 100%; 
-            height: 100%;
-            touch-action: none;
-        }
-
-        .control-hint {
-            position:absolute; 
-            bottom:20px; 
-            width:100%; 
-            text-align:center; 
-            opacity:0.8; 
-            font-weight:600; 
-            color: white; 
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
-            pointer-events: none;
-            font-size: 0.9rem;
-        }
-
-        .sync-indicator {
-            position: absolute;
-            top: 20px;
-            right: 80px;
-            background: rgba(255,255,255,0.9);
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            color: #5e548e;
-            border: 1px solid #5e548e;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 25;
-        }
-
-        .sync-indicator.visible {
-            opacity: 1;
-        }
-
-        .sdk-status {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            color: #5e548e;
-            border: 1px solid #5e548e;
-            z-index: 25;
-            pointer-events: none;
-        }
-
-        @keyframes bounce { 
-            0%, 100% { transform: translateY(0); } 
-            50% { transform: translateY(-10px); } 
-        }
-        
-        .shake { 
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; 
-        }
-        
-        @keyframes shake { 
-            10%, 90% { transform: translateX(-4px); } 
-            50% { transform: translateX(4px); } 
-        }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
     </style>
     <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
 </head>
@@ -399,29 +49,20 @@
 <div class="game-wrapper">
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Loading Kitty Coin Catcher...</div>
-        <div class="loading-progress">
-            <div class="loading-progress-bar" id="loadingProgressBar"></div>
-        </div>
-        <div class="sdk-status" id="sdkStatus">🔄 Connecting...</div>
+        <div class="loading-text">Connecting to SDK...</div>
     </div>
 
     <div class="game-container" id="gameContainer">
         <div class="sync-indicator" id="syncIndicator">💾 Saved to Cloud</div>
+        <button class="exit-fullscreen-btn" id="exitFullscreenBtn">⤬</button>
 
-        <button class="exit-fullscreen-btn" id="exitFullscreenBtn" aria-label="Exit Fullscreen">⤬</button>
-
-        <div class="ui-layer">
+        <div class="ui-layer" id="uiLayer" style="opacity: 0;">
             <div class="hud">
                 <div>
                     <div class="stat-pill" style="color: #ffb703;">🪙 <span id="uiScore">0</span></div>
                     <div class="stat-pill" style="color: #ff5d8f;" id="uiLives">❤️❤️❤️</div>
                 </div>
-                <button class="btn-round" id="btnPause" aria-label="Pause Game">II</button>
-            </div>
-            
-            <div class="control-hint" id="controlHint">
-                Slide or Arrow Keys
+                <button class="btn-round" id="btnPause">II</button>
             </div>
         </div>
 
@@ -430,990 +71,198 @@
         <div class="screen" id="screenStart">
             <h1>KITTY<br>CATCH</h1>
             <button class="btn-main" id="btnPlay">PLAY</button>
-            <button class="btn-sec" id="btnShop">👗 SKINS</button>
-            <div style="margin-top:20px; display:flex; gap:20px;">
-                <button class="btn-round" id="btnMute" aria-label="Toggle Sound">🎵</button>
-            </div>
-        </div>
-
-        <div class="screen hidden" id="screenShop">
-            <div class="hud" style="width:100%; position: absolute; top:0;">
-                <button class="btn-round" id="btnCloseShop" aria-label="Close Shop">✕</button>
-                <div class="stat-pill">Wallet: <span id="uiWallet">0</span></div>
-            </div>
-            <h2 style="color:#5e548e; margin-top: 60px; margin-bottom: 20px;">WARDROBE</h2>
-            <div class="shop-container">
-                <div class="shop-grid" id="shopGrid"></div>
-            </div>
         </div>
 
         <div class="screen hidden" id="screenOver">
-            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">GAME OVER</h1>
-            <div style="font-size: 4rem; font-weight:800; color:#ff8fa3; margin-bottom: 10px;">
-                <span id="uiFinalScore">0</span>
-            </div>
-            <p style="color:#666; font-weight:bold; margin-bottom:30px;">BEST: <span id="uiBestScore">0</span></p>
-            <button class="btn-main" id="btnRestart">AGAIN!</button>
-            <button class="btn-sec" id="btnHome">MENU</button>
+            <h1>GAME OVER</h1>
+            <div style="font-size: 3rem; font-weight:800; color:#ff8fa3;"><span id="uiFinalScore">0</span></div>
+            <button class="btn-main" id="btnRestart" style="margin-top:20px;">AGAIN!</button>
         </div>
 
         <div class="screen hidden" id="screenPause">
             <h1>PAUSED</h1>
             <button class="btn-main" id="btnResume">RESUME</button>
-            <button class="btn-sec" id="btnQuit">QUIT</button>
         </div>
     </div>
 </div>
 
 <script>
 /**
- * KITTY CATCH - CRAZYGAMES OPTIMIZED VERSION
- * Features: CrazyGames SDK Integration with Data Module Cloud Saves
- * Version: 2.2.0 - Strict Initialization Order
+ * SDK INITIALIZATION - MUST BE TOP-LEVEL FOR DETECTION
  */
+let crazyGame = null;
+let adInstance = null;
+let dataModule = null;
 
-// --- CONFIGURATION ---
-const CONSTANTS = {
-    PLAYER_WIDTH: 70,
-    PLAYER_HEIGHT: 55,
-    COLORS: { coin: '#ffb703', bomb: '#ef233c', heart: '#ff8fa3' },
-    GAME_VERSION: '2.0.0',
-    AD_TIMEOUT: 60000, 
-    SAVE_KEY: 'kittyCatchData'
-};
-
-const SKINS = [
-    { id: 'classic', name: 'Classic', cost: 0, color: '#ffcdb2', emoji: '😺' },
-    { id: 'calico', name: 'Calico', cost: 100, color: '#e0aaff', emoji: '🐱' },
-    { id: 'void', name: 'Void', cost: 300, color: '#343a40', emoji: '🐈⬛' },
-    { id: 'tiger', name: 'Tiger', cost: 500, color: '#ff9f1c', emoji: '🐯' },
-    { id: 'alien', name: 'Gnarp', cost: 1000, color: '#70e000', emoji: '👽' },
-    { id: 'robo', name: 'Mecha', cost: 2000, color: '#adb5bd', emoji: '🤖' }
-];
-
-// --- CRAZYGAMES SDK MANAGER ---
-const CrazyManager = (() => {
-    let gameInstance = null;
-    let adInstance = null;
-    let dataModule = null;
-    let sdkInitialized = false;
-    let isAdShowing = false;
-    let saveTimeout = null;
-
-    return {
-        init: async () => {
-            try {
-                updateLoadingStatus('Checking SDK...', 20);
-                
-                // Ensure CrazyGames object exists
-                if (!window.CrazyGames || !window.CrazyGames.SDK) {
-                    console.warn('CrazyGames SDK not found on window object.');
-                    updateLoadingStatus('Running Local Mode', 100);
-                    return false; // Fallback to local mode
-                }
-                
-                // Initialize SDK
-                gameInstance = await window.CrazyGames.SDK.init();
-                sdkInitialized = true;
-                
-                // Signal loading start immediately after init
-                if (gameInstance) {
-                    gameInstance.loadingStart();
-                }
-
-                // Get modules
-                adInstance = gameInstance.ad;
-                dataModule = gameInstance.data;
-                
-                updateLoadingStatus('SDK Initialized', 50);
-                
-                // Set up Ad Listeners
-                if (adInstance) {
-                    adInstance.setAdFinishedCallback(() => {
-                        console.log('Ad finished');
-                        isAdShowing = false;
-                    });
-                    
-                    adInstance.setAdErrorCallback((error) => {
-                        console.warn('Ad error:', error);
-                        isAdShowing = false;
-                    });
-                    
-                    adInstance.setAdStartedCallback(() => {
-                        console.log('Ad started');
-                        isAdShowing = true;
-                    });
-                }
-
-                return true;
-            } catch (error) {
-                console.error('SDK Init Failed:', error);
-                updateLoadingStatus('SDK Error (Local Mode)', 100);
-                return false;
-            }
-        },
-
-        // Signal that the game has finished loading assets
-        loadingComplete: () => {
-            if (gameInstance) {
-                gameInstance.loadingStop();
-                // Ensure the SDK knows we are in the menu/idle state
-                if (gameInstance.gameplayStop) {
-                    gameInstance.gameplayStop();
-                }
-            }
-            updateLoadingStatus('Complete!', 100);
-        },
-
-        // --- DATA MODULE (Cloud Saves) ---
-        saveData: async (gameState) => {
-            const gameData = {
-                coins: gameState.coins || 0,
-                bestScore: gameState.bestScore || 0,
-                inventory: gameState.inventory || ['classic'],
-                equipped: gameState.equipped || 'classic',
-                version: CONSTANTS.GAME_VERSION,
-                lastSaved: Date.now()
-            };
-
-            // Cloud Save
-            if (dataModule) {
-                try {
-                    await dataModule.setItem(CONSTANTS.SAVE_KEY, JSON.stringify(gameData));
-                    // Show sync UI
-                    const indicator = document.getElementById('syncIndicator');
-                    if(indicator) {
-                        indicator.classList.add('visible');
-                        setTimeout(() => indicator.classList.remove('visible'), 2000);
-                    }
-                } catch (error) {
-                    console.warn('Cloud save failed:', error);
-                }
-            }
-
-            // Local Backup (Always do this)
-            try {
-                localStorage.setItem(CONSTANTS.SAVE_KEY, JSON.stringify(gameData));
-            } catch (e) { console.warn('Local save failed'); }
-        },
-
-        loadData: async () => {
-            let data = null;
-
-            // Try Cloud First
-            if (dataModule) {
-                try {
-                    const cloudData = await dataModule.getItem(CONSTANTS.SAVE_KEY);
-                    if (cloudData) data = JSON.parse(cloudData);
-                } catch (e) {
-                    console.warn('Cloud load failed, trying local');
-                }
-            }
-
-            // Fallback to Local
-            if (!data) {
-                try {
-                    const localData = localStorage.getItem(CONSTANTS.SAVE_KEY);
-                    if (localData) data = JSON.parse(localData);
-                } catch (e) {}
-            }
-
-            return data;
-        },
-
-        // --- AD METHODS ---
-        showAd: async (type = 'midgame') => {
-            if (!adInstance || isAdShowing) return;
+(async () => {
+    try {
+        if (window.CrazyGames && window.CrazyGames.SDK) {
+            crazyGame = await window.CrazyGames.SDK.init();
+            adInstance = crazyGame.ad;
+            dataModule = crazyGame.data;
             
-            isAdShowing = true;
-            try {
-                await adInstance.requestAd(type);
-            } catch (error) {
-                console.warn('Ad request failed:', error);
-                isAdShowing = false;
-            }
-        },
-
-        // --- GAMEPLAY STATE ---
-        gameplayStart: () => {
-            if (gameInstance && gameInstance.gameplayStart) {
-                gameInstance.gameplayStart();
-            }
-        },
-
-        gameplayStop: () => {
-            if (gameInstance && gameInstance.gameplayStop) {
-                gameInstance.gameplayStop();
-            }
-        },
-
-        happyTime: () => {
-            if (gameInstance && gameInstance.gameplay && gameInstance.gameplay.happyTime) {
-                gameInstance.gameplay.happyTime();
-            }
-        },
-        
-        submitScore: (score) => {
-            if (gameInstance && gameInstance.leaderboard) {
-                gameInstance.leaderboard.postScore(score).catch(console.warn);
-            }
-        },
-
-        isAdShowing: () => isAdShowing
-    };
-})();
-
-// Expose to window for debugging/detection
-window.CrazyManager = CrazyManager;
-
-// Helper function to update loading status
-function updateLoadingStatus(text, progress) {
-    const statusEl = document.getElementById('sdkStatus');
-    const progressBar = document.getElementById('loadingProgressBar');
-    
-    if (statusEl) statusEl.textContent = text;
-    if (progressBar) progressBar.style.width = progress + '%';
-}
-
-// --- AUDIO SYSTEM ---
-const AudioSys = (() => {
-    let audioContext = null;
-    let isMuted = false;
-    let isInitialized = false;
-
-    function init() {
-        if (isInitialized) return;
-        
-        try {
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            audioContext = new AudioContextClass();
-            isInitialized = true;
+            crazyGame.loadingStart(); // Signal start immediately
+            console.log("SDK Detected");
             
-            // Resume context on first interaction if suspended
-            const resumeAudio = () => {
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-                document.removeEventListener('click', resumeAudio);
-                document.removeEventListener('touchstart', resumeAudio);
-                document.removeEventListener('keydown', resumeAudio);
-            };
-            
-            document.addEventListener('click', resumeAudio);
-            document.addEventListener('touchstart', resumeAudio);
-            document.addEventListener('keydown', resumeAudio);
-            
-        } catch (e) {
-            console.warn('Web Audio API not supported');
+            // Load cloud data
+            const cloudData = await dataModule.getItem('kittyCatchData');
+            if (cloudData) {
+                const data = JSON.parse(cloudData);
+                GameState.bestScore = data.bestScore || 0;
+                GameState.coins = data.coins || 0;
+            }
         }
+    } catch (e) {
+        console.error("SDK Init Error:", e);
     }
-
-    function playTone(freq, type, duration, volume = 0.1, endFreq = null) {
-        if (isMuted || !audioContext || audioContext.state !== 'running') return;
-
-        try {
-            const now = audioContext.currentTime;
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, now);
-            
-            if (endFreq) {
-                osc.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
-            }
-
-            gain.gain.setValueAtTime(volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            
-            osc.start(now);
-            osc.stop(now + duration);
-        } catch (e) {}
-    }
-
-    return {
-        init,
-        setMuted: (muted) => { isMuted = muted; },
-        playCoin: () => playTone(880, 'sine', 0.1, 0.1, 1760),
-        playBomb: () => playTone(200, 'sawtooth', 0.3, 0.15, 50),
-        playLife: () => playTone(440, 'triangle', 0.2, 0.1, 880),
-        playJump: () => playTone(330, 'sine', 0.1, 0.05, 660)
-    };
 })();
 
 // --- GAME STATE ---
 const GameState = {
-    screen: 'start',
     score: 0,
     lives: 3,
-    coins: 0,
     bestScore: 0,
-    inventory: ['classic'],
-    equipped: 'classic',
-    settings: { sound: true },
+    coins: 0,
     gameActive: false,
-    lastAdTime: 0
+    isAdShowing: false
 };
 
-// --- CANVAS SETUP ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d', { alpha: false });
-let canvasWidth = 0, canvasHeight = 0;
+let canvasWidth, canvasHeight;
 let lastTimestamp = 0;
 
-// Game entities
-const player = { 
-    x: 0, 
-    y: 0, 
-    targetX: 0, 
-    w: CONSTANTS.PLAYER_WIDTH, 
-    h: CONSTANTS.PLAYER_HEIGHT, 
-    squash: 1 
-};
-
+const player = { x: 0, y: 0, targetX: 0, w: 70, h: 55 };
 let entities = [];
-let particles = [];
-let floaters = [];
-let clouds = [];
 
-// --- UTILITIES ---
-function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-}
-
-function lerp(start, end, t) {
-    return start * (1 - t) + end * t;
-}
-
-function resizeCanvas() {
-    const container = document.getElementById('gameContainer');
-    const rect = container.getBoundingClientRect();
-    
+// --- CORE FUNCTIONS ---
+function resize() {
+    const rect = document.getElementById('gameContainer').getBoundingClientRect();
     canvasWidth = rect.width;
     canvasHeight = rect.height;
-    
-    canvas.style.width = canvasWidth + 'px';
-    canvas.style.height = canvasHeight + 'px';
-    
     canvas.width = canvasWidth * window.devicePixelRatio;
     canvas.height = canvasHeight * window.devicePixelRatio;
-    
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    
     player.y = canvasHeight - 100;
-    if (GameState.screen === 'start') {
-        player.x = canvasWidth / 2 - player.w / 2;
-        player.targetX = player.x;
+}
+
+async function saveToCloud() {
+    if (dataModule) {
+        await dataModule.setItem('kittyCatchData', JSON.stringify({
+            bestScore: GameState.bestScore,
+            coins: GameState.coins
+        }));
+        const indicator = document.getElementById('syncIndicator');
+        indicator.classList.add('visible');
+        setTimeout(() => indicator.classList.remove('visible'), 2000);
     }
 }
 
-// --- GAME LOGIC ---
-function spawnEntity() {
-    if (!GameState.gameActive) return;
+function toggleScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById('uiLayer').style.opacity = (id === 'play') ? '1' : '0';
     
-    const roll = Math.random();
-    let type = 'coin';
-    
-    if (roll > 0.9) type = 'bomb';
-    else if (roll > 0.87 && GameState.lives < 3) type = 'heart';
-
-    const speed = 150 + (GameState.score * 2);
-    
-    entities.push({
-        x: Math.random() * (canvasWidth - 50) + 25,
-        y: -30,
-        type: type,
-        w: type === 'bomb' ? 35 : 28,
-        h: type === 'bomb' ? 35 : 28,
-        speed: clamp(speed, 150, 500),
-        rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 5
-    });
-}
-
-function spawnCloud() {
-    if (clouds.length < 5) {
-        clouds.push({
-            x: -100,
-            y: Math.random() * canvasHeight * 0.5,
-            speed: 10 + Math.random() * 20,
-            size: 30 + Math.random() * 40
-        });
-    }
-}
-
-function createParticles(x, y, color) {
-    for (let i = 0; i < 8; i++) {
-        particles.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 200,
-            vy: (Math.random() - 0.5) * 200 - 100,
-            life: 1.0,
-            color,
-            size: 3 + Math.random() * 8
-        });
-    }
-}
-
-function addFloater(x, y, text, color) {
-    floaters.push({
-        x, y,
-        text,
-        color,
-        life: 0.8,
-        vy: -50
-    });
-}
-
-function handleCollision(entity) {
-    if (entity.type === 'coin') {
-        GameState.score += 10;
-        AudioSys.playCoin();
-        CrazyManager.happyTime(); // Trigger happy time on good events
-        createParticles(entity.x, entity.y, CONSTANTS.COLORS.coin);
-        addFloater(entity.x, entity.y, '+10', '#ffb703');
-    } else if (entity.type === 'bomb') {
-        GameState.lives--;
-        AudioSys.playBomb();
-        createParticles(entity.x, entity.y, CONSTANTS.COLORS.bomb);
-        addFloater(entity.x, entity.y, 'OUCH!', '#ef233c');
-        
-        document.getElementById('gameContainer').classList.add('shake');
-        setTimeout(() => {
-            document.getElementById('gameContainer').classList.remove('shake');
-        }, 400);
-        
-        if (GameState.lives <= 0) {
-            endGame();
-        }
-    } else if (entity.type === 'heart') {
-        GameState.lives = Math.min(GameState.lives + 1, 3);
-        AudioSys.playLife();
-        CrazyManager.happyTime();
-        addFloater(entity.x, entity.y, '❤️', '#ff8fa3');
-    }
-    
-    updateUI();
-}
-
-function updateGame(dt) {
-    if (!GameState.gameActive || CrazyManager.isAdShowing()) return;
-
-    const prevX = player.x;
-    player.x = lerp(player.x, player.targetX, 10 * dt);
-    player.x = clamp(player.x, 0, canvasWidth - player.w);
-    
-    const moveSpeed = Math.abs(player.x - prevX) / dt;
-    player.squash = lerp(player.squash, 1.0 - clamp(moveSpeed * 0.002, 0, 0.2), 10 * dt);
-
-    if (Math.random() < 0.02 + GameState.score * 0.00005) {
-        spawnEntity();
-    }
-    
-    if (Math.random() < 0.01) {
-        spawnCloud();
-    }
-
-    for (let i = entities.length - 1; i >= 0; i--) {
-        const e = entities[i];
-        e.y += e.speed * dt;
-        e.rotation += e.rotSpeed * dt;
-
-        const collisionPadding = e.type === 'bomb' ? 5 : -10;
-        if (e.y + e.h > player.y &&
-            e.y < player.y + player.h &&
-            e.x + e.w > player.x - collisionPadding &&
-            e.x < player.x + player.w + collisionPadding) {
-            
-            handleCollision(e);
-            entities.splice(i, 1);
-            continue;
-        }
-
-        if (e.y > canvasHeight + 50) {
-            entities.splice(i, 1);
-        }
-    }
-
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        p.vy += 200 * dt;
-        p.life -= dt * 2;
-        
-        if (p.life <= 0) {
-            particles.splice(i, 1);
-        }
-    }
-
-    for (let i = floaters.length - 1; i >= 0; i--) {
-        const f = floaters[i];
-        f.y += f.vy * dt;
-        f.life -= dt;
-        
-        if (f.life <= 0) {
-            floaters.splice(i, 1);
-        }
-    }
-
-    for (let i = clouds.length - 1; i >= 0; i--) {
-        clouds[i].x += clouds[i].speed * dt;
-        if (clouds[i].x > canvasWidth + 200) {
-            clouds.splice(i, 1);
-        }
-    }
-
-    // Check for midgame ad
-    const now = Date.now();
-    if (GameState.score > 0 && 
-        GameState.score % 250 === 0 && 
-        now - GameState.lastAdTime > CONSTANTS.AD_TIMEOUT) {
-        
-        GameState.lastAdTime = now;
-        CrazyManager.showAd('midgame');
-    }
-}
-
-// --- RENDERING ---
-function drawGame() {
-    ctx.fillStyle = '#c8b6ff';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    clouds.forEach(c => {
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.size * 0.7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(c.x + c.size * 0.6, c.y - c.size * 0.2, c.size * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    entities.forEach(e => {
-        ctx.save();
-        ctx.translate(e.x + e.w / 2, e.y + e.h / 2);
-        ctx.rotate(e.rotation);
-
-        if (e.type === 'coin') {
-            ctx.fillStyle = '#ffb703';
-            ctx.beginPath();
-            ctx.ellipse(0, 0, e.w / 2, e.h / 2, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = '#ffd966';
-            ctx.beginPath();
-            ctx.ellipse(-2, -2, e.w / 4, e.h / 4, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = '#b56500';
-            ctx.font = 'bold 12px Fredoka';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('$', 0, 2);
-        } else if (e.type === 'bomb') {
-            ctx.fillStyle = '#2b2d42';
-            ctx.beginPath();
-            ctx.arc(0, 0, e.w / 2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = '#8b4513';
-            ctx.fillRect(-2, -e.h / 2 - 5, 4, 10);
-            
-            ctx.fillStyle = '#ef233c';
-            ctx.beginPath();
-            ctx.arc(0, -e.h / 2 - 8, 4, 0, Math.PI * 2);
-            ctx.fill();
-        } else if (e.type === 'heart') {
-            ctx.font = `${e.w}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = '#ff8fa3';
-            ctx.fillText('❤️', 0, 0);
-        }
-
-        ctx.restore();
-    });
-
-    particles.forEach(p => {
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    floaters.forEach(f => {
-        ctx.globalAlpha = f.life;
-        ctx.font = 'bold 24px Fredoka';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.strokeText(f.text, f.x, f.y);
-        ctx.fillStyle = f.color;
-        ctx.fillText(f.text, f.x, f.y);
-    });
-    ctx.globalAlpha = 1;
-
-    const skin = SKINS.find(s => s.id === GameState.equipped) || SKINS[0];
-    const px = player.x;
-    const py = player.y + player.h * (1 - player.squash);
-    const pw = player.w;
-    const ph = player.h * player.squash;
-
-    ctx.save();
-    ctx.translate(px + pw / 2, py + ph / 2);
-    
-    ctx.fillStyle = skin.color;
-    ctx.beginPath();
-    ctx.roundRect(-pw / 2, -ph / 2, pw, ph, 15);
-    ctx.fill();
-    
-    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    ctx.fillStyle = skin.color;
-    ctx.beginPath();
-    ctx.moveTo(-pw / 2 + 5, -ph / 2 + 5);
-    ctx.lineTo(-pw / 2 - 5, -ph / 2 - 10);
-    ctx.lineTo(-pw / 2 + 20, -ph / 2 + 5);
-    ctx.fill();
-    
-    ctx.beginPath();
-    ctx.moveTo(pw / 2 - 5, -ph / 2 + 5);
-    ctx.lineTo(pw / 2 + 5, -ph / 2 - 10);
-    ctx.lineTo(pw / 2 - 20, -ph / 2 + 5);
-    ctx.fill();
-
-    const lookX = (player.targetX - player.x) * 0.02;
-    
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.ellipse(-12 + lookX, -8, 5, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(12 + lookX, -8, 5, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#ff8fa3';
-    ctx.beginPath();
-    ctx.arc(0 + lookX * 0.5, 2, 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-18, 2);
-    ctx.lineTo(-28, 0);
-    ctx.moveTo(-18, 5);
-    ctx.lineTo(-28, 7);
-    ctx.moveTo(18, 2);
-    ctx.lineTo(28, 0);
-    ctx.moveTo(18, 5);
-    ctx.lineTo(28, 7);
-    ctx.stroke();
-
-    ctx.restore();
-}
-
-// --- GAME LOOP ---
-function gameLoop(timestamp) {
-    if (!lastTimestamp) {
-        lastTimestamp = timestamp;
-        requestAnimationFrame(gameLoop);
-        return;
-    }
-
-    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
-    lastTimestamp = timestamp;
-
-    if (GameState.gameActive && !CrazyManager.isAdShowing()) {
-        updateGame(dt);
-    }
-    
-    // Always draw even if paused/ad showing (so we don't have blank screen)
-    drawGame();
-
-    requestAnimationFrame(gameLoop);
-}
-
-// --- CONTROLS ---
-function handlePointerMove(x, y) {
-    if (!GameState.gameActive || CrazyManager.isAdShowing()) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const relativeX = (x - rect.left) * (canvasWidth / rect.width);
-    player.targetX = relativeX - player.w / 2;
-    player.targetX = clamp(player.targetX, 0, canvasWidth - player.w);
-}
-
-canvas.addEventListener('mousemove', (e) => {
-    handlePointerMove(e.clientX, e.clientY);
-});
-
-canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    if (e.touches.length > 0) {
-        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
-    }
-}, { passive: false });
-
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (e.touches.length > 0) {
-        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
-    }
-});
-
-window.addEventListener('keydown', (e) => {
-    if (!GameState.gameActive || CrazyManager.isAdShowing()) return;
-    
-    if (e.key === 'ArrowLeft' || e.key === 'Left' || e.key === 'a' || e.key === 'A') {
-        e.preventDefault();
-        player.targetX -= 30;
-    } else if (e.key === 'ArrowRight' || e.key === 'Right' || e.key === 'd' || e.key === 'D') {
-        e.preventDefault();
-        player.targetX += 30;
-    }
-    
-    player.targetX = clamp(player.targetX, 0, canvasWidth - player.w);
-});
-
-// --- UI FUNCTIONS ---
-function updateUI() {
-    document.getElementById('uiScore').textContent = GameState.score;
-    
-    const lives = Math.max(0, GameState.lives);
-    const hearts = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
-    document.getElementById('uiLives').textContent = hearts;
-}
-
-function toggleScreen(screenId) {
-    GameState.screen = screenId;
-    
-    document.querySelectorAll('.screen').forEach(el => {
-        el.classList.add('hidden');
-    });
-    
-    if (screenId !== 'play') {
-        document.querySelector('.ui-layer').style.opacity = '0';
+    if (id === 'play') {
+        document.getElementById('screenStart').classList.add('hidden');
+        GameState.gameActive = true;
+        crazyGame?.gameplayStart(); // Required for "Gameplay requirements"
     } else {
-        document.querySelector('.ui-layer').style.opacity = '1';
-    }
-    
-    const screen = document.getElementById(`screen${screenId.charAt(0).toUpperCase() + screenId.slice(1)}`);
-    if (screen) {
-        screen.classList.remove('hidden');
-    }
-    
-    const wasActive = GameState.gameActive;
-    GameState.gameActive = (screenId === 'play');
-    
-    // SDK State Management
-    if (screenId === 'play') {
-        CrazyManager.gameplayStart();
-    } else {
-        // Only call stop if we were previously playing
-        // (Avoids calling stop multiple times in menu)
-        CrazyManager.gameplayStop();
+        const screen = document.getElementById('screen' + id.charAt(0).toUpperCase() + id.slice(1));
+        if (screen) screen.classList.remove('hidden');
+        GameState.gameActive = false;
+        crazyGame?.gameplayStop(); // Required for "Gameplay requirements"
     }
 }
 
 function startGame() {
     GameState.score = 0;
     GameState.lives = 3;
-    GameState.gameActive = true;
-    
     entities = [];
-    particles = [];
-    floaters = [];
-    clouds = [];
-    
-    player.targetX = canvasWidth / 2 - player.w / 2;
-    player.x = player.targetX;
-    
-    toggleScreen('play');
+    player.x = canvasWidth / 2 - player.w / 2;
+    player.targetX = player.x;
     updateUI();
-    
-    AudioSys.init();
+    toggleScreen('play');
 }
 
-async function endGame() {
-    GameState.gameActive = false;
-    
-    if (GameState.score > GameState.bestScore) {
-        GameState.bestScore = GameState.score;
-    }
-    
+function endGame() {
+    if (GameState.score > GameState.bestScore) GameState.bestScore = GameState.score;
     GameState.coins += GameState.score;
-    
-    CrazyManager.submitScore(GameState.score);
-    await CrazyManager.saveData({
-        coins: GameState.coins,
-        bestScore: GameState.bestScore,
-        inventory: GameState.inventory,
-        equipped: GameState.equipped
-    });
-    
     document.getElementById('uiFinalScore').textContent = GameState.score;
-    document.getElementById('uiBestScore').textContent = GameState.bestScore;
+    
+    crazyGame?.leaderboard.postScore(GameState.score);
+    saveToCloud();
     toggleScreen('over');
-    
-    // Show ad after game over
-    setTimeout(() => {
-        CrazyManager.showAd('midgame');
-    }, 500);
 }
 
-// --- SHOP SYSTEM ---
-function renderShop() {
-    const grid = document.getElementById('shopGrid');
-    grid.innerHTML = '';
-    
-    document.getElementById('uiWallet').textContent = GameState.coins;
+function updateUI() {
+    document.getElementById('uiScore').textContent = GameState.score;
+    document.getElementById('uiLives').textContent = '❤️'.repeat(GameState.lives) + '🖤'.repeat(3 - GameState.lives);
+}
 
-    SKINS.forEach(skin => {
-        const owned = GameState.inventory.includes(skin.id);
-        const equipped = GameState.equipped === skin.id;
-        const canAfford = GameState.coins >= skin.cost;
+// --- LOOP & RENDERING ---
+function gameLoop(t) {
+    const dt = (t - lastTimestamp) / 1000;
+    lastTimestamp = t;
+
+    if (GameState.gameActive && !GameState.isAdShowing) {
+        player.x += (player.targetX - player.x) * 15 * dt;
         
-        const item = document.createElement('div');
-        item.className = `shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''} ${!owned && !canAfford ? 'locked' : ''}`;
-        
-        item.innerHTML = `
-            <div style="font-size: 3rem; margin-bottom: 5px;">${skin.emoji}</div>
-            <div style="font-weight: bold; color: ${skin.color};">${skin.name}</div>
-            <div style="font-size: 0.8rem; color: #666;">
-                ${owned ? (equipped ? '✓ EQUIPPED' : 'OWNED') : '🪙 ' + skin.cost}
-            </div>
-        `;
-        
-        item.onclick = async () => {
-            if (owned) {
-                GameState.equipped = skin.id;
-                AudioSys.playCoin();
-            } else if (canAfford) {
-                GameState.coins -= skin.cost;
-                GameState.inventory.push(skin.id);
-                GameState.equipped = skin.id;
-                AudioSys.playLife();
-            } else {
-                AudioSys.playBomb();
-                return;
+        if (Math.random() < 0.02) {
+            entities.push({ x: Math.random() * (canvasWidth - 30), y: -30, type: Math.random() > 0.8 ? 'bomb' : 'coin' });
+        }
+
+        for (let i = entities.length - 1; i >= 0; i--) {
+            const e = entities[i];
+            e.y += 200 * dt;
+            
+            if (e.y > player.y && e.y < player.y + player.h && e.x > player.x - 20 && e.x < player.x + player.w) {
+                if (e.type === 'coin') { GameState.score += 10; crazyGame?.gameplay.happyTime(); }
+                else { GameState.lives--; if (GameState.lives <= 0) endGame(); }
+                entities.splice(i, 1);
+                updateUI();
+            } else if (e.y > canvasHeight) {
+                entities.splice(i, 1);
             }
-            
-            // Save immediately on purchase
-            await CrazyManager.saveData({
-                coins: GameState.coins,
-                bestScore: GameState.bestScore,
-                inventory: GameState.inventory,
-                equipped: GameState.equipped
-            });
-            
-            renderShop();
-        };
-        
-        grid.appendChild(item);
-    });
-}
-
-// --- INITIALIZATION ---
-window.addEventListener('load', async () => {
-    console.log('🚀 Game starting...');
-    
-    // 1. Initialize SDK
-    await CrazyManager.init();
-    
-    // 2. Load Data
-    updateLoadingStatus('Loading data...', 70);
-    const savedData = await CrazyManager.loadData();
-    if (savedData) {
-        GameState.coins = savedData.coins || 0;
-        GameState.bestScore = savedData.bestScore || 0;
-        GameState.inventory = savedData.inventory || ['classic'];
-        GameState.equipped = savedData.equipped || 'classic';
+        }
     }
 
-    // 3. Setup Environment
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    AudioSys.init();
-
-    // 4. Finish Loading
-    setTimeout(() => {
-        document.getElementById('loadingScreen').classList.add('hidden');
-        CrazyManager.loadingComplete();
-        toggleScreen('start'); // Explicitly set start screen
-    }, 800);
-
-    // Fullscreen UI Logic
-    const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
-    document.addEventListener('fullscreenchange', () => {
-        if (document.fullscreenElement) {
-            exitFullscreenBtn.classList.add('visible');
-        } else {
-            exitFullscreenBtn.classList.remove('visible');
-        }
-    });
+    ctx.fillStyle = '#c8b6ff';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     
-    exitFullscreenBtn.onclick = () => {
-        if (document.exitFullscreen) document.exitFullscreen();
-    };
+    ctx.fillStyle = '#ffcdb2';
+    ctx.fillRect(player.x, player.y, player.w, player.h);
 
-    // UI Bindings
-    document.getElementById('btnPlay').onclick = startGame;
-    document.getElementById('btnRestart').onclick = startGame;
-    document.getElementById('btnShop').onclick = () => { renderShop(); toggleScreen('shop'); };
-    document.getElementById('btnCloseShop').onclick = () => toggleScreen('start');
-    document.getElementById('btnHome').onclick = () => toggleScreen('start');
-    document.getElementById('btnPause').onclick = () => {
-        if (GameState.gameActive) {
-            GameState.gameActive = false;
-            CrazyManager.gameplayStop();
-            toggleScreen('pause');
-        }
-    };
-    document.getElementById('btnResume').onclick = () => {
-        GameState.gameActive = true;
-        CrazyManager.gameplayStart();
-        toggleScreen('play');
-    };
-    document.getElementById('btnQuit').onclick = () => {
-        CrazyManager.gameplayStop();
-        toggleScreen('start');
-    };
-    document.getElementById('btnMute').onclick = (e) => {
-        GameState.settings.sound = !GameState.settings.sound;
-        AudioSys.setMuted(!GameState.settings.sound);
-        e.target.textContent = GameState.settings.sound ? '🎵' : '🔇';
-    };
+    entities.forEach(e => {
+        ctx.fillStyle = e.type === 'coin' ? '#ffb703' : '#ef233c';
+        ctx.beginPath(); ctx.arc(e.x, e.y, 15, 0, Math.PI * 2); ctx.fill();
+    });
 
     requestAnimationFrame(gameLoop);
+}
+
+// --- INPUTS ---
+canvas.addEventListener('touchmove', e => {
+    const rect = canvas.getBoundingClientRect();
+    player.targetX = (e.touches[0].clientX - rect.left) - player.w / 2;
 });
 
-// Polyfill for roundRect
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-        if (w < 2 * r) r = w / 2;
-        if (h < 2 * r) r = h / 2;
-        this.moveTo(x + r, y);
-        this.lineTo(x + w - r, y);
-        this.quadraticCurveTo(x + w, y, x + w, y + r);
-        this.lineTo(x + w, y + h - r);
-        this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        this.lineTo(x + r, y + h);
-        this.quadraticCurveTo(x, y + h, x, y + h - r);
-        this.lineTo(x, y + r);
-        this.quadraticCurveTo(x, y, x + r, y);
-        return this;
-    };
-}
+// --- INIT ---
+window.onload = () => {
+    resize();
+    window.addEventListener('resize', resize);
+    
+    setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+        crazyGame?.loadingStop(); // Signal ready
+    }, 1500);
+
+    document.getElementById('btnPlay').onclick = startGame;
+    document.getElementById('btnRestart').onclick = startGame;
+    document.getElementById('btnPause').onclick = () => toggleScreen('pause');
+    document.getElementById('btnResume').onclick = () => toggleScreen('play');
+
+    requestAnimationFrame(gameLoop);
+};
 </script>
 </body>
 </html>
