@@ -330,6 +330,25 @@
             font-size: 0.9rem;
         }
 
+        .sync-indicator {
+            position: absolute;
+            top: 20px;
+            right: 80px;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: #5e548e;
+            border: 1px solid #5e548e;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .sync-indicator.visible {
+            opacity: 1;
+        }
+
         @keyframes bounce { 
             0%, 100% { transform: translateY(0); } 
             50% { transform: translateY(-10px); } 
@@ -344,7 +363,7 @@
             50% { transform: translateX(4px); } 
         }
 
-        /* Ad Container (for CrazyGames) */
+        /* Ad Container */
         .ad-container {
             position: absolute;
             bottom: 0;
@@ -374,7 +393,10 @@
     </div>
 
     <div class="game-container" id="gameContainer">
-        <!-- Exit Fullscreen Button (Required) -->
+        <!-- Sync Indicator -->
+        <div class="sync-indicator" id="syncIndicator">💾 Saved to Cloud</div>
+
+        <!-- Exit Fullscreen Button -->
         <button class="exit-fullscreen-btn" id="exitFullscreenBtn" aria-label="Exit Fullscreen">⤬</button>
 
         <!-- Ad Container -->
@@ -441,7 +463,7 @@
 <script>
 /**
  * KITTY CATCH - CRAZYGAMES OPTIMIZED VERSION
- * Features: CrazyGames SDK Integration, Ads, Leaderboards, Mobile Optimized
+ * Features: CrazyGames SDK Integration with Data Module Cloud Saves
  */
 
 // --- CONFIGURATION ---
@@ -449,9 +471,9 @@ const CONSTANTS = {
     PLAYER_WIDTH: 70,
     PLAYER_HEIGHT: 55,
     COLORS: { coin: '#ffb703', bomb: '#ef233c', heart: '#ff8fa3' },
-    GAME_VERSION: '1.0.0',
-    AD_TIMEOUT: 30000, // 30 seconds between ads
-    SCORE_MULTIPLIER: 10
+    GAME_VERSION: '2.0.0',
+    AD_TIMEOUT: 30000,
+    SAVE_KEY: 'kittyCatchData'
 };
 
 const SKINS = [
@@ -463,25 +485,27 @@ const SKINS = [
     { id: 'robo', name: 'Mecha', cost: 2000, color: '#adb5bd', emoji: '🤖' }
 ];
 
-// --- CRAZYGAMES SDK MANAGER ---
+// --- CRAZYGAMES SDK MANAGER WITH DATA MODULE ---
 const CrazyManager = (() => {
     let gameInstance = null;
     let adInstance = null;
+    let dataModule = null;
     let sdkInitialized = false;
     let isAdShowing = false;
     let adCallbacks = { onFinished: null, onError: null };
+    let saveTimeout = null;
 
     return {
         init: async () => {
             try {
                 if (!window.CrazyGames || sdkInitialized) return false;
                 
-                // Initialize SDK
                 gameInstance = await window.CrazyGames.SDK.init();
                 sdkInitialized = true;
                 
-                // Create ad instance
+                // Get ad and data modules
                 adInstance = gameInstance.ad;
+                dataModule = gameInstance.data;
                 
                 // Set ad callbacks
                 adInstance.setAdFinishedCallback(() => {
@@ -501,9 +525,7 @@ const CrazyManager = (() => {
                     }
                 });
 
-                // Set loading progress
                 gameInstance.loadingStart();
-                
                 return true;
             } catch (error) {
                 console.warn('CrazyGames SDK init failed:', error);
@@ -517,6 +539,80 @@ const CrazyManager = (() => {
             }
         },
 
+        // --- DATA MODULE METHODS (Cloud Saves) ---
+        saveData: async (gameState) => {
+            if (!dataModule) {
+                // Fallback to localStorage
+                try {
+                    localStorage.setItem(CONSTANTS.SAVE_KEY + '_fallback', JSON.stringify(gameState));
+                } catch (e) {}
+                return false;
+            }
+
+            try {
+                const gameData = {
+                    coins: gameState.coins || 0,
+                    bestScore: gameState.bestScore || 0,
+                    inventory: gameState.inventory || ['classic'],
+                    equipped: gameState.equipped || 'classic',
+                    version: CONSTANTS.GAME_VERSION,
+                    lastSaved: Date.now()
+                };
+                
+                await dataModule.setItem(CONSTANTS.SAVE_KEY, JSON.stringify(gameData));
+                
+                // Show sync indicator
+                const indicator = document.getElementById('syncIndicator');
+                indicator.classList.add('visible');
+                setTimeout(() => {
+                    indicator.classList.remove('visible');
+                }, 2000);
+                
+                return true;
+            } catch (error) {
+                console.warn('Failed to save to cloud:', error);
+                // Fallback to localStorage
+                try {
+                    localStorage.setItem(CONSTANTS.SAVE_KEY + '_fallback', JSON.stringify(gameState));
+                } catch (e) {}
+                return false;
+            }
+        },
+
+        loadData: async () => {
+            // Try cloud first
+            if (dataModule) {
+                try {
+                    const data = await dataModule.getItem(CONSTANTS.SAVE_KEY);
+                    if (data) {
+                        return JSON.parse(data);
+                    }
+                } catch (error) {
+                    console.warn('Failed to load from cloud:', error);
+                }
+            }
+            
+            // Fallback to localStorage
+            try {
+                const fallback = localStorage.getItem(CONSTANTS.SAVE_KEY + '_fallback');
+                if (fallback) {
+                    return JSON.parse(fallback);
+                }
+            } catch (e) {}
+            
+            return null;
+        },
+
+        // Debounced save to prevent too many calls
+        queueSave: (gameState) => {
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                CrazyManager.saveData(gameState);
+                saveTimeout = null;
+            }, 1000);
+        },
+
+        // --- AD METHODS ---
         showAd: async (onFinished, onError) => {
             if (!adInstance || isAdShowing) return false;
             
@@ -525,8 +621,7 @@ const CrazyManager = (() => {
                 adCallbacks.onError = onError;
                 isAdShowing = true;
                 
-                const result = await adInstance.requestAd('midgame');
-                return result;
+                return await adInstance.requestAd('midgame');
             } catch (error) {
                 console.warn('Failed to show ad:', error);
                 isAdShowing = false;
@@ -543,8 +638,7 @@ const CrazyManager = (() => {
                 adCallbacks.onError = onError;
                 isAdShowing = true;
                 
-                const result = await adInstance.requestAd('rewarded');
-                return result;
+                return await adInstance.requestAd('rewarded');
             } catch (error) {
                 console.warn('Failed to show rewarded ad:', error);
                 isAdShowing = false;
@@ -555,7 +649,6 @@ const CrazyManager = (() => {
 
         submitScore: async (score) => {
             if (!gameInstance) return;
-            
             try {
                 const leaderboard = gameInstance.leaderboard;
                 await leaderboard.postScore(score);
@@ -587,7 +680,7 @@ const CrazyManager = (() => {
     };
 })();
 
-// --- AUDIO SYSTEM (Optimized for browser compatibility) ---
+// --- AUDIO SYSTEM ---
 const AudioSys = (() => {
     let audioContext = null;
     let isMuted = false;
@@ -601,7 +694,6 @@ const AudioSys = (() => {
             audioContext = new AudioContextClass();
             isInitialized = true;
             
-            // Auto-resume on user interaction
             document.addEventListener('click', () => {
                 if (audioContext.state === 'suspended') {
                     audioContext.resume();
@@ -635,9 +727,7 @@ const AudioSys = (() => {
             
             osc.start(now);
             osc.stop(now + duration);
-        } catch (e) {
-            // Ignore audio errors
-        }
+        } catch (e) {}
     }
 
     return {
@@ -664,20 +754,6 @@ const GameState = {
     lastAdTime: 0,
     gameStartTime: 0
 };
-
-// Load saved data
-try {
-    const saved = localStorage.getItem('kittyCatchData');
-    if (saved) {
-        const data = JSON.parse(saved);
-        GameState.coins = data.coins || 0;
-        GameState.bestScore = data.bestScore || 0;
-        GameState.inventory = data.inventory || ['classic'];
-        GameState.equipped = data.equipped || 'classic';
-    }
-} catch (e) {
-    console.warn('Failed to load saved data');
-}
 
 // --- CANVAS SETUP ---
 const canvas = document.getElementById('gameCanvas');
@@ -725,7 +801,6 @@ function resizeCanvas() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     
-    // Update player position
     player.y = canvasHeight - 100;
     if (GameState.screen === 'start') {
         player.x = canvasWidth / 2 - player.w / 2;
@@ -751,7 +826,7 @@ function spawnEntity() {
         type: type,
         w: type === 'bomb' ? 35 : 28,
         h: type === 'bomb' ? 35 : 28,
-        speed: clamp(speed, 250, 1000),
+        speed: clamp(speed, 150, 500),
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 5
     });
@@ -762,7 +837,7 @@ function spawnCloud() {
         clouds.push({
             x: -100,
             y: Math.random() * canvasHeight * 0.5,
-            speed: 40 + Math.random() * 20,
+            speed: 10 + Math.random() * 20,
             size: 30 + Math.random() * 40
         });
     }
@@ -825,16 +900,13 @@ function handleCollision(entity) {
 function updateGame(dt) {
     if (!GameState.gameActive) return;
 
-    // Player movement
     const prevX = player.x;
     player.x = lerp(player.x, player.targetX, 10 * dt);
     player.x = clamp(player.x, 0, canvasWidth - player.w);
     
-    // Squash effect
     const moveSpeed = Math.abs(player.x - prevX) / dt;
     player.squash = lerp(player.squash, 1.0 - clamp(moveSpeed * 0.002, 0, 0.2), 10 * dt);
 
-    // Spawn entities
     if (Math.random() < 0.02 + GameState.score * 0.00005) {
         spawnEntity();
     }
@@ -843,13 +915,11 @@ function updateGame(dt) {
         spawnCloud();
     }
 
-    // Update entities
     for (let i = entities.length - 1; i >= 0; i--) {
         const e = entities[i];
         e.y += e.speed * dt;
         e.rotation += e.rotSpeed * dt;
 
-        // Collision detection
         const collisionPadding = e.type === 'bomb' ? 5 : -10;
         if (e.y + e.h > player.y &&
             e.y < player.y + player.h &&
@@ -861,18 +931,16 @@ function updateGame(dt) {
             continue;
         }
 
-        // Remove off-screen
         if (e.y > canvasHeight + 50) {
             entities.splice(i, 1);
         }
     }
 
-    // Update particles
     for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx * dt;
         p.y += p.vy * dt;
-        p.vy += 200 * dt; // Gravity
+        p.vy += 200 * dt;
         p.life -= dt * 2;
         
         if (p.life <= 0) {
@@ -880,7 +948,6 @@ function updateGame(dt) {
         }
     }
 
-    // Update floaters
     for (let i = floaters.length - 1; i >= 0; i--) {
         const f = floaters[i];
         f.y += f.vy * dt;
@@ -891,7 +958,6 @@ function updateGame(dt) {
         }
     }
 
-    // Update clouds
     for (let i = clouds.length - 1; i >= 0; i--) {
         clouds[i].x += clouds[i].speed * dt;
         if (clouds[i].x > canvasWidth + 200) {
@@ -899,7 +965,6 @@ function updateGame(dt) {
         }
     }
 
-    // Show ad periodically
     const now = Date.now();
     if (GameState.score > 0 && 
         GameState.score % 200 === 0 && 
@@ -912,11 +977,9 @@ function updateGame(dt) {
 
 // --- RENDERING ---
 function drawGame() {
-    // Clear canvas
     ctx.fillStyle = '#c8b6ff';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Draw clouds
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     clouds.forEach(c => {
         ctx.beginPath();
@@ -927,14 +990,12 @@ function drawGame() {
         ctx.fill();
     });
 
-    // Draw entities
     entities.forEach(e => {
         ctx.save();
         ctx.translate(e.x + e.w / 2, e.y + e.h / 2);
         ctx.rotate(e.rotation);
 
         if (e.type === 'coin') {
-            // Coin
             ctx.fillStyle = '#ffb703';
             ctx.beginPath();
             ctx.ellipse(0, 0, e.w / 2, e.h / 2, 0, 0, Math.PI * 2);
@@ -951,23 +1012,19 @@ function drawGame() {
             ctx.textBaseline = 'middle';
             ctx.fillText('$', 0, 2);
         } else if (e.type === 'bomb') {
-            // Bomb
             ctx.fillStyle = '#2b2d42';
             ctx.beginPath();
             ctx.arc(0, 0, e.w / 2, 0, Math.PI * 2);
             ctx.fill();
             
-            // Fuse
             ctx.fillStyle = '#8b4513';
             ctx.fillRect(-2, -e.h / 2 - 5, 4, 10);
             
-            // Spark
             ctx.fillStyle = '#ef233c';
             ctx.beginPath();
             ctx.arc(0, -e.h / 2 - 8, 4, 0, Math.PI * 2);
             ctx.fill();
         } else if (e.type === 'heart') {
-            // Heart (using text for simplicity)
             ctx.font = `${e.w}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -978,7 +1035,6 @@ function drawGame() {
         ctx.restore();
     });
 
-    // Draw particles
     particles.forEach(p => {
         ctx.globalAlpha = p.life;
         ctx.fillStyle = p.color;
@@ -987,7 +1043,6 @@ function drawGame() {
         ctx.fill();
     });
 
-    // Draw floaters
     floaters.forEach(f => {
         ctx.globalAlpha = f.life;
         ctx.font = 'bold 24px Fredoka';
@@ -1001,7 +1056,6 @@ function drawGame() {
     });
     ctx.globalAlpha = 1;
 
-    // Draw player (cat)
     const skin = SKINS.find(s => s.id === GameState.equipped) || SKINS[0];
     const px = player.x;
     const py = player.y + player.h * (1 - player.squash);
@@ -1011,18 +1065,15 @@ function drawGame() {
     ctx.save();
     ctx.translate(px + pw / 2, py + ph / 2);
     
-    // Body
     ctx.fillStyle = skin.color;
     ctx.beginPath();
     ctx.roundRect(-pw / 2, -ph / 2, pw, ph, 15);
     ctx.fill();
     
-    // Outline
     ctx.strokeStyle = 'rgba(0,0,0,0.1)';
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Ears
     ctx.fillStyle = skin.color;
     ctx.beginPath();
     ctx.moveTo(-pw / 2 + 5, -ph / 2 + 5);
@@ -1036,7 +1087,6 @@ function drawGame() {
     ctx.lineTo(pw / 2 - 20, -ph / 2 + 5);
     ctx.fill();
 
-    // Eyes
     const lookX = (player.targetX - player.x) * 0.02;
     
     ctx.fillStyle = '#000';
@@ -1047,13 +1097,11 @@ function drawGame() {
     ctx.ellipse(12 + lookX, -8, 5, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Nose
     ctx.fillStyle = '#ff8fa3';
     ctx.beginPath();
     ctx.arc(0 + lookX * 0.5, 2, 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Whiskers
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -1085,7 +1133,7 @@ function gameLoop(timestamp) {
         updateGame(dt);
         drawGame();
     } else {
-        drawGame(); // Still draw static scene
+        drawGame();
     }
 
     requestAnimationFrame(gameLoop);
@@ -1119,7 +1167,6 @@ canvas.addEventListener('touchstart', (e) => {
     }
 });
 
-// Keyboard controls
 window.addEventListener('keydown', (e) => {
     if (!GameState.gameActive || CrazyManager.isAdShowing()) return;
     
@@ -1160,7 +1207,6 @@ function toggleScreen(screenId) {
         screen.classList.remove('hidden');
     }
     
-    // Update gameplay state
     GameState.gameActive = (screenId === 'play');
     
     if (screenId === 'play') {
@@ -1187,42 +1233,32 @@ function startGame() {
     toggleScreen('play');
     updateUI();
     
-    // Resume audio
     AudioSys.init();
 }
 
-function endGame() {
+async function endGame() {
     GameState.gameActive = false;
     
-    // Save high score
     if (GameState.score > GameState.bestScore) {
         GameState.bestScore = GameState.score;
     }
     
-    // Add coins
     GameState.coins += GameState.score;
     
-    // Save to localStorage
-    try {
-        localStorage.setItem('kittyCatchData', JSON.stringify({
-            coins: GameState.coins,
-            bestScore: GameState.bestScore,
-            inventory: GameState.inventory,
-            equipped: GameState.equipped
-        }));
-    } catch (e) {
-        console.warn('Failed to save data');
-    }
+    // Save to cloud using CrazyGames Data Module
+    await CrazyManager.saveData({
+        coins: GameState.coins,
+        bestScore: GameState.bestScore,
+        inventory: GameState.inventory,
+        equipped: GameState.equipped
+    });
     
-    // Submit score to CrazyGames leaderboard
     CrazyManager.submitScore(GameState.score);
     
-    // Show game over screen
     document.getElementById('uiFinalScore').textContent = GameState.score;
     document.getElementById('uiBestScore').textContent = GameState.bestScore;
     toggleScreen('over');
     
-    // Show ad
     CrazyManager.showAd();
 }
 
@@ -1249,7 +1285,7 @@ function renderShop() {
             </div>
         `;
         
-        item.onclick = () => {
+        item.onclick = async () => {
             if (owned) {
                 GameState.equipped = skin.id;
                 AudioSys.playCoin();
@@ -1263,15 +1299,13 @@ function renderShop() {
                 return;
             }
             
-            // Save changes
-            try {
-                localStorage.setItem('kittyCatchData', JSON.stringify({
-                    coins: GameState.coins,
-                    bestScore: GameState.bestScore,
-                    inventory: GameState.inventory,
-                    equipped: GameState.equipped
-                }));
-            } catch (e) {}
+            // Save to cloud
+            await CrazyManager.saveData({
+                coins: GameState.coins,
+                bestScore: GameState.bestScore,
+                inventory: GameState.inventory,
+                equipped: GameState.equipped
+            });
             
             renderShop();
         };
@@ -1285,6 +1319,15 @@ window.addEventListener('load', async () => {
     // Initialize CrazyGames SDK
     await CrazyManager.init();
     
+    // Load saved data from cloud
+    const savedData = await CrazyManager.loadData();
+    if (savedData) {
+        GameState.coins = savedData.coins || 0;
+        GameState.bestScore = savedData.bestScore || 0;
+        GameState.inventory = savedData.inventory || ['classic'];
+        GameState.equipped = savedData.equipped || 'classic';
+    }
+    
     // Initialize audio
     AudioSys.init();
     
@@ -1292,13 +1335,13 @@ window.addEventListener('load', async () => {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
     
-    // Hide loading screen after a short delay
+    // Hide loading screen
     setTimeout(() => {
         document.getElementById('loadingScreen').classList.add('hidden');
         CrazyManager.loadingComplete();
     }, 1000);
 
-    // Fullscreen handling (CrazyGames requirement)
+    // Fullscreen handling
     const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
     
     function updateFullscreenButton() {
@@ -1357,7 +1400,7 @@ window.addEventListener('load', async () => {
     requestAnimationFrame(gameLoop);
 });
 
-// Add missing CanvasRenderingContext2D.roundRect method
+// Add roundRect method
 if (!CanvasRenderingContext2D.prototype.roundRect) {
     CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
         if (w < 2 * r) r = w / 2;
