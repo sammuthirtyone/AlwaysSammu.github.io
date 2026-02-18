@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kitty Coin Catcher: Ultra Cute Edition</title>
-    <meta name="description" content="A kawaii arcade game. Catch coins, avoid bombs, and collect skins!">
+    <title>Kitty Coin Catcher: Musical Edition</title>
+    <meta name="description" content="Catch coins, avoid bombs! Now with cute background music!">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
         
@@ -12,7 +12,6 @@
             --primary: #ff8fa3;
             --secondary: #5e548e;
             --accent: #ffb703;
-            --text: #231942;
             --bg-grad: linear-gradient(180deg, #e0c3fc 0%, #8ec5fc 100%);
         }
 
@@ -24,7 +23,6 @@
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
 
-        /* Container designed to fit CrazyGames iframe constraints */
         .game-container {
             position: relative;
             width: 100%; height: 100%;
@@ -37,7 +35,6 @@
 
         @media (min-width: 601px) { .game-container { border-radius: 24px; height: 95vh; } }
 
-        /* UI Overlay */
         .ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 10;
@@ -55,7 +52,6 @@
             color: var(--secondary); font-weight: 700; font-size: 1.2rem;
             display: flex; align-items: center; gap: 8px;
             margin-bottom: 10px;
-            transition: transform 0.1s;
         }
 
         .btn-round {
@@ -67,7 +63,6 @@
         }
         .btn-round:active { transform: translateY(4px); box-shadow: none; }
 
-        /* Screens */
         .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.85);
@@ -80,9 +75,8 @@
         .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
         h1 { 
-            font-size: 3.2rem; color: var(--primary); text-align: center; 
-            line-height: 1; text-shadow: 3px 3px 0 #fff, 6px 6px 0 rgba(0,0,0,0.1); 
-            margin-bottom: 30px; 
+            font-size: 3.5rem; color: var(--primary); text-align: center; 
+            line-height: 1; text-shadow: 3px 3px 0 #fff; margin-bottom: 30px; 
             animation: bounce 2s infinite;
         }
 
@@ -109,14 +103,12 @@
             background: #fff; border-radius: 20px; padding: 20px;
             width: 100%; max-width: 400px; max-height: 60vh;
             overflow-y: auto;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
         }
         .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        
         .shop-item {
             background: #f8f9fa; padding: 15px; border-radius: 15px;
             text-align: center; border: 3px solid transparent;
-            cursor: pointer; position: relative; transition: 0.2s;
+            cursor: pointer; transition: 0.2s;
         }
         .shop-item.owned { background: #e2eafc; }
         .shop-item.equipped { border-color: var(--primary); background: #ffe5ec; }
@@ -125,7 +117,6 @@
 
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* Animations */
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
@@ -143,8 +134,8 @@
             <button class="btn-round" id="btnPause">II</button>
         </div>
         
-        <div style="position:absolute; bottom:20px; width:100%; text-align:center; opacity:0.6; font-weight:600; color: white; text-shadow: 1px 1px 0 rgba(0,0,0,0.2);">
-            Slide to Move
+        <div style="position:absolute; bottom:20px; width:100%; text-align:center; opacity:0.8; font-weight:600; color: white; text-shadow: 1px 1px 0 rgba(0,0,0,0.2);">
+            <span id="controlHint">Slide or Arrow Keys</span>
         </div>
     </div>
 
@@ -164,7 +155,7 @@
             <button class="btn-round" id="btnCloseShop">✕</button>
             <div class="stat-pill">Wallet: <span id="uiWallet">0</span></div>
         </div>
-        <h2 style="color:var(--secondary); margin-top: 50px; margin-bottom: 20px;">WARDROBE</h2>
+        <h2 style="color:var(--secondary); margin-top: 60px; margin-bottom: 20px;">WARDROBE</h2>
         <div class="shop-container">
             <div class="shop-grid" id="shopGrid"></div>
         </div>
@@ -189,36 +180,28 @@
 
 <script>
 /**
- * KITTY CATCH - REFACTORED
- * Author: Gemini
- * Features: High DPI Canvas, Object Pooling logic, Smooth Audio, Responsive
+ * KITTY CATCH - CRAZYGAMES EDITION
+ * Features: Procedural Music, Canvas Graphics, Mobile Optimized
  */
 
 // --- CONFIGURATION ---
 const CONSTANTS = {
     PLAYER_WIDTH: 70,
     PLAYER_HEIGHT: 55,
-    GRAVITY: 800,
-    COLORS: {
-        coin: '#ffb703',
-        bomb: '#ef233c',
-        heart: '#ff8fa3',
-        text: '#ffffff'
-    }
+    COLORS: { coin: '#ffb703', bomb: '#ef233c', heart: '#ff8fa3' }
 };
 
 const SKINS = [
-    { id: 'classic', name: 'Classic', cost: 0, color: '#ffcdb2', type: 'cat' },
-    { id: 'calico', name: 'Calico', cost: 100, color: '#e0aaff', type: 'cat' },
-    { id: 'void', name: 'Void', cost: 300, color: '#343a40', type: 'cat' },
-    { id: 'tiger', name: 'Tiger', cost: 500, color: '#ff9f1c', type: 'cat' },
-    { id: 'alien', name: 'Gnarp', cost: 1000, color: '#70e000', type: 'alien' },
-    { id: 'robo', name: 'Mecha', cost: 2000, color: '#adb5bd', type: 'robot' }
+    { id: 'classic', name: 'Classic', cost: 0, color: '#ffcdb2' },
+    { id: 'calico', name: 'Calico', cost: 100, color: '#e0aaff' },
+    { id: 'void', name: 'Void', cost: 300, color: '#343a40' },
+    { id: 'tiger', name: 'Tiger', cost: 500, color: '#ff9f1c' },
+    { id: 'alien', name: 'Gnarp', cost: 1000, color: '#70e000' },
+    { id: 'robo', name: 'Mecha', cost: 2000, color: '#adb5bd' }
 ];
 
-// --- STATE MANAGEMENT ---
 const State = {
-    screen: 'start', // start, play, pause, shop, over
+    screen: 'start', 
     score: 0,
     lives: 3,
     coins: 0,
@@ -228,68 +211,112 @@ const State = {
     settings: { sound: true }
 };
 
-// --- AUDIO SYSTEM (Web Audio API) ---
+// --- ADVANCED AUDIO ENGINE (Music + SFX) ---
 const AudioSys = (() => {
     let ctx = null;
     let masterGain = null;
+    let musicTimer = null;
     let isInit = false;
+    let musicStep = 0;
 
-    // Simple Synth Functions
-    const playTone = (freq, type, dur, vol = 0.1, slide = 0) => {
+    // Musical Notes (Frequencies)
+    const N = { 
+        C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+        C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00
+    };
+
+    // The Song Pattern (16 steps)
+    const BASS_LINE = [N.C4, 0, N.C4, 0, N.F4, 0, N.F4, 0, N.G4, 0, N.G4, 0, N.C4, 0, N.G4, 0];
+    const LEAD_LINE = [N.E5, N.G5, N.C5, 0, N.A5, N.F5, N.C5, 0, N.B4, N.D5, N.G5, 0, N.C5, N.E5, N.G5, 0];
+
+    function init() {
+        if (isInit) return;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        ctx = new AC();
+        masterGain = ctx.createGain();
+        masterGain.gain.value = 0.3; // Master Volume
+        masterGain.connect(ctx.destination);
+        isInit = true;
+    }
+
+    function playTone(freq, type, dur, vol, slide=0) {
         if (!State.settings.sound || !ctx) return;
-        if (ctx.state === 'suspended') ctx.resume();
-        
+        const t = ctx.currentTime;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        const t = ctx.currentTime;
-
+        
         osc.type = type;
         osc.frequency.setValueAtTime(freq, t);
         if (slide) osc.frequency.exponentialRampToValueAtTime(slide, t + dur);
-
+        
         gain.gain.setValueAtTime(vol, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + dur);
-
+        gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        
         osc.connect(gain);
         gain.connect(masterGain);
         osc.start();
         osc.stop(t + dur);
-    };
+    }
+
+    function playMusicStep() {
+        if (!State.settings.sound || !ctx) return;
+        
+        // Tempo: 150ms per step (approx 100 BPM eighth notes)
+        const stepTime = 0.15; 
+        const nextTime = ctx.currentTime;
+
+        // Bass
+        const bassFreq = BASS_LINE[musicStep % BASS_LINE.length];
+        if (bassFreq) playTone(bassFreq, 'triangle', 0.1, 0.1);
+
+        // Lead
+        const leadFreq = LEAD_LINE[musicStep % LEAD_LINE.length];
+        if (leadFreq) playTone(leadFreq, 'sine', 0.1, 0.05);
+
+        // Drums (White Noise Snare on beats 4, 8, 12, 16)
+        if (musicStep % 4 === 0) {
+            // Tiny kick
+            playTone(100, 'square', 0.05, 0.05, 50);
+        }
+
+        musicStep++;
+        musicTimer = setTimeout(playMusicStep, stepTime * 1000);
+    }
 
     return {
-        init: () => {
-            if (isInit) return;
-            const AC = window.AudioContext || window.webkitAudioContext;
-            ctx = new AC();
-            masterGain = ctx.createGain();
-            masterGain.gain.value = 0.3;
-            masterGain.connect(ctx.destination);
-            isInit = true;
-        },
+        init: init,
         resume: () => { if(ctx && ctx.state === 'suspended') ctx.resume(); },
+        startMusic: () => {
+            if (musicTimer) clearTimeout(musicTimer);
+            musicStep = 0;
+            playMusicStep();
+        },
+        stopMusic: () => {
+            if (musicTimer) clearTimeout(musicTimer);
+            musicTimer = null;
+        },
+        // SFX
         playJump: () => playTone(300, 'sine', 0.15, 0.1, 400),
         playCoin: () => {
-            playTone(1200, 'sine', 0.1, 0.05); 
-            setTimeout(() => playTone(1600, 'sine', 0.2, 0.05), 50); // "Ding-ding"
+            playTone(1200, 'sine', 0.1, 0.1); 
+            setTimeout(() => playTone(1800, 'sine', 0.2, 0.05), 60);
         },
         playBomb: () => playTone(150, 'sawtooth', 0.4, 0.2, 50),
-        playLife: () => playTone(400, 'triangle', 0.3, 0.1, 800)
+        playLife: () => playTone(400, 'triangle', 0.3, 0.2, 800)
     };
 })();
 
 // --- GAME ENGINE ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d', { alpha: false });
-let animationId;
 let lastTime = 0;
-let scaleFactor = 1;
 
-// Game Entities
-const player = { x: 0, y: 0, vx: 0, targetX: 0, w: CONSTANTS.PLAYER_WIDTH, h: CONSTANTS.PLAYER_HEIGHT, squash: 1 };
-let entities = []; // Coins, Bombs
+// Entities
+const player = { x: 0, y: 0, targetX: 0, w: CONSTANTS.PLAYER_WIDTH, h: CONSTANTS.PLAYER_HEIGHT, squash: 1 };
+let entities = []; 
 let particles = [];
-let floaters = []; // Floating Text
-let clouds = []; // Background clouds
+let floaters = []; 
+let clouds = []; 
 
 // --- HELPERS ---
 const rand = (min, max) => Math.random() * (max - min) + min;
@@ -299,18 +326,11 @@ function resize() {
     const container = document.getElementById('gameContainer');
     const dpr = window.devicePixelRatio || 1;
     const rect = container.getBoundingClientRect();
-    
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
-    
     ctx.scale(dpr, dpr);
-    scaleFactor = dpr; // Use for touch calc
-    
-    // Internal Logical Width/Height
     canvas.logicalWidth = rect.width;
     canvas.logicalHeight = rect.height;
-
-    // Reposition Player
     player.y = canvas.logicalHeight - 100;
     if(State.screen === 'start') player.x = canvas.logicalWidth/2 - player.w/2;
 }
@@ -322,70 +342,43 @@ function spawnEntity() {
     if (roll > 0.85) type = 'bomb';
     else if (roll > 0.82 && State.lives < 3) type = 'heart';
 
-    const size = type === 'bomb' ? 35 : 28;
-    
     entities.push({
-        x: rand(20, canvas.logicalWidth - 20),
+        x: rand(20, canvas.logicalWidth - 40),
         y: -50,
         type: type,
-        w: size,
-        h: size,
-        speed: rand(200, 300) + (State.score * 2), // Diff ramp
+        w: type === 'bomb' ? 35 : 28,
+        h: type === 'bomb' ? 35 : 28,
+        speed: rand(200, 350) + (State.score * 3),
         rot: rand(0, 360),
-        rotSpeed: rand(-2, 2)
-    });
-}
-
-function spawnParticles(x, y, color) {
-    for(let i=0; i<8; i++) {
-        particles.push({
-            x: x, y: y,
-            vx: rand(-150, 150),
-            vy: rand(-150, 150),
-            life: 1.0,
-            color: color,
-            size: rand(3, 8)
-        });
-    }
-}
-
-function spawnCloud() {
-    clouds.push({
-        x: rand(0, canvas.logicalWidth),
-        y: rand(-50, canvas.logicalHeight/2),
-        speed: rand(10, 30),
-        size: rand(40, 80)
+        rotSpeed: rand(-3, 3)
     });
 }
 
 function update(dt) {
-    // Player Logic (Squash & Stretch + Lerp)
+    // Player Motion
     const prevX = player.x;
     player.x = lerp(player.x, player.targetX, 10 * dt);
-    
-    // Clamp
     if (player.x < 0) player.x = 0;
     if (player.x > canvas.logicalWidth - player.w) player.x = canvas.logicalWidth - player.w;
 
-    // Calculate velocity for squash effect
+    // Squash Animation
     const vel = Math.abs(player.x - prevX);
-    const targetSquash = 1.0 - Math.min(vel * 0.005, 0.2); 
-    player.squash = lerp(player.squash, targetSquash, 10 * dt);
+    player.squash = lerp(player.squash, 1.0 - Math.min(vel * 0.005, 0.2), 10 * dt);
 
     // Spawning
     if (Math.random() < 0.02 + (State.score * 0.0001)) spawnEntity();
-    if (Math.random() < 0.005 && clouds.length < 5) spawnCloud();
+    if (Math.random() < 0.005 && clouds.length < 5) clouds.push({
+        x: -100, y: rand(20, canvas.logicalHeight/2), speed: rand(10, 30), size: rand(30, 60)
+    });
 
-    // Entities Loop
+    // Entities
     for (let i = entities.length - 1; i >= 0; i--) {
         let e = entities[i];
         e.y += e.speed * dt;
         e.rot += e.rotSpeed * dt;
 
-        // Collision (Circle to Rect approximation)
-        // Hitbox padding: easier to catch coins, harder to hit bombs
-        const padding = e.type === 'bomb' ? 10 : -10; 
-        
+        // Collision
+        const padding = e.type === 'bomb' ? 10 : -15; 
         if (
             e.y + e.h > player.y + 10 &&
             e.y < player.y + player.h &&
@@ -396,384 +389,239 @@ function update(dt) {
             entities.splice(i, 1);
             continue;
         }
-
         if (e.y > canvas.logicalHeight) entities.splice(i, 1);
     }
 
-    // Particles
-    for (let i = particles.length - 1; i >= 0; i--) {
-        let p = particles[i];
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        p.life -= dt * 2;
-        if(p.life <= 0) particles.splice(i, 1);
-    }
+    // Particles/Floaters/Clouds
+    particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt * 2; });
+    particles = particles.filter(p => p.life > 0);
+    
+    floaters.forEach(f => { f.y -= 50 * dt; f.life -= dt; });
+    floaters = floaters.filter(f => f.life > 0);
 
-    // Floaters
-    for (let i = floaters.length - 1; i >= 0; i--) {
-        floaters[i].y -= 50 * dt;
-        floaters[i].life -= dt;
-        if(floaters[i].life <= 0) floaters.splice(i, 1);
-    }
-
-    // Clouds
-    for (let c of clouds) {
-        c.x += c.speed * dt;
-        if(c.x > canvas.logicalWidth + 100) c.x = -100;
-    }
+    clouds.forEach(c => c.x += c.speed * dt);
+    clouds = clouds.filter(c => c.x < canvas.logicalWidth + 150);
 }
 
 function handleCollision(e) {
     if (e.type === 'coin') {
         State.score += 10;
         AudioSys.playCoin();
-        spawnParticles(e.x, e.y, CONSTANTS.COLORS.coin);
-        floaters.push({x: e.x, y: e.y, text: "+10", color: "#fff", life: 0.8});
+        createParticles(e.x, e.y, CONSTANTS.COLORS.coin);
+        addFloater(e.x, e.y, "+10", "#fff");
     } else if (e.type === 'bomb') {
         State.lives--;
         AudioSys.playBomb();
-        spawnParticles(e.x, e.y, CONSTANTS.COLORS.bomb);
-        floaters.push({x: e.x, y: e.y, text: "OUCH", color: CONSTANTS.COLORS.bomb, life: 0.8});
-        
-        // Visual Shake
-        const con = document.getElementById('gameContainer');
-        con.classList.remove('shake');
-        void con.offsetWidth; // Trigger reflow
-        con.classList.add('shake');
-
+        createParticles(e.x, e.y, CONSTANTS.COLORS.bomb);
+        addFloater(e.x, e.y, "OUCH", CONSTANTS.COLORS.bomb);
+        document.getElementById('gameContainer').classList.remove('shake');
+        void document.getElementById('gameContainer').offsetWidth;
+        document.getElementById('gameContainer').classList.add('shake');
         if (State.lives <= 0) endGame();
     } else if (e.type === 'heart') {
         State.lives++;
         AudioSys.playLife();
-        floaters.push({x: e.x, y: e.y, text: "❤️", color: CONSTANTS.COLORS.heart, life: 0.8});
+        addFloater(e.x, e.y, "❤️", CONSTANTS.COLORS.heart);
     }
     updateUI();
 }
 
-// --- RENDERING ---
+function createParticles(x, y, color) {
+    for(let i=0; i<8; i++) particles.push({ x, y, vx: rand(-150,150), vy: rand(-150,150), life: 1.0, color, size: rand(3,8) });
+}
+function addFloater(x, y, text, color) {
+    floaters.push({x, y, text, color, life: 0.8});
+}
+
+// --- DRAWING ---
 function draw() {
-    // 1. Background
+    // BG
     ctx.fillStyle = '#C8B6FF'; 
     ctx.fillRect(0, 0, canvas.logicalWidth, canvas.logicalHeight);
     
-    // Draw Clouds
+    // Clouds
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    for(let c of clouds) {
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
-        ctx.arc(c.x + c.size*0.7, c.y - c.size*0.5, c.size*0.8, 0, Math.PI * 2);
-        ctx.arc(c.x + c.size*1.2, c.y, c.size*0.9, 0, Math.PI * 2);
-        ctx.fill();
-    }
+    clouds.forEach(c => {
+        ctx.beginPath(); ctx.arc(c.x, c.y, c.size, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(c.x+c.size, c.y, c.size*0.8, 0, Math.PI*2); ctx.fill();
+    });
 
-    // 2. Player (The Cute Cat)
+    // Player
     const skin = SKINS.find(s => s.id === State.equipped);
-    const px = player.x;
-    const py = player.y + (player.h * (1 - player.squash)); // Anchor bottom
-    const pw = player.w;
-    const ph = player.h * player.squash;
+    const px = player.x, py = player.y + (player.h * (1-player.squash));
+    const pw = player.w, ph = player.h * player.squash;
 
     ctx.save();
-    ctx.translate(px + pw/2, py + ph/2); // Center pivot
+    ctx.translate(px + pw/2, py + ph/2);
     
-    // Body
+    // Cat Body
     ctx.fillStyle = skin.color;
-    ctx.beginPath();
-    // Rounded rect
-    ctx.roundRect(-pw/2, -ph/2, pw, ph, 15);
-    ctx.fill();
-    // Border
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "rgba(0,0,0,0.1)";
-    ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-pw/2, -ph/2, pw, ph, 15); ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.1)"; ctx.lineWidth = 3; ctx.stroke();
 
     // Ears
     ctx.beginPath();
-    ctx.moveTo(-pw/2 + 5, -ph/2 + 5);
-    ctx.lineTo(-pw/2 - 5, -ph/2 - 15);
-    ctx.lineTo(-pw/2 + 25, -ph/2 + 5);
-    ctx.moveTo(pw/2 - 5, -ph/2 + 5);
-    ctx.lineTo(pw/2 + 5, -ph/2 - 15);
-    ctx.lineTo(pw/2 - 25, -ph/2 + 5);
+    ctx.moveTo(-pw/2+5, -ph/2+5); ctx.lineTo(-pw/2-5, -ph/2-15); ctx.lineTo(-pw/2+25, -ph/2+5);
+    ctx.moveTo(pw/2-5, -ph/2+5); ctx.lineTo(pw/2+5, -ph/2-15); ctx.lineTo(pw/2-25, -ph/2+5);
     ctx.fill();
 
     // Face
-    const eyeOffset = (player.targetX - player.x) * 0.05;
+    const look = (player.targetX - player.x) * 0.05;
     ctx.fillStyle = "#333";
-    // Eyes
-    ctx.beginPath();
-    ctx.ellipse(-15 + eyeOffset, -5, 4, 6, 0, 0, Math.PI*2);
-    ctx.ellipse(15 + eyeOffset, -5, 4, 6, 0, 0, Math.PI*2);
-    ctx.fill();
-    // Mouth
-    ctx.beginPath();
-    ctx.arc(0 + eyeOffset, 5, 3, 0, Math.PI, false);
-    ctx.stroke();
-    // Blush
+    ctx.beginPath(); ctx.ellipse(-15+look, -5, 4, 6, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(15+look, -5, 4, 6, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0+look, 5, 3, 0, Math.PI, false); ctx.stroke();
     ctx.fillStyle = "rgba(255,100,100,0.3)";
-    ctx.beginPath();
-    ctx.arc(-20, 5, 5, 0, Math.PI*2);
-    ctx.arc(20, 5, 5, 0, Math.PI*2);
-    ctx.fill();
-
+    ctx.beginPath(); ctx.arc(-20, 5, 5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(20, 5, 5, 0, Math.PI*2); ctx.fill();
     ctx.restore();
 
-    // 3. Entities
-    for(let e of entities) {
-        ctx.save();
-        ctx.translate(e.x + e.w/2, e.y + e.h/2);
-        ctx.rotate(e.rot);
-        
-        if (e.type === 'coin') {
-            // Gold Circle
-            ctx.fillStyle = "#ffcc00";
-            ctx.beginPath();
-            ctx.arc(0, 0, e.w/2, 0, Math.PI*2);
-            ctx.fill();
-            // Inner Shine
-            ctx.fillStyle = "#ffe066";
-            ctx.beginPath();
-            ctx.arc(-5, -5, e.w/4, 0, Math.PI*2);
-            ctx.fill();
-            // Outline
-            ctx.strokeStyle = "#e59500";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            // Symbol
-            ctx.fillStyle = "#e59500";
-            ctx.font = "bold 16px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("$", 0, 1);
-        } else if (e.type === 'bomb') {
-            // Black Body
-            ctx.fillStyle = "#2b2d42";
-            ctx.beginPath();
-            ctx.arc(0, 0, e.w/2, 0, Math.PI*2);
-            ctx.fill();
-            // Fuse
-            ctx.strokeStyle = "#8d99ae";
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(0, -e.w/2);
-            ctx.lineTo(5, -e.w/2 - 8);
-            ctx.stroke();
-            // Spark
-            ctx.fillStyle = "#ef233c";
-            ctx.beginPath();
-            ctx.arc(5, -e.w/2 - 8, 3, 0, Math.PI*2);
-            ctx.fill();
-            // Skull
-            ctx.fillStyle = "#8d99ae";
-            ctx.font = "14px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("☠️", 0, 2);
-        } else if (e.type === 'heart') {
-             ctx.fillStyle = "#ff8fa3";
-             ctx.font = "24px Arial";
-             ctx.textAlign = "center";
-             ctx.textBaseline = "middle";
-             ctx.fillText("❤️", 0, 0);
+    // Objects
+    entities.forEach(e => {
+        ctx.save(); ctx.translate(e.x+e.w/2, e.y+e.h/2); ctx.rotate(e.rot);
+        if(e.type === 'coin') {
+            ctx.fillStyle = "#ffcc00"; ctx.beginPath(); ctx.arc(0,0,e.w/2,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#ffe066"; ctx.beginPath(); ctx.arc(-5,-5,e.w/4,0,Math.PI*2); ctx.fill();
+            ctx.strokeStyle = "#e59500"; ctx.stroke();
+            ctx.fillStyle = "#d48600"; ctx.font="bold 16px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("$",0,1);
+        } else if(e.type === 'bomb') {
+            ctx.fillStyle = "#2b2d42"; ctx.beginPath(); ctx.arc(0,0,e.w/2,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#ef233c"; ctx.beginPath(); ctx.arc(5,-8,4,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#fff"; ctx.font="12px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("☠️",0,2);
+        } else {
+            ctx.fillStyle = "#ff8fa3"; ctx.font="24px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("❤️",0,0);
         }
-
         ctx.restore();
-    }
+    });
 
-    // 4. Particles
-    for(let p of particles) {
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-    }
-
-    // 5. Floating Text
-    for(let f of floaters) {
-        ctx.globalAlpha = Math.max(0, f.life);
-        ctx.fillStyle = f.color;
-        ctx.font = "bold 20px Fredoka";
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 3;
-        ctx.strokeText(f.text, f.x, f.y);
-        ctx.fillText(f.text, f.x, f.y);
-        ctx.globalAlpha = 1.0;
-    }
+    // FX
+    particles.forEach(p => {
+        ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+    });
+    
+    floaters.forEach(f => {
+        ctx.globalAlpha = f.life; ctx.fillStyle = f.color; ctx.font = "bold 20px Fredoka";
+        ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.strokeText(f.text, f.x, f.y); ctx.fillText(f.text, f.x, f.y);
+    });
+    ctx.globalAlpha = 1.0;
 }
 
-// --- GAME LOOP ---
+// --- MAIN LOOP ---
 function loop(timestamp) {
     if (!lastTime) lastTime = timestamp;
-    const dt = Math.min((timestamp - lastTime) / 1000, 0.1); // Cap dt
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
 
     if (State.screen === 'play') {
         update(dt);
         draw();
     }
-    
-    animationId = requestAnimationFrame(loop);
+    requestAnimationFrame(loop);
 }
 
-// --- INPUT HANDLERS ---
+// --- CONTROLS ---
 function setPlayerPos(clientX) {
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width; // Should be dpr
-    const relX = (clientX - rect.left);
-    
-    // Center the player on the mouse/touch
-    player.targetX = relX - player.w/2;
+    player.targetX = (clientX - rect.left) * (canvas.width / rect.width / window.devicePixelRatio) - player.w/2;
 }
-
-canvas.addEventListener('mousemove', e => {
-    if (State.screen === 'play') setPlayerPos(e.clientX);
-});
-
-canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (State.screen === 'play') setPlayerPos(e.touches[0].clientX);
-}, { passive: false });
-
-// Keyboard
+canvas.addEventListener('mousemove', e => { if(State.screen==='play') setPlayerPos(e.clientX); });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); if(State.screen==='play') setPlayerPos(e.touches[0].clientX); }, {passive: false});
 window.addEventListener('keydown', e => {
-    if (State.screen !== 'play') return;
-    const speed = 40;
-    if (e.key === 'ArrowLeft' || e.key === 'a') player.targetX -= speed;
-    if (e.key === 'ArrowRight' || e.key === 'd') player.targetX += speed;
+    if(State.screen !== 'play') return;
+    if(e.key==='ArrowLeft'||e.key==='a') player.targetX -= 40;
+    if(e.key==='ArrowRight'||e.key==='d') player.targetX += 40;
 });
 
-// --- UI FUNCTIONS ---
-function updateUI() {
-    document.getElementById('uiScore').innerText = State.score;
-    let hearts = "";
-    for(let i=0; i<3; i++) hearts += i < State.lives ? "❤️" : "🖤";
-    document.getElementById('uiLives').innerText = hearts;
-}
-
+// --- FLOW ---
 function startGame() {
-    State.score = 0;
-    State.lives = 3;
-    entities = [];
-    particles = [];
-    floaters = [];
-    player.targetX = canvas.logicalWidth/2 - player.w/2;
-    player.x = player.targetX;
-    
-    toggleScreen('play');
-    updateUI();
-    AudioSys.resume();
+    State.score = 0; State.lives = 3; entities = []; particles = []; floaters = [];
+    player.targetX = canvas.logicalWidth/2 - player.w/2; player.x = player.targetX;
+    toggleScreen('play'); updateUI(); AudioSys.resume(); AudioSys.startMusic();
 }
 
 function endGame() {
     State.coins += State.score;
     if(State.score > State.bestScore) State.bestScore = State.score;
-    saveData();
-    
+    localStorage.setItem('kittyCatchData', JSON.stringify({ coins: State.coins, bestScore: State.bestScore, inventory: State.inventory, equipped: State.equipped }));
     document.getElementById('uiFinalScore').innerText = State.score;
     document.getElementById('uiBestScore').innerText = State.bestScore;
-    toggleScreen('over');
+    toggleScreen('over'); AudioSys.stopMusic();
 }
 
 function toggleScreen(name) {
     State.screen = name;
     document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
     document.querySelector('.ui-layer').style.opacity = name === 'play' ? 1 : 0;
-    
     if(name === 'start') document.getElementById('screenStart').classList.remove('hidden');
     if(name === 'shop') document.getElementById('screenShop').classList.remove('hidden');
     if(name === 'over') document.getElementById('screenOver').classList.remove('hidden');
-    if(name === 'pause') document.getElementById('screenPause').classList.remove('hidden');
+    if(name === 'pause') { document.getElementById('screenPause').classList.remove('hidden'); AudioSys.stopMusic(); }
 }
 
-// Shop Logic
-function renderShop() {
-    const grid = document.getElementById('shopGrid');
-    grid.innerHTML = "";
-    document.getElementById('uiWallet').innerText = State.coins;
-
-    SKINS.forEach(skin => {
-        const owned = State.inventory.includes(skin.id);
-        const equipped = State.equipped === skin.id;
-        
-        const el = document.createElement('div');
-        el.className = `shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''} ${!owned && State.coins < skin.cost ? 'locked' : ''}`;
-        el.innerHTML = `
-            <div style="font-size:2rem; margin-bottom:5px;">${skin.type === 'alien' ? '👽' : skin.type === 'robot' ? '🤖' : '😺'}</div>
-            <div style="font-weight:bold; color: ${skin.color}; text-shadow: 1px 1px 0 #000;">${skin.name}</div>
-            <div style="font-size:0.8rem; color:#666;">${owned ? (equipped ? 'EQUIPPED' : 'OWNED') : '🪙 '+skin.cost}</div>
-        `;
-        
-        el.onclick = () => {
-            if (owned) {
-                State.equipped = skin.id;
-                AudioSys.playCoin();
-            } else if (State.coins >= skin.cost) {
-                State.coins -= skin.cost;
-                State.inventory.push(skin.id);
-                State.equipped = skin.id;
-                AudioSys.playLife();
-            } else {
-                return; // Can't afford
-            }
-            saveData();
-            renderShop();
-        };
-        grid.appendChild(el);
-    });
+function updateUI() {
+    document.getElementById('uiScore').innerText = State.score;
+    document.getElementById('uiLives').innerText = "❤️".repeat(State.lives) + "🖤".repeat(3-State.lives);
 }
 
-// --- SAVE SYSTEM ---
-function loadData() {
-    const d = localStorage.getItem('kittyCatchData');
-    if(d) {
-        const p = JSON.parse(d);
-        State.coins = p.coins || 0;
-        State.bestScore = p.bestScore || 0;
-        State.inventory = p.inventory || ['classic'];
-        State.equipped = p.equipped || 'classic';
-    }
-}
-function saveData() {
-    localStorage.setItem('kittyCatchData', JSON.stringify({
-        coins: State.coins,
-        bestScore: State.bestScore,
-        inventory: State.inventory,
-        equipped: State.equipped
-    }));
-}
-
-// --- INITIALIZATION ---
+// --- INIT ---
 window.onload = () => {
-    resize();
-    AudioSys.init();
-    loadData();
+    resize(); AudioSys.init();
+    const d = localStorage.getItem('kittyCatchData');
+    if(d) { const p=JSON.parse(d); State.coins=p.coins||0; State.bestScore=p.bestScore||0; State.inventory=p.inventory||['classic']; State.equipped=p.equipped||'classic'; }
     window.addEventListener('resize', resize);
     
-    // Button Bindings
     document.getElementById('btnPlay').onclick = startGame;
     document.getElementById('btnRestart').onclick = startGame;
-    
     document.getElementById('btnShop').onclick = () => { toggleScreen('shop'); renderShop(); };
     document.getElementById('btnCloseShop').onclick = () => toggleScreen('start');
     document.getElementById('btnHome').onclick = () => toggleScreen('start');
-    
     document.getElementById('btnPause').onclick = () => toggleScreen('pause');
-    document.getElementById('btnResume').onclick = () => { toggleScreen('play'); lastTime = performance.now(); };
+    document.getElementById('btnResume').onclick = () => { toggleScreen('play'); AudioSys.startMusic(); lastTime=performance.now(); };
     document.getElementById('btnQuit').onclick = () => toggleScreen('start');
-
-    document.getElementById('btnMute').onclick = (e) => {
-        State.settings.sound = !State.settings.sound;
-        e.target.innerText = State.settings.sound ? "🎵" : "🔇";
+    document.getElementById('btnMute').onclick = (e) => { 
+        State.settings.sound = !State.settings.sound; e.target.innerText = State.settings.sound ? "🎵" : "🔇"; 
     };
+    
+    // --- SHOP LOGIC ---
+    function renderShop() {
+        const grid = document.getElementById('shopGrid');
+        grid.innerHTML = "";
+        document.getElementById('uiWallet').innerText = State.coins;
 
-    // Pre-seed clouds
-    for(let i=0; i<3; i++) spawnCloud();
+        SKINS.forEach(skin => {
+            const owned = State.inventory.includes(skin.id);
+            const equipped = State.equipped === skin.id;
+            
+            const el = document.createElement('div');
+            el.className = `shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''} ${!owned && State.coins < skin.cost ? 'locked' : ''}`;
+            el.innerHTML = `
+                <div style="font-size:2rem; margin-bottom:5px;">😺</div>
+                <div style="font-weight:bold; color: ${skin.color}; text-shadow: 1px 1px 0 #000;">${skin.name}</div>
+                <div style="font-size:0.8rem; color:#666;">${owned ? (equipped ? 'EQUIPPED' : 'OWNED') : '🪙 '+skin.cost}</div>
+            `;
+            el.onclick = () => {
+                if (owned) {
+                    State.equipped = skin.id;
+                    AudioSys.playCoin();
+                } else if (State.coins >= skin.cost) {
+                    State.coins -= skin.cost;
+                    State.inventory.push(skin.id);
+                    State.equipped = skin.id;
+                    AudioSys.playLife();
+                } else {
+                    AudioSys.playBomb(); // Error sound
+                    return;
+                }
+                localStorage.setItem('kittyCatchData', JSON.stringify({ coins: State.coins, bestScore: State.bestScore, inventory: State.inventory, equipped: State.equipped }));
+                renderShop();
+            };
+            grid.appendChild(el);
+        });
+    }
 
     requestAnimationFrame(loop);
 };
-
 </script>
 </body>
 </html>
