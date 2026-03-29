@@ -567,13 +567,6 @@ function setSlot(i){
   el.classList.add('show'); clearTimeout(window.blockNameTimer); window.blockNameTimer=setTimeout(()=>el.classList.remove('show'),2000);
 }
 
-document.addEventListener('mousemove', e => {
-  if(inUI) {
-    const cursorEl = document.getElementById('cursorItem');
-    cursorEl.style.left = e.clientX + 'px'; cursorEl.style.top = e.clientY + 'px';
-  }
-});
-
 /* ══════════════════════════════════════════════════════════
    SURVIVAL LOGIC & PHYSICS
 ══════════════════════════════════════════════════════════ */
@@ -725,7 +718,6 @@ function setupInput(){
   // Standard Mouse Pointer Lock events
   document.addEventListener('pointerlockchange', () => {
       if (document.pointerLockElement !== cv && !inUI && document.getElementById('splash').style.display === 'none') {
-          // Reset keys when menu overlay or pausing forces lock drop
           for(let k in KEYS) KEYS[k] = false;
           leftMouseHeld = false;
           rightMouseHeld = false;
@@ -765,9 +757,12 @@ function setupInput(){
     }
   });
 
-  document.addEventListener('mousemove',e=>{
+  // ✨ RESTORED: Mouse tracking logic so items stick to your cursor in the UI
+  document.addEventListener('mousemove', e => {
     if(inUI) {
-        // Leave to external handler
+        const cursorEl = document.getElementById('cursorItem');
+        cursorEl.style.left = e.clientX + 'px';
+        cursorEl.style.top = e.clientY + 'px';
         return;
     }
     if(document.pointerLockElement === cv) {
