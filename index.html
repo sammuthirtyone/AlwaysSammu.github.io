@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Sammu Craft - Enhanced Mobs & Physics</title>
+<title>Sammu Craft - Enhanced</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -18,7 +18,7 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
 .stars{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
 .star{position:absolute;width:4px;height:4px;background:#fff;opacity:0.8;box-shadow: 20px 20px 0 #fff, -20px -20px 0 #fff; animation:twinkle 3s infinite;}
 @keyframes twinkle{0%,100%{opacity:.2}50%{opacity:1}}
-#splash h1{font-size:clamp(32px,6vw,64px);color:#fff;letter-spacing:4px;text-shadow: 4px 4px 0 #3f3f3f, 0 0 0 #000;margin-bottom:12px;}
+#splash h1{font-size:clamp(32px,6vw,64px);color:#fff;letter-spacing:4px;text-shadow: 4px 4px 0 #3f3f3f, 0 0 0 #000;margin-bottom:12px; text-align:center;}
 #splash p{color:#a0c0ff;font-size:14px;margin-bottom:48px;letter-spacing:2px; text-shadow: 2px 2px 0 #000;}
 #playBtn{
   font-family:inherit;background: #747474;color:#fff;border:none;
@@ -99,8 +99,8 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
   <p>Survival, Crafting & Exploration</p>
   <button id="playBtn">Start Game</button>
   <div class="controls-hint">
-    L-CLICK: Mine/Attack &nbsp;|&nbsp; R-CLICK: Place/Interact &nbsp;|&nbsp; WASD: Move &nbsp;|&nbsp; SPACE: Jump<br><br>
-    Auto-Jump is ON &nbsp;|&nbsp; E: Inventory/Crafting &nbsp;|&nbsp; R: Recipe Book &nbsp;|&nbsp; SCROLL: Hotbar
+    L-CLICK: Mine/Attack &nbsp;|&nbsp; R-CLICK: Place/Interact/Eat<br>WASD: Move &nbsp;|&nbsp; SPACE: Jump &nbsp;|&nbsp; SHIFT: Sneak<br><br>
+    Auto-Jump is ON &nbsp;|&nbsp; E: Inventory &nbsp;|&nbsp; R: Recipe Book
   </div>
 </div>
 
@@ -119,7 +119,7 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
     <div id="hotbar"></div>
   </div>
   <div id="blockname"></div>
-  <div id="tips">Press E for Inventory · Press R for Recipes</div>
+  <div id="tips">Press E for Inventory · Press R for Recipes · Right-click Bed to Sleep</div>
 </div>
 
 <div id="invScreen" class="screen-overlay">
@@ -164,7 +164,8 @@ const STICK=101, W_PICKAXE=102, S_PICKAXE=103, W_AXE=104, S_AXE=105,
       I_HOE=117, W_HOE=118, S_HOE=119,
       I_HELMET=120, I_CHEST=121, I_LEGS=122, I_BOOTS=123,
       BUCKET=124, SHEARS=125, BOW=126, ARROW=127,
-      COMPASS=128, CLOCK=129, RAW_BEEF=130, MUTTON=131, CHICKEN_MEAT=132;
+      COMPASS=128, CLOCK=129, RAW_BEEF=130, MUTTON=131, CHICKEN_MEAT=132,
+      WOOL=133, BED=134;
 
 const BNAMES={
   0:'Air', 1:'Grass Block', 2:'Dirt', 3:'Stone', 4:'Oak Log', 5:'Oak Leaves', 6:'Sand', 
@@ -178,7 +179,8 @@ const BNAMES={
   117:'Iron Hoe', 118:'Wooden Hoe', 119:'Stone Hoe',
   120:'Iron Helmet', 121:'Iron Chestplate', 122:'Iron Leggings', 123:'Iron Boots',
   124:'Bucket', 125:'Shears', 126:'Bow', 127:'Arrow', 128:'Compass', 129:'Clock',
-  130:'Raw Beef', 131:'Raw Mutton', 132:'Raw Chicken'
+  130:'Raw Beef', 131:'Raw Mutton', 132:'Raw Chicken',
+  133:'Wool', 134:'Bed'
 };
 const SEA=12, CH=64, CS=16;
 
@@ -189,6 +191,7 @@ HARDNESS[STONE]=1.5; HARDNESS[COBBLESTONE]=2.0; HARDNESS[DIRT]=0.5; HARDNESS[GRA
 HARDNESS[SAND]=0.5; HARDNESS[GRAVEL]=0.6; HARDNESS[WOOD]=2.0; HARDNESS[PLANKS]=2.0;
 HARDNESS[LEAVES]=0.2; HARDNESS[GLASS]=0.3; HARDNESS[OBSIDIAN]=50.0; HARDNESS[IRON_ORE]=3.0; HARDNESS[GOLD_ORE]=3.0;
 HARDNESS[TALL_GRASS]=0.0; HARDNESS[ROSE]=0.0; HARDNESS[DANDELION]=0.0;
+HARDNESS[BED]=0.2;
 
 /* ══════════════════════════════════════════════════════════
    TEXTURE & ICON GENERATOR
@@ -229,6 +232,8 @@ function getTexObsidian() { return genGridTex((x,y) => { let v=0.5+Math.random()
 function getTexBookshelfSide() { return genGridTex((x,y) => { if(y<3 || y>12 || (y>6&&y<9)) return {r:120,g:90,b:50}; let c=[{r:200,g:50,b:50},{r:50,g:200,b:50},{r:50,g:50,b:200},{r:200,g:200,b:50}][Math.floor(x/4)]; let v=0.7+Math.random()*0.3; return {r:~~(c.r*v),g:~~(c.g*v),b:~~(c.b*v)}; }); }
 function getTexSponge() { return genGridTex((x,y) => { let v=0.8+Math.random()*0.3; if(Math.random()<0.1) return {r:~~(120*v),g:~~(120*v),b:~~(40*v)}; return {r:~~(220*v),g:~~(220*v),b:~~(80*v)}; }); }
 function getTexTorch() { return genGridTex((x,y) => { if(x<7||x>8||y<4) return {a:0}; if(y<7) return {r:255,g:200,b:50}; return {r:100,g:60,b:30}; }); }
+function getTexWool() { return genGridTex((x,y) => { let v = 0.85 + Math.random()*0.15; return {r:~~(240*v), g:~~(240*v), b:~~(245*v)}; }); }
+function getTexBedTop() { return genGridTex((x,y) => { if(y<6) return {r:240,g:240,b:240}; return {r:200,g:40,b:40}; }); }
 
 /* Flora Textures */
 function getTexTallGrass() { return genGridTex((x,y) => {
@@ -310,6 +315,7 @@ function drawItemIcon(ctx, id) {
   if(id === RAW_BEEF) { ctx.fillStyle='#a33'; ctx.beginPath(); ctx.arc(16,16,8,0,Math.PI*2); ctx.fill(); return; }
   if(id === MUTTON) { ctx.fillStyle='#c55'; ctx.beginPath(); ctx.arc(16,16,8,0,Math.PI*2); ctx.fill(); return; }
   if(id === CHICKEN_MEAT) { ctx.fillStyle='#e99'; ctx.beginPath(); ctx.arc(16,16,6,0,Math.PI*2); ctx.fill(); return; }
+  if(id === WOOL) { ctx.fillStyle='#eee'; ctx.beginPath(); ctx.arc(16,16,10,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#ddd'; ctx.beginPath(); ctx.arc(12,12,6,0,Math.PI*2); ctx.fill(); return; }
 
   if(id === COAL) { ctx.fillStyle='#222'; ctx.fillRect(8,8,16,16); ctx.fillStyle='#555'; ctx.fillRect(10,10,6,6); return; }
   if(id === IRON_INGOT || id === GOLD_INGOT) { ctx.fillStyle = id===IRON_INGOT?'#e0e0e0':'#ffd700'; ctx.beginPath(); ctx.moveTo(8,20); ctx.lineTo(16,12); ctx.lineTo(24,12); ctx.lineTo(16,20); ctx.fill(); return; }
@@ -370,6 +376,9 @@ function buildMats(){
   MATS[SPONGE]=M(getTexSponge()); 
   
   MATS[TORCH]=M(getTexTorch(),true,.9); MATS[LADDER]=M(getTexPlanks()); MATS[DOOR]=M(getTexPlanks()); MATS[TRAPDOOR]=M(getTexPlanks()); MATS[FENCE]=M(getTexWoodSide());
+
+  MATS[WOOL]=M(getTexWool());
+  MATS[BED]=[M(texWoodSide),M(texWoodSide),M(getTexBedTop()),M(texWoodTop),M(texWoodSide),M(texWoodSide)];
 
   MATS[TALL_GRASS] = M(getTexTallGrass(),true,1);
   MATS[ROSE] = M(getTexRose(),true,1);
@@ -625,6 +634,7 @@ const RECIPES = [
   { out: BRICKS, count: 4, shape: [[DIRT,DIRT],[DIRT,DIRT]] },
   { out: OBSIDIAN, count: 1, shape: [[WATER,WATER],[WATER,WATER]] },
   { out: BOOKSHELF, count: 1, shape: [[PLANKS,PLANKS,PLANKS],[PLANKS,PLANKS,PLANKS],[PLANKS,PLANKS,PLANKS]] },
+  { out: BED, count: 1, shape: [[WOOL,WOOL,WOOL],[PLANKS,PLANKS,PLANKS]] },
   
   { out: W_PICKAXE, count: 1, shape: [[PLANKS,PLANKS,PLANKS],[AIR,STICK,AIR],[AIR,STICK,AIR]] },
   { out: S_PICKAXE, count: 1, shape: [[COBBLESTONE,COBBLESTONE,COBBLESTONE],[AIR,STICK,AIR],[AIR,STICK,AIR]] },
@@ -808,6 +818,7 @@ function drawSlotCanvas(cv, id) {
         case GLASS:srcCv=getTexGlass();break; case BRICKS:srcCv=getTexBricks();break; case OBSIDIAN:srcCv=getTexObsidian();break;
         case BOOKSHELF:srcCv=getTexBookshelfSide();break; case SPONGE:srcCv=getTexSponge();break;
         case TALL_GRASS:srcCv=getTexTallGrass();break; case ROSE:srcCv=getTexRose();break; case DANDELION:srcCv=getTexDandelion();break;
+        case BED:srcCv=getTexBedTop();break;
       }
       if(srcCv) { ctx.drawImage(srcCv,0,0,32,32); return; }
   } 
@@ -888,14 +899,16 @@ class Mob {
         let bMat = new THREE.MeshLambertMaterial({map: canvasToTex(getTexMob(type, 'body'))});
         let hMat = new THREE.MeshLambertMaterial({map: canvasToTex(getTexMob(type, 'head'))});
         
-        let bW = type==='chicken'?0.4:0.9, bH = type==='chicken'?0.5:0.8, bD = type==='chicken'?0.4:1.3;
+        let bW = type==='chicken'?0.4:(type==='sheep'?1.0:0.8);
+        let bH = type==='chicken'?0.5:(type==='sheep'?0.9:0.8);
+        let bD = type==='chicken'?0.4:(type==='sheep'?1.2:1.4);
         let body = new THREE.Mesh(new THREE.BoxGeometry(bW, bH, bD), bMat);
-        body.position.y = type==='chicken'?0.3:0.6;
+        body.position.y = type==='chicken'?0.3:(type==='sheep'?0.6:0.7);
         this.mesh.add(body);
         
         let hS = type==='chicken'?0.3:0.5;
         let head = new THREE.Mesh(new THREE.BoxGeometry(hS, hS, hS), hMat);
-        head.position.set(0, type==='chicken'?0.6:1.1, (bD/2)); 
+        head.position.set(0, type==='chicken'?0.6:1.2, (bD/2)); 
         this.mesh.add(head);
 
         let lS = type==='chicken'?0.1:0.2, lH = type==='chicken'?0.3:0.5;
@@ -951,24 +964,28 @@ class Mob {
         let ht = this.type === 'chicken' ? 0.8 : 1.4;
 
         let hitX = false, hitZ = false;
+        
+        // Strict Collision checks to prevent passing through blocks
         if(entityBlocked(world, nx, this.mesh.position.y, this.mesh.position.z, hw, ht)) hitX = true;
         if(entityBlocked(world, this.mesh.position.x, this.mesh.position.y, nz, hw, ht)) hitZ = true;
 
         if (hitX || hitZ) {
+            // Jump over 1 block obstacles
             if (entityBlocked(world, this.mesh.position.x, this.mesh.position.y - 0.1, this.mesh.position.z, hw, ht)) { 
-                if (!entityBlocked(world, nx, this.mesh.position.y + 1.1, nz, hw, ht)) {
+                if (!entityBlocked(world, hitX?nx:this.mesh.position.x, this.mesh.position.y + 1.1, hitZ?nz:this.mesh.position.z, hw, ht)) {
                     this.vy = JUMP_VEL * 0.8;
                     hitX = false; hitZ = false;
                 } else { this.isMoving = false; }
             }
         }
 
-        if(!hitX) this.mesh.position.x = nx;
-        if(!hitZ) this.mesh.position.z = nz;
+        // Apply constrained movement
+        if(!hitX) this.mesh.position.x = nx; else this.vx = 0;
+        if(!hitZ) this.mesh.position.z = nz; else this.vz = 0;
 
         if(entityBlocked(world, this.mesh.position.x, ny, this.mesh.position.z, hw, ht)) {
             if (this.vy < 0) {
-                this.mesh.position.y = Math.floor(ny) + 1; 
+                this.mesh.position.y = Math.floor(this.mesh.position.y); 
                 this.vy = 0;
             } else {
                 this.mesh.position.y -= this.vy * dt;
@@ -978,7 +995,7 @@ class Mob {
             this.mesh.position.y = ny;
         }
 
-        // Avoid sinking bug
+        // Anti-Sink Safety
         while(entityBlocked(world, this.mesh.position.x, this.mesh.position.y, this.mesh.position.z, hw, ht) && this.mesh.position.y < CH) {
             this.mesh.position.y += 0.25; this.vy = 0;
         }
@@ -1033,7 +1050,7 @@ function isOnGround(w,cx,fy,cz){
   return false;
 }
 
-let world,camera,renderer,scene, highlightMesh, crackMesh, sun, ambient;
+let world,camera,renderer,scene, highlightMesh, crackMesh, sun, sunMesh, clouds, ambient;
 let px=8.5,py=20,pz=8.5, vx=0,vy=0,vz=0, yaw=0,pitch=0;
 let onGround=false, jumpQueued=false;
 let KEYS={};
@@ -1065,6 +1082,12 @@ function updatePlayer(dt){
   let hitX = false, hitZ = false;
   const nx=px+vx*dt; if(!playerBlocked(world,nx,py,pz)) { px=nx; } else { hitX = true; }
   const nz=pz+vz*dt; if(!playerBlocked(world,px,py,nz)) { pz=nz; } else { hitZ = true; }
+
+  // Sneak Logic (Shift) to avoid falling
+  if(KEYS['ShiftLeft'] && onGround && !jumpQueued) {
+     if(!isOnGround(world, nx, py, pz)) px -= vx*dt;
+     if(!isOnGround(world, px, py, nz)) pz -= vz*dt;
+  }
 
   if (onGround && (hitX || hitZ) && (Math.abs(vx) > 0 || Math.abs(vz) > 0)) {
       let tryX = hitX ? nx : px;
@@ -1233,9 +1256,10 @@ function setupInput(){
     if(inUI) return;
     if(document.pointerLockElement !== cv) { cv.requestPointerLock(); return; }
     
+    let ld = lookDir();
+    let hit = raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
+
     if(e.button===0) { 
-        let ld = lookDir();
-        let hit = raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
         let blockDist = hit ? hit.dist : 999;
 
         // Three.js Raycaster for Mobs
@@ -1254,9 +1278,10 @@ function setupInput(){
                 hitMob.vx = ld.x * 6; hitMob.vz = ld.z * 6; hitMob.vy = 5;
                 if(hitMob.hp <= 0) {
                     hitMob.dead = true; scene.remove(hitMob.mesh);
-                    // Drop meat
-                    let drop = hitMob.type==='cow' ? RAW_BEEF : hitMob.type==='sheep' ? MUTTON : CHICKEN_MEAT;
+                    // Sheep Drop Wool, Others drop Meat
+                    let drop = hitMob.type==='cow' ? RAW_BEEF : hitMob.type==='sheep' ? WOOL : CHICKEN_MEAT;
                     spawnDrop(hitMob.mesh.position.x - 0.5, hitMob.mesh.position.y, hitMob.mesh.position.z - 0.5, drop);
+                    if(hitMob.type === 'sheep') { spawnDrop(hitMob.mesh.position.x - 0.5, hitMob.mesh.position.y+0.2, hitMob.mesh.position.z - 0.5, MUTTON); } // drops both!
                 }
                 return; // Prevent block mining if we hit a mob
             }
@@ -1266,11 +1291,31 @@ function setupInput(){
     
     if(e.button===2) {
         rightMouseHeld = true; 
-        const ld=lookDir(); const hit=raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
         
         if(hit && hit.block === CRAFT_TABLE) { toggleUI(true, true); rightMouseHeld = false; return; }
 
+        if(hit && hit.block === BED) {
+            if(gameTime > 0.55 && gameTime < 0.95) { // night
+                gameTime = 0.05; // skip to morning
+                updateDayNight(0); 
+            }
+            rightMouseHeld = false;
+            return;
+        }
+
         let slotData = inventory[selectedSlot];
+
+        // Eat Food
+        if ([RAW_BEEF, MUTTON, CHICKEN_MEAT].includes(slotData.id)) {
+            if (hp < 10) {
+                hp = Math.min(10, hp + 2);
+                slotData.count--; if(slotData.count<=0) slotData.id = AIR;
+                buildHotbar(); renderHearts();
+                rightMouseHeld = false;
+            }
+            return;
+        }
+
         if(hit && slotData.id !== AIR && slotData.id < 100 && slotData.count > 0){
             const h2=PW/2+.01, inPlayer=(hit.px<px+h2&&hit.px+1>px-h2&&hit.py<py+PH&&hit.py+1>py&&hit.pz<pz+h2&&hit.pz+1>pz-h2);
             if(!inPlayer || !isSolid(slotData.id)) {
@@ -1333,6 +1378,13 @@ function updateDayNight(dt) {
     scene.background.lerp(skyCol, 0.1);
     scene.fog.color.lerp(skyCol, 0.1);
 
+    // Update Kite Sun Mesh
+    if(sunMesh) {
+        sunMesh.position.copy(sun.position);
+        sunMesh.lookAt(px, py, pz); // Face the player
+        if(gameTime > 0.55 && gameTime < 0.95) sunMesh.visible = false; else sunMesh.visible = true;
+    }
+
     document.getElementById('timeUI').innerText = 
         (gameTime > 0.05 && gameTime < 0.45) ? "Day" : 
         (gameTime >= 0.45 && gameTime <= 0.55) ? "Dusk" : 
@@ -1355,6 +1407,24 @@ function startGame(){
   sun.position.set(50,100,50); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
   sun.shadow.camera.left=-100;sun.shadow.camera.right=100; sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;
   sun.shadow.camera.near=1;sun.shadow.camera.far=400; sun.shadow.bias=-.001; scene.add(sun);
+
+  // Kite-Shaped Sun Mesh
+  const sunGeo = new THREE.OctahedronGeometry(15, 0);
+  const sunMat = new THREE.MeshBasicMaterial({color: 0xffffaa, fog: false});
+  sunMesh = new THREE.Mesh(sunGeo, sunMat);
+  sunMesh.scale.set(1, 1.5, 0.2); // stretch to make a kite shape
+  scene.add(sunMesh);
+
+  // Clouds System
+  clouds = new THREE.Group();
+  const cloudGeo = new THREE.BoxGeometry(10, 2, 10);
+  const cloudMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.7});
+  for(let i=0; i<30; i++) {
+      let c = new THREE.Mesh(cloudGeo, cloudMat);
+      c.position.set((Math.random()-0.5)*300, 75 + Math.random()*5, (Math.random()-0.5)*300);
+      clouds.add(c);
+  }
+  scene.add(clouds);
 
   buildMats(); dropGeo = new THREE.BoxGeometry(0.25, 0.25, 0.25); world=new World(scene);
   for(let dx=-2;dx<=2;dx++) for(let dz=-2;dz<=2;dz++) world.chunks.set(world.key(dx, dz), new Chunk(dx, dz, scene));
@@ -1381,6 +1451,12 @@ function startGame(){
 
     updatePlayer(dt); updateDrops(dt); updateDayNight(dt); updateMobs(dt);
     
+    // Cloud Movement
+    clouds.children.forEach(c => {
+        c.position.x += dt * 1.5;
+        if(c.position.x > px + 150) c.position.x -= 300;
+    });
+
     if(!inUI) { camera.position.set(px,py+PH*.88,pz); camera.rotation.y=yaw; camera.rotation.x=pitch; camera.rotation.z=0; }
     const ld=lookDir(); world.tick(px,pz,ld);
 
