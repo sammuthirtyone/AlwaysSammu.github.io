@@ -7,7 +7,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2P',monospace;}
-#c{display:block;cursor:none;}
+#c{display:block;cursor:crosshair;}
 
 /* ── SPLASH ── */
 #splash{
@@ -15,7 +15,7 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
   background:radial-gradient(ellipse at 50% 30%,#5a8ede 0%,#2c5da0 60%,#000 100%);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-.stars{position:absolute;inset:0;overflow:hidden;pointer-events:none;} /* Fixed: Added pointer-events: none */
+.stars{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
 .star{position:absolute;width:4px;height:4px;background:#fff;opacity:0.8;box-shadow: 20px 20px 0 #fff, -20px -20px 0 #fff; animation:twinkle 3s infinite;}
 @keyframes twinkle{0%,100%{opacity:.2}50%{opacity:1}}
 #splash h1{font-size:clamp(32px,6vw,64px);color:#fff;letter-spacing:4px;text-shadow: 4px 4px 0 #3f3f3f, 0 0 0 #000;margin-bottom:12px;}
@@ -25,7 +25,7 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
   border-top: 4px solid #a8a8a8; border-left: 4px solid #a8a8a8;
   border-bottom: 4px solid #3f3f3f; border-right: 4px solid #3f3f3f;
   padding:16px 40px;font-size:16px;cursor:pointer;text-shadow: 2px 2px 0 #3f3f3f;
-  position:relative; z-index:10; /* Fixed: Restored relative positioning so it sits above stars */
+  position:relative; z-index:10;
 }
 #playBtn:hover{background: #8b8b8b; border-top-color: #c0c0c0; border-left-color: #c0c0c0;}
 #playBtn:active{border-top: 4px solid #3f3f3f; border-left: 4px solid #3f3f3f; border-bottom: 4px solid #a8a8a8; border-right: 4px solid #a8a8a8;}
@@ -91,9 +91,8 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
   <p>Survival, Crafting & Exploration</p>
   <button id="playBtn">Start Game</button>
   <div class="controls-hint">
-    HOLD RIGHT CLICK · MINE BLOCK &nbsp;|&nbsp; LEFT CLICK · PLACE BLOCK / ATTACK<br>
-    WASD · MOVE &nbsp;|&nbsp; SPACE · JUMP &nbsp;|&nbsp; E · INVENTORY / CRAFTING<br>
-    RIGHT CLICK CRAFTING TABLE TO OPEN 3X3 GRID
+    LEFT CLICK · MINE BLOCK / ATTACK &nbsp;|&nbsp; RIGHT CLICK · PLACE BLOCK / INTERACT<br>
+    MOUSE · LOOK AROUND &nbsp;|&nbsp; WASD · MOVE &nbsp;|&nbsp; SPACE · JUMP &nbsp;|&nbsp; E · INVENTORY
   </div>
 </div>
 
@@ -257,7 +256,7 @@ const FACE_VERTS=[
   [[1,0,1],[1,1,1],[0,1,1],[0,0,1]], [[0,0,0],[0,1,0],[1,1,0],[1,0,0]], 
 ];
 const FACE_NORMALS=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
-function isSolid(b){return b!==AIR&&b!==WATER&&b!==LEAVES&&b<100;} // <100 means block, >100 is item
+function isSolid(b){return b!==AIR&&b!==WATER&&b!==LEAVES&&b<100;} 
 function isOpaque(b){return b!==AIR&&b!==WATER&&b!==LEAVES&&b<100;}
 
 class Chunk{
@@ -392,9 +391,9 @@ const RECIPES = [
   { out: W_PICKAXE, count: 1, shape: [[PLANKS,PLANKS,PLANKS],[AIR,STICK,AIR],[AIR,STICK,AIR]] },
   { out: S_PICKAXE, count: 1, shape: [[STONE,STONE,STONE],[AIR,STICK,AIR],[AIR,STICK,AIR]] },
   { out: W_AXE, count: 1, shape: [[PLANKS,PLANKS],[PLANKS,STICK],[AIR,STICK]] },
-  { out: W_AXE, count: 1, shape: [[PLANKS,PLANKS],[STICK,PLANKS],[STICK,AIR]] }, // Mirrored
+  { out: W_AXE, count: 1, shape: [[PLANKS,PLANKS],[STICK,PLANKS],[STICK,AIR]] },
   { out: S_AXE, count: 1, shape: [[STONE,STONE],[STONE,STICK],[AIR,STICK]] },
-  { out: S_AXE, count: 1, shape: [[STONE,STONE],[STICK,STONE],[STICK,AIR]] }, // Mirrored
+  { out: S_AXE, count: 1, shape: [[STONE,STONE],[STICK,STONE],[STICK,AIR]] },
   { out: W_SHOVEL, count: 1, shape: [[PLANKS],[STICK],[STICK]] },
   { out: S_SHOVEL, count: 1, shape: [[STONE],[STICK],[STICK]] },
   { out: W_SWORD, count: 1, shape: [[PLANKS],[PLANKS],[STICK]] },
@@ -405,14 +404,22 @@ function toggleUI(show, isTable = false) {
   inUI = show;
   isCraftingTable = isTable;
   document.getElementById('invScreen').style.display = show ? 'flex' : 'none';
-  document.getElementById('c').style.cursor = show ? 'default' : 'none';
-  if(!show && cursorItem.id !== AIR) { spawnDrop(px, py, pz, cursorItem.id); cursorItem = {id:AIR, count:0}; }
+  
+  if(show) {
+      document.exitPointerLock();
+  } else {
+      document.getElementById('c').requestPointerLock();
+  }
+
+  // Drop cursor/crafting items accurately without losing stack count!
+  if(!show && cursorItem.id !== AIR) { spawnDrop(px, py, pz, cursorItem.id, cursorItem.count); cursorItem = {id:AIR, count:0}; }
   if(!show) {
     for(let i=0; i<craftGrid.length; i++) {
-      if(craftGrid[i].id !== AIR) { spawnDrop(px, py, pz, craftGrid[i].id); craftGrid[i] = {id: AIR, count: 0}; }
+      if(craftGrid[i].id !== AIR) { spawnDrop(px, py, pz, craftGrid[i].id, craftGrid[i].count); craftGrid[i] = {id: AIR, count: 0}; }
     }
     craftResult = {id: AIR, count: 0};
   }
+  
   if(show) renderInventoryUI();
   document.getElementById('craftLabel').innerText = isTable ? "Crafting Table" : "Crafting";
   document.getElementById('craftGridUI').className = isTable ? "craft-grid large" : "craft-grid";
@@ -504,7 +511,13 @@ function createDOMSlot(slotObj, clickHandler) {
     const cv=document.createElement('canvas'); cv.width=cv.height=32; drawSlotCanvas(cv, slotObj.id); el.append(cv);
     const countLabel = document.createElement('span'); countLabel.className = 'slot-count'; countLabel.innerText = slotObj.count > 1 ? slotObj.count : ''; el.append(countLabel);
   }
-  el.addEventListener('mousedown', e => { if(inUI) clickHandler(e); else { e.preventDefault(); } });
+  // Prevent ghost dragging by avoiding default mouse behavior in UI
+  el.addEventListener('mousedown', e => { 
+      if(inUI) { 
+          e.preventDefault(); // Stop default web drag events
+          clickHandler(e); 
+      } 
+  });
   return el;
 }
 
@@ -582,8 +595,7 @@ function isOnGround(w,cx,fy,cz){
 let world,camera,renderer,scene, highlightMesh, crackMesh;
 let px=8.5,py=20,pz=8.5, vx=0,vy=0,vz=0, yaw=0,pitch=0;
 let onGround=false, jumpQueued=false;
-const KEYS={};
-let dragging=false,lastMX=0,lastMY=0;
+let KEYS={};
 let hp = 10, highestY = py, spawnY = 60;
 const drops = [];
 let dropGeo;
@@ -628,11 +640,11 @@ function renderHearts() {
   for(let i=0; i<10; i++) { let h = document.createElement('div'); h.className = 'heart' + (i >= hp ? ' empty' : ''); cont.appendChild(h); }
 }
 
-function spawnDrop(x,y,z, id) {
+function spawnDrop(x,y,z, id, count=1) {
   if(id === AIR || id === WATER || id === LEAVES) return;
   let mat = (id <= 12) ? getMatForFace(id, 2) : new THREE.MeshBasicMaterial({color: 0xa0784a}); 
   let mesh = new THREE.Mesh(dropGeo, mat); mesh.castShadow = true; mesh.position.set(x+0.5, y+0.5, z+0.5); scene.add(mesh);
-  drops.push({ mesh, id, vx: (Math.random()-0.5)*3, vy: 3, vz: (Math.random()-0.5)*3, age: 0 });
+  drops.push({ mesh, id, count, vx: (Math.random()-0.5)*3, vy: 3, vz: (Math.random()-0.5)*3, age: 0 });
 }
 
 function updateDrops(dt) {
@@ -645,14 +657,14 @@ function updateDrops(dt) {
     d.mesh.position.x += d.vx * dt; d.mesh.position.z += d.vz * dt; d.mesh.rotation.y += dt; d.age += dt;
     
     let dist = Math.hypot(d.mesh.position.x - px, d.mesh.position.y - (py+1), d.mesh.position.z - pz);
-    if(dist < 1.8 && d.age > 0.5) { if(addToInventory(d.id)) { scene.remove(d.mesh); drops.splice(i, 1); continue; } }
+    if(dist < 1.8 && d.age > 0.5) { if(addToInventory(d.id, d.count)) { scene.remove(d.mesh); drops.splice(i, 1); continue; } }
     if(d.age > 300) { scene.remove(d.mesh); drops.splice(i, 1); }
   }
 }
 
-function addToInventory(id) {
-  for(let i=0; i<36; i++) { if(inventory[i].id === id && inventory[i].count < 64) { inventory[i].count++; buildHotbar(); return true; } }
-  for(let i=0; i<36; i++) { if(inventory[i].id === AIR || inventory[i].count === 0) { inventory[i] = {id: id, count: 1}; buildHotbar(); return true; } }
+function addToInventory(id, count=1) {
+  for(let i=0; i<36; i++) { if(inventory[i].id === id && inventory[i].count + count <= 64) { inventory[i].count+=count; buildHotbar(); return true; } }
+  for(let i=0; i<36; i++) { if(inventory[i].id === AIR || inventory[i].count === 0) { inventory[i] = {id: id, count: count}; buildHotbar(); return true; } }
   return false; 
 }
 
@@ -671,7 +683,7 @@ function getMiningSpeed(b, t) {
 }
 
 function updateMining(dt, hit) {
-  if (rightMouseHeld && hit) { 
+  if (leftMouseHeld && hit) { 
     if (!breakTarget || breakTarget.hx !== hit.hx || breakTarget.hy !== hit.hy || breakTarget.hz !== hit.hz) { breakTarget = hit; breakProgress = 0; }
     
     let blockHardness = HARDNESS[hit.block] || 0.5;
@@ -697,6 +709,8 @@ function updateMining(dt, hit) {
 function resetMining() { breakProgress = 0; breakTarget = null; breakBarContainer.style.display = 'none'; if(crackMesh) crackMesh.visible = false; }
 
 function setupInput(){
+  const cv=document.getElementById('c');
+
   document.addEventListener('keydown',e=>{
     if(!inUI) {
         KEYS[e.code]=true;
@@ -708,56 +722,78 @@ function setupInput(){
   });
   document.addEventListener('keyup',e=>KEYS[e.code]=false);
 
-  const cv=document.getElementById('c'); let hasDragged = false;
+  // Standard Mouse Pointer Lock events
+  document.addEventListener('pointerlockchange', () => {
+      if (document.pointerLockElement !== cv && !inUI && document.getElementById('splash').style.display === 'none') {
+          // Reset keys when menu overlay or pausing forces lock drop
+          for(let k in KEYS) KEYS[k] = false;
+          leftMouseHeld = false;
+          rightMouseHeld = false;
+          resetMining();
+      }
+  });
+
   cv.addEventListener('mousedown',e=>{
     if(inUI) return;
-    if(e.button===0) { dragging=true; lastMX=e.clientX; lastMY=e.clientY; hasDragged = false; }
+    if(document.pointerLockElement !== cv) {
+        cv.requestPointerLock();
+        return;
+    }
+    if(e.button===0) { 
+        leftMouseHeld = true; // Mine
+    }
     if(e.button===2) {
-      const ld=lookDir(); const hit=raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
-      if(hit && hit.block === CRAFT_TABLE) { toggleUI(true, true); return; } // Open crafting table
-      rightMouseHeld=true; 
+        rightMouseHeld = true; 
+        const ld=lookDir(); const hit=raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
+        
+        // Open Crafting Table
+        if(hit && hit.block === CRAFT_TABLE) { 
+            toggleUI(true, true); 
+            rightMouseHeld = false;
+            return; 
+        }
+
+        // Place block
+        let slotData = inventory[selectedSlot];
+        if(hit && slotData.id !== AIR && slotData.id <= 12 && slotData.count > 0){
+            const h2=PW/2+.01, inPlayer=(hit.px<px+h2&&hit.px+1>px-h2&&hit.py<py+PH&&hit.py+1>py&&hit.pz<pz+h2&&hit.pz+1>pz-h2);
+            if(!inPlayer) {
+                world.setBlock(hit.px,hit.py,hit.pz,slotData.id);
+                slotData.count--; if(slotData.count <= 0) slotData.id = AIR; buildHotbar();
+            }
+        }
     }
   });
 
   document.addEventListener('mousemove',e=>{
-    if(inUI) return;
-    if(dragging && (e.buttons & 1)) { 
-      yaw-=(e.clientX-lastMX)*0.0038; pitch-=(e.clientY-lastMY)*0.0038; pitch=Math.max(-1.55,Math.min(1.55,pitch));
-      lastMX=e.clientX; lastMY=e.clientY; hasDragged = true; 
+    if(inUI) {
+        // Leave to external handler
+        return;
+    }
+    if(document.pointerLockElement === cv) {
+      yaw -= e.movementX * 0.003; 
+      pitch -= e.movementY * 0.003; 
+      pitch=Math.max(-1.55,Math.min(1.55,pitch));
     }
   });
 
   document.addEventListener('mouseup',e=>{
     if(inUI) return;
-    if(e.button===0) { 
-      dragging=false;
-      if(!hasDragged) {
-        const ld=lookDir(); const hit=raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
-        let slotData = inventory[selectedSlot];
-        // Ensure item is a block (<= 12) before placing
-        if(hit && slotData.id !== AIR && slotData.id <= 12 && slotData.count > 0){
-          const h2=PW/2+.01, inPlayer=(hit.px<px+h2&&hit.px+1>px-h2&&hit.py<py+PH&&hit.py+1>py&&hit.pz<pz+h2&&hit.pz+1>pz-h2);
-          if(!inPlayer) {
-            world.setBlock(hit.px,hit.py,hit.pz,slotData.id);
-            slotData.count--; if(slotData.count <= 0) slotData.id = AIR; buildHotbar();
-          }
-        }
-      }
-    }
-    if(e.button===2) { rightMouseHeld=false; resetMining(); }
+    if(e.button===0) { leftMouseHeld=false; resetMining(); }
+    if(e.button===2) { rightMouseHeld=false; }
   });
 
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   cv.addEventListener('wheel',e=>{ if(!inUI) { selectedSlot=(selectedSlot+(e.deltaY>0?1:8))%9; setSlot(selectedSlot); }},{passive:true});
 
-  // Fixed: Restored Mobile touch controls
-  let touchTimeout;
+  // Mobile Touch Controls Adapting to New Input scheme
+  let touchTimeout; let dragging = false; let hasDragged = false; let lastMX=0, lastMY=0;
   cv.addEventListener('touchstart', e => {
     if(inUI) return;
     if(e.touches.length === 1) {
       dragging = true; hasDragged = false;
       lastMX = e.touches[0].clientX; lastMY = e.touches[0].clientY;
-      touchTimeout = setTimeout(() => { if(!hasDragged) { rightMouseHeld = true; dragging = false; } }, 400);
+      touchTimeout = setTimeout(() => { if(!hasDragged) { leftMouseHeld = true; dragging = false; } }, 350);
     }
   }, {passive: false});
 
@@ -775,7 +811,7 @@ function setupInput(){
   cv.addEventListener('touchend', e => {
     if(inUI) return;
     clearTimeout(touchTimeout);
-    if(rightMouseHeld) { rightMouseHeld = false; resetMining(); } 
+    if(leftMouseHeld) { leftMouseHeld = false; resetMining(); } 
     else if (dragging && !hasDragged) {
       const ld=lookDir(); const hit=raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
       let slotData = inventory[selectedSlot];
@@ -794,6 +830,8 @@ function setupInput(){
 
 function startGame(){
   document.getElementById('splash').style.display='none'; document.getElementById('ui').style.display='block';
+  document.getElementById('c').requestPointerLock();
+
   renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:false});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)); renderer.setSize(innerWidth,innerHeight);
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
