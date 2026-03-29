@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Sammu Craft - Survival</title>
+<title>Sammu Craft - Survival Enhanced</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -153,7 +153,8 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
 ══════════════════════════════════════════════════════════ */
 const AIR=0,GRASS=1,DIRT=2,STONE=3,WOOD=4,LEAVES=5,SAND=6,WATER=7,SNOW=8,GRAVEL=9,COAL_ORE=10,
       PLANKS=11, CRAFT_TABLE=12, COBBLESTONE=13, IRON_ORE=14, GOLD_ORE=15, GLASS=16, BRICKS=17,
-      OBSIDIAN=18, BOOKSHELF=19, SPONGE=20, TORCH=21, LADDER=22, FENCE=23, DOOR=24, TRAPDOOR=25;
+      OBSIDIAN=18, BOOKSHELF=19, SPONGE=20, TORCH=21, LADDER=22, FENCE=23, DOOR=24, TRAPDOOR=25,
+      TALL_GRASS=26, ROSE=27, DANDELION=28;
 
 // ITEMS (101+)
 const STICK=101, W_PICKAXE=102, S_PICKAXE=103, W_AXE=104, S_AXE=105, 
@@ -169,7 +170,7 @@ const BNAMES={
   0:'Air', 1:'Grass Block', 2:'Dirt', 3:'Stone', 4:'Oak Log', 5:'Oak Leaves', 6:'Sand', 
   7:'Water', 8:'Snow Block', 9:'Gravel', 10:'Coal Ore', 11:'Oak Planks', 12:'Crafting Table',
   13:'Cobblestone', 14:'Iron Ore', 15:'Gold Ore', 16:'Glass', 17:'Bricks', 18:'Obsidian', 19:'Bookshelf', 20:'Sponge', 21:'Torch',
-  22:'Ladder', 23:'Fence', 24:'Door', 25:'Trapdoor',
+  22:'Ladder', 23:'Fence', 24:'Door', 25:'Trapdoor', 26:'Tall Grass', 27:'Rose', 28:'Dandelion',
   101:'Stick', 102:'Wooden Pickaxe', 103:'Stone Pickaxe', 104:'Wooden Axe', 105:'Stone Axe', 
   106:'Wooden Shovel', 107:'Stone Shovel', 108:'Wooden Sword', 109:'Stone Sword',
   110:'Coal', 111:'Iron Ingot', 112:'Gold Ingot',
@@ -186,6 +187,7 @@ for(let i=0; i<50; i++) HARDNESS[i] = 1.0;
 HARDNESS[STONE]=1.5; HARDNESS[COBBLESTONE]=2.0; HARDNESS[DIRT]=0.5; HARDNESS[GRASS]=0.6;
 HARDNESS[SAND]=0.5; HARDNESS[GRAVEL]=0.6; HARDNESS[WOOD]=2.0; HARDNESS[PLANKS]=2.0;
 HARDNESS[LEAVES]=0.2; HARDNESS[GLASS]=0.3; HARDNESS[OBSIDIAN]=50.0; HARDNESS[IRON_ORE]=3.0; HARDNESS[GOLD_ORE]=3.0;
+HARDNESS[TALL_GRASS]=0.0; HARDNESS[ROSE]=0.0; HARDNESS[DANDELION]=0.0;
 
 /* ══════════════════════════════════════════════════════════
    TEXTURE & ICON GENERATOR
@@ -226,6 +228,28 @@ function getTexObsidian() { return genGridTex((x,y) => { let v=0.5+Math.random()
 function getTexBookshelfSide() { return genGridTex((x,y) => { if(y<3 || y>12 || (y>6&&y<9)) return {r:120,g:90,b:50}; let c=[{r:200,g:50,b:50},{r:50,g:200,b:50},{r:50,g:50,b:200},{r:200,g:200,b:50}][Math.floor(x/4)]; let v=0.7+Math.random()*0.3; return {r:~~(c.r*v),g:~~(c.g*v),b:~~(c.b*v)}; }); }
 function getTexSponge() { return genGridTex((x,y) => { let v=0.8+Math.random()*0.3; if(Math.random()<0.1) return {r:~~(120*v),g:~~(120*v),b:~~(40*v)}; return {r:~~(220*v),g:~~(220*v),b:~~(80*v)}; }); }
 function getTexTorch() { return genGridTex((x,y) => { if(x<7||x>8||y<4) return {a:0}; if(y<7) return {r:255,g:200,b:50}; return {r:100,g:60,b:30}; }); }
+
+/* Flora Textures */
+function getTexTallGrass() { return genGridTex((x,y) => {
+    let v = 0.8 + Math.random()*0.4;
+    let isBlade = (x===3||x===7||x===11||x===14) && y > (x%3)*3+2;
+    if(isBlade || (y>8 && Math.random()>0.5)) return {r:~~(48*v), g:~~(120*v), b:~~(34*v)};
+    return {a:0};
+});}
+function getTexRose() { return genGridTex((x,y) => {
+    if(x>=7&&x<=8 && y>=6) return {r:30, g:100, b:20}; 
+    if(y<6 && x>=4 && x<=11) {
+        if(Math.random()>0.2) return {r:200 + Math.random()*55, g:0, b:0};
+    }
+    return {a:0};
+});}
+function getTexDandelion() { return genGridTex((x,y) => {
+    if(x>=7&&x<=8 && y>=8) return {r:50, g:150, b:30}; 
+    if(y<8 && x>=5 && x<=10) {
+        if(Math.random()>0.2) return {r:240 + Math.random()*15, g:220 + Math.random()*30, b:0};
+    }
+    return {a:0};
+});}
 
 function getTexCrack(stage) {
   return genGridTex((x,y) => {
@@ -310,6 +334,10 @@ function buildMats(){
   
   MATS[TORCH]=M(getTexTorch(),true,.9); MATS[LADDER]=M(getTexPlanks()); MATS[DOOR]=M(getTexPlanks()); MATS[TRAPDOOR]=M(getTexPlanks()); MATS[FENCE]=M(getTexWoodSide());
 
+  MATS[TALL_GRASS] = M(getTexTallGrass(),true,1);
+  MATS[ROSE] = M(getTexRose(),true,1);
+  MATS[DANDELION] = M(getTexDandelion(),true,1);
+
   for(let i=0; i<=9; i++) CRACK_MATS.push(new THREE.MeshBasicMaterial({map:canvasToTex(getTexCrack(i)), transparent:true, depthWrite: false}));
 }
 
@@ -331,7 +359,6 @@ function octaveNoise(x,z,octs=6){
 function treeSeed(wx,wz){return hash2(wx*7.3+13,wz*5.7+29);}
 
 function getTerrain(wx, wz) {
-    // Noise scaled up slightly for "short distance" biomes (~25-30 blocks across)
     let temp = octaveNoise(wx * 0.04, wz * 0.04, 3);
     let elev = octaveNoise(wx * 0.015, wz * 0.015, 4);
     let river = Math.abs(octaveNoise(wx * 0.02 + 50, wz * 0.02 + 50, 3) - 0.5);
@@ -341,12 +368,10 @@ function getTerrain(wx, wz) {
 
     let h = 4 + Math.floor(elev * 25); 
     
-    // Ocean biomes
     if (elev < 0.35) {
         h = SEA - 4 + Math.floor((elev / 0.35) * 3);
         type = 'ocean'; 
     } 
-    // River biomes
     else if (isRiver) {
         h = Math.min(h, SEA - 1);
     }
@@ -361,8 +386,10 @@ const FACE_VERTS=[
   [[1,0,1],[1,1,1],[0,1,1],[0,0,1]], [[0,0,0],[0,1,0],[1,1,0],[1,0,0]], 
 ];
 const FACE_NORMALS=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
-function isSolid(b){return b!==AIR&&b!==WATER&&b!==LEAVES&&b!==TORCH&&b!==LADDER&&b<100;} 
-function isOpaque(b){return b!==AIR&&b!==WATER&&b!==LEAVES&&b!==GLASS&&b!==TORCH&&b!==LADDER&&b!==FENCE&&b!==DOOR&&b!==TRAPDOOR&&b<100;}
+
+function isFlora(b) { return b===TALL_GRASS||b===ROSE||b===DANDELION; }
+function isSolid(b){return b!==AIR&&b!==WATER&&b!==LEAVES&&b!==TORCH&&b!==LADDER&&!isFlora(b)&&b<100;} 
+function isOpaque(b){return b!==AIR&&b!==WATER&&b!==LEAVES&&b!==GLASS&&b!==TORCH&&b!==LADDER&&b!==FENCE&&b!==DOOR&&b!==TRAPDOOR&&!isFlora(b)&&b<100;}
 
 class Chunk{
   constructor(cx,cz,scene){
@@ -392,11 +419,20 @@ class Chunk{
             if (y < SEA) b = (type === 'desert' || type === 'ocean') ? SAND : DIRT;
             else if (type === 'desert') b = SAND;
             else if (type === 'snow') b = SNOW;
-            else b = GRASS;
+            else {
+                b = GRASS;
+                // Add Flora
+                if(y < CH-1 && Math.random() < 0.15) {
+                    let r = Math.random();
+                    let flora = r < 0.7 ? TALL_GRASS : (r < 0.85 ? ROSE : DANDELION);
+                    this.set(x, y+1, z, flora);
+                }
+            }
         }
         else if(y>=h && y<=SEA) b=WATER;
         
-        this.set(x,y,z,b);
+        // Prevent overwriting flora if we are just passing through sky
+        if(this.get(x,y,z) === AIR && b !== AIR) this.set(x,y,z,b);
       }
       
       // MINECRAFT STYLE TREE
@@ -406,16 +442,19 @@ class Chunk{
         for(let ly=-2; ly<=-1; ly++) {
           for(let lx=-2;lx<=2;lx++) for(let lz=-2;lz<=2;lz++) {
             if(Math.abs(lx)===2 && Math.abs(lz)===2 && Math.random()<0.5) continue;
-            if(this.get(x+lx,top+ly,z+lz)===AIR) this.set(x+lx,top+ly,z+lz,LEAVES);
+            let existing = this.get(x+lx,top+ly,z+lz);
+            if(existing===AIR || isFlora(existing)) this.set(x+lx,top+ly,z+lz,LEAVES);
           }
         }
         for(let lx=-1;lx<=1;lx++) for(let lz=-1;lz<=1;lz++) {
           if(Math.abs(lx)===1 && Math.abs(lz)===1 && Math.random()<0.5) continue;
-          if(this.get(x+lx,top,z+lz)===AIR) this.set(x+lx,top,z+lz,LEAVES);
+          let existing = this.get(x+lx,top,z+lz);
+          if(existing===AIR || isFlora(existing)) this.set(x+lx,top,z+lz,LEAVES);
         }
         for(let lx=-1;lx<=1;lx++) for(let lz=-1;lz<=1;lz++) {
           if(Math.abs(lx)+Math.abs(lz)<=1) {
-             if(this.get(x+lx,top+1,z+lz)===AIR) this.set(x+lx,top+1,z+lz,LEAVES);
+             let existing = this.get(x+lx,top+1,z+lz);
+             if(existing===AIR || isFlora(existing)) this.set(x+lx,top+1,z+lz,LEAVES);
           }
         }
       }
@@ -428,6 +467,30 @@ class Chunk{
     for(let x=0;x<CS;x++) for(let y=0;y<CH;y++) for(let z=0;z<CS;z++){
       const b=this.get(x,y,z); if(b===AIR||b>=100)continue;
       const wx=this.cx*CS+x, wz=this.cz*CS+z;
+
+      // Special rendering for flora
+      if(isFlora(b)) {
+          const key=b*10+0, bf=getBuf(key);
+          const fv1 = [[wx, y, wz], [wx, y+1, wz], [wx+1, y+1, wz+1], [wx+1, y, wz+1]];
+          const fv2 = [[wx, y, wz+1], [wx, y+1, wz+1], [wx+1, y+1, wz], [wx+1, y, wz]];
+          
+          for(let fi=0; fi<2; fi++) {
+              const fv = fi===0?fv1:fv2;
+              let i0 = bf.pos.length/3;
+              bf.pos.push(fv[0][0], fv[0][1], fv[0][2], fv[1][0], fv[1][1], fv[1][2], fv[2][0], fv[2][1], fv[2][2], fv[3][0], fv[3][1], fv[3][2]);
+              bf.nor.push(0,1,0, 0,1,0, 0,1,0, 0,1,0);
+              bf.uvs.push(0,0, 0,1, 1,1, 1,0);
+              bf.idx.push(i0,i0+1,i0+2, i0,i0+2,i0+3);
+              
+              let i1 = bf.pos.length/3;
+              bf.pos.push(fv[3][0], fv[3][1], fv[3][2], fv[2][0], fv[2][1], fv[2][2], fv[1][0], fv[1][1], fv[1][2], fv[0][0], fv[0][1], fv[0][2]);
+              bf.nor.push(0,1,0, 0,1,0, 0,1,0, 0,1,0);
+              bf.uvs.push(1,0, 1,1, 0,1, 0,0);
+              bf.idx.push(i1,i1+1,i1+2, i1,i1+2,i1+3);
+          }
+          continue;
+      }
+
       for(let fi=0;fi<6;fi++){
         const d=DIRS[fi], nb=this.get(x+d[0],y+d[1],z+d[2]);
         if(b===WATER&&nb===WATER)continue; if(b===LEAVES&&nb===LEAVES)continue; if(b===GLASS&&nb===GLASS)continue;
@@ -610,7 +673,7 @@ function renderRecipeBook() {
                 if(y < r.shape.length && x < r.shape[y].length) id = r.shape[y][x];
                 if(id !== AIR) { 
                     let cv = document.createElement('canvas'); 
-                    cv.width = 32; cv.height = 32; // Set exact canvas size for UI
+                    cv.width = 32; cv.height = 32; 
                     drawSlotCanvas(cv, id); 
                     s.appendChild(cv); 
                 }
@@ -622,7 +685,7 @@ function renderRecipeBook() {
         let outSlot = document.createElement('div'); outSlot.className = 'slot';
         
         let oCv = document.createElement('canvas'); 
-        oCv.width = 32; oCv.height = 32; // Set exact canvas size for UI
+        oCv.width = 32; oCv.height = 32; 
         drawSlotCanvas(oCv, r.out); 
         outSlot.appendChild(oCv);
         
@@ -711,6 +774,7 @@ function drawSlotCanvas(cv, id) {
         case PLANKS:srcCv=getTexPlanks();break; case CRAFT_TABLE:srcCv=getTexCraftSide();break;
         case GLASS:srcCv=getTexGlass();break; case BRICKS:srcCv=getTexBricks();break; case OBSIDIAN:srcCv=getTexObsidian();break;
         case BOOKSHELF:srcCv=getTexBookshelfSide();break; case SPONGE:srcCv=getTexSponge();break;
+        case TALL_GRASS:srcCv=getTexTallGrass();break; case ROSE:srcCv=getTexRose();break; case DANDELION:srcCv=getTexDandelion();break;
       }
       if(srcCv) { ctx.drawImage(srcCv,0,0,32,32); return; }
   } 
@@ -770,6 +834,115 @@ function setSlot(i){
 }
 
 /* ══════════════════════════════════════════════════════════
+   MOBS & ENTITIES
+══════════════════════════════════════════════════════════ */
+class Mob {
+    constructor(type, x, y, z) {
+        this.type = type; 
+        this.mesh = new THREE.Group();
+        
+        let col = type==='cow' ? 0x5c4033 : type==='sheep' ? 0xdddddd : 0xffffff;
+        let bMat = new THREE.MeshLambertMaterial({color: col});
+        let hMat = new THREE.MeshLambertMaterial({color: col});
+        
+        let bW = type==='chicken'?0.4:0.9, bH = type==='chicken'?0.5:0.8, bD = type==='chicken'?0.4:1.3;
+        let body = new THREE.Mesh(new THREE.BoxGeometry(bW, bH, bD), bMat);
+        body.position.y = type==='chicken'?0.3:0.6;
+        this.mesh.add(body);
+        
+        let hS = type==='chicken'?0.3:0.5;
+        let head = new THREE.Mesh(new THREE.BoxGeometry(hS, hS, hS), hMat);
+        head.position.set(0, type==='chicken'?0.6:1.1, (bD/2)); 
+        this.mesh.add(head);
+
+        let lS = type==='chicken'?0.1:0.2, lH = type==='chicken'?0.3:0.5;
+        let legMat = new THREE.MeshLambertMaterial({color: type==='chicken'?0xddaa00:col});
+        for(let i=0; i<(type==='chicken'?2:4); i++) {
+            let leg = new THREE.Mesh(new THREE.BoxGeometry(lS, lH, lS), legMat);
+            let lx = (i%2===0?1:-1) * (bW/2 - lS/2);
+            let lz = type==='chicken' ? 0 : (i<2?1:-1) * (bD/2 - lS/2);
+            leg.position.set(lx, lH/2, lz);
+            this.mesh.add(leg);
+        }
+
+        this.mesh.position.set(x, y, z);
+        scene.add(this.mesh);
+        this.vx=0; this.vy=0; this.vz=0;
+        this.targetYaw=Math.random()*Math.PI*2;
+        this.stateTime=0; this.isMoving=false;
+        this.hp = type==='cow'?10 : type==='sheep'?8 : 4;
+        this.dead = false;
+    }
+    update(dt) {
+        this.stateTime -= dt;
+        if(this.stateTime <= 0) {
+            this.stateTime = 1 + Math.random()*4;
+            this.isMoving = Math.random() > 0.4;
+            if(this.isMoving) this.targetYaw = Math.random() * Math.PI * 2;
+        }
+        
+        let diff = this.targetYaw - this.mesh.rotation.y;
+        while(diff < -Math.PI) diff += Math.PI*2; while(diff > Math.PI) diff -= Math.PI*2;
+        this.mesh.rotation.y += diff * dt * 3;
+
+        if(this.isMoving) {
+            let speed = this.type==='chicken'?1.8 : 1.2;
+            this.vx = Math.sin(this.mesh.rotation.y) * speed;
+            this.vz = Math.cos(this.mesh.rotation.y) * speed;
+        } else { this.vx *= 0.8; this.vz *= 0.8; }
+
+        this.vy -= GRAVITY * dt;
+        let nx = this.mesh.position.x + this.vx * dt;
+        let nz = this.mesh.position.z + this.vz * dt;
+        let ny = this.mesh.position.y + this.vy * dt;
+        
+        let cx = Math.floor(this.mesh.position.x), cz = Math.floor(this.mesh.position.z);
+        let groundY = ny, onGround = false;
+        
+        // Simple Wall Collision
+        if(isSolid(world.getBlock(Math.floor(nx), Math.floor(ny+0.1), cz))) { nx = this.mesh.position.x; if(this.isMoving) this.vy = JUMP_VEL*0.8; }
+        if(isSolid(world.getBlock(cx, Math.floor(ny+0.1), Math.floor(nz)))) { nz = this.mesh.position.z; if(this.isMoving) this.vy = JUMP_VEL*0.8; }
+        
+        // Simple Floor Collision
+        if(isSolid(world.getBlock(Math.floor(nx), Math.floor(ny), Math.floor(nz)))) {
+            groundY = Math.floor(ny) + 1; this.vy = 0; onGround = true;
+        }
+        
+        this.mesh.position.set(nx, groundY, nz);
+        
+        if(Math.hypot(px - nx, pz - nz) > 64 || ny < -10) {
+            this.dead = true;
+            scene.remove(this.mesh);
+        }
+    }
+}
+
+let mobs = [];
+let lastMobSpawn = 0;
+function updateMobs(dt) {
+    lastMobSpawn += dt;
+    if(lastMobSpawn > 3 && mobs.length < 15) {
+        lastMobSpawn = 0;
+        let angle = Math.random() * Math.PI * 2;
+        let dist = 15 + Math.random() * 20;
+        let sx = px + Math.cos(angle)*dist;
+        let sz = pz + Math.sin(angle)*dist;
+        for(let y=CH-1; y>0; y--) {
+            if(world.getBlock(Math.floor(sx), y, Math.floor(sz)) === GRASS) {
+                let types = ['cow', 'sheep', 'chicken'];
+                mobs.push(new Mob(types[Math.floor(Math.random()*types.length)], sx, y+1, sz));
+                break;
+            }
+        }
+    }
+    for(let i=mobs.length-1; i>=0; i--) {
+        mobs[i].update(dt);
+        if(mobs[i].dead) mobs.splice(i, 1);
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════
    SURVIVAL LOGIC, PHYSICS & DROPS
 ══════════════════════════════════════════════════════════ */
 const PW=0.55, PH=1.8, GRAVITY=28, JUMP_VEL=9.5;
@@ -797,7 +970,7 @@ let dropGeo;
 let leftMouseHeld=false, rightMouseHeld=false, breakTarget=null, breakProgress=0;
 const breakBar = document.getElementById('breakBar'), breakBarContainer = document.getElementById('breakBarContainer');
 
-let gameTime = 0.25; // 0.25 is Noon
+let gameTime = 0.25; 
 
 function lookDir(){ return{x:-Math.sin(yaw)*Math.cos(pitch), y:Math.sin(pitch), z:-Math.cos(yaw)*Math.cos(pitch)}; }
 
@@ -839,7 +1012,7 @@ function renderHearts() {
 
 function spawnDrop(x,y,z, id, count=1) {
   if(id === AIR || id === WATER) return;
-  let mat = (id < 100 && id !== GLASS) ? getMatForFace(id, 2) : new THREE.MeshBasicMaterial({color: 0xa0784a}); 
+  let mat = (id < 100 && id !== GLASS && !isFlora(id)) ? getMatForFace(id, 2) : new THREE.MeshBasicMaterial({color: 0xa0784a}); 
   let mesh = new THREE.Mesh(dropGeo, mat); mesh.castShadow = true; mesh.position.set(x+0.5, y+0.5, z+0.5); scene.add(mesh);
   drops.push({ mesh, id, count, vx: (Math.random()-0.5)*3, vy: 3, vz: (Math.random()-0.5)*3, age: 0 });
 }
@@ -877,7 +1050,7 @@ function addToInventory(id, count=1) {
 /* Mining Rules & Tools */
 function canHarvest(bId, tId) {
   if([STONE, COBBLESTONE, COAL_ORE].includes(bId)) return [W_PICKAXE, S_PICKAXE, I_PICKAXE].includes(tId);
-  if([IRON_ORE, GOLD_ORE, OBSIDIAN].includes(bId)) return [S_PICKAXE, I_PICKAXE].includes(tId); // Need better pickaxe
+  if([IRON_ORE, GOLD_ORE, OBSIDIAN].includes(bId)) return [S_PICKAXE, I_PICKAXE].includes(tId); 
   return true; 
 }
 
@@ -905,14 +1078,16 @@ function getMiningSpeed(b, t) {
       return 1.5; 
   }
   if(b === LEAVES && t === SHEARS) return 15;
+  if(isFlora(b)) return 50; 
   return 1;
 }
 
 function updateMining(dt, hit) {
-  if (leftMouseHeld && hit) { 
+  if (leftMouseHeld && hit && hit.block !== AIR) { 
     if (!breakTarget || breakTarget.hx !== hit.hx || breakTarget.hy !== hit.hy || breakTarget.hz !== hit.hz) { breakTarget = hit; breakProgress = 0; }
     
     let blockHardness = HARDNESS[hit.block] || 0.5;
+    if(blockHardness === 0) blockHardness = 0.05; 
     let tool = inventory[selectedSlot].id;
     let speed = getMiningSpeed(hit.block, tool);
     
@@ -968,7 +1143,29 @@ function setupInput(){
   cv.addEventListener('mousedown',e=>{
     if(inUI) return;
     if(document.pointerLockElement !== cv) { cv.requestPointerLock(); return; }
-    if(e.button===0) { leftMouseHeld = true; }
+    
+    if(e.button===0) { 
+        let ld = lookDir();
+        let hitMob = null, minDist = 4; 
+        for(let m of mobs) {
+            let dist = Math.hypot(m.mesh.position.x - px, m.mesh.position.y - py, m.mesh.position.z - pz);
+            if(dist < minDist) {
+                let dx = m.mesh.position.x - px, dy = m.mesh.position.y - py, dz = m.mesh.position.z - pz;
+                let dot = (dx*ld.x + dy*ld.y + dz*ld.z) / dist;
+                if(dot > 0.9) { hitMob = m; minDist = dist; }
+            }
+        }
+        if(hitMob) {
+            hitMob.hp -= 4; 
+            hitMob.vx = ld.x * 6; hitMob.vz = ld.z * 6; hitMob.vy = 5;
+            if(hitMob.hp <= 0) {
+                hitMob.dead = true; scene.remove(hitMob.mesh);
+            }
+            return; 
+        }
+        leftMouseHeld = true; 
+    }
+    
     if(e.button===2) {
         rightMouseHeld = true; 
         const ld=lookDir(); const hit=raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
@@ -1009,11 +1206,9 @@ function setupInput(){
 }
 
 function updateDayNight(dt) {
-    // 600 seconds = 10 minutes real world time (5 min day / 5 min night)
     gameTime += dt / 600; 
     if(gameTime > 1) gameTime -= 1;
     
-    // 0 = Sunrise, 0.25 = Noon, 0.5 = Sunset, 0.75 = Midnight
     let sunAngle = gameTime * Math.PI * 2; 
     sun.position.set(200 * Math.cos(sunAngle), 200 * Math.sin(sunAngle), 50);
 
@@ -1066,7 +1261,6 @@ function startGame(){
   buildMats(); dropGeo = new THREE.BoxGeometry(0.25, 0.25, 0.25); world=new World(scene);
   for(let dx=-2;dx<=2;dx++) for(let dz=-2;dz<=2;dz++) world.chunks.set(world.key(dx, dz), new Chunk(dx, dz, scene));
   
-  // Safely find ground logic to spawn
   for(let y=CH-2; y>0; y--) { if(world.getBlock(0,y,0) !== AIR && world.getBlock(0,y,0) !== WATER) { spawnY = y+2; break; } }
   px=8.5; py=spawnY; pz=8.5; highestY = spawnY;
 
@@ -1087,13 +1281,13 @@ function startGame(){
     requestAnimationFrame(loop);
     const now=performance.now(), dt=Math.min((now-prev)/1000,.05); prev=now;
 
-    updatePlayer(dt); updateDrops(dt); updateDayNight(dt);
+    updatePlayer(dt); updateDrops(dt); updateDayNight(dt); updateMobs(dt);
     
     if(!inUI) { camera.position.set(px,py+PH*.88,pz); camera.rotation.y=yaw; camera.rotation.x=pitch; camera.rotation.z=0; }
     const ld=lookDir(); world.tick(px,pz,ld);
 
     const hit=raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
-    if(hit){ highlightMesh.visible=true; highlightMesh.position.set(hit.hx+.5,hit.hy+.5,hit.hz+.5); } else highlightMesh.visible=false;
+    if(hit && !isFlora(hit.block)){ highlightMesh.visible=true; highlightMesh.position.set(hit.hx+.5,hit.hy+.5,hit.hz+.5); } else highlightMesh.visible=false;
     
     updateMining(dt, hit); renderer.render(scene,camera); frames++;
     if(now-fpsT>500){ infoFPS.textContent='FPS: '+Math.round(frames/((now-fpsT)/1000)); frames=0; fpsT=now; }
