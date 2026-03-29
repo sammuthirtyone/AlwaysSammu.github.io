@@ -15,7 +15,7 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
   background:radial-gradient(ellipse at 50% 30%,#5a8ede 0%,#2c5da0 60%,#000 100%);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-.stars{position:absolute;inset:0;overflow:hidden;}
+.stars{position:absolute;inset:0;overflow:hidden;pointer-events:none;} /* Fixed: Added pointer-events: none */
 .star{position:absolute;width:4px;height:4px;background:#fff;opacity:0.8;box-shadow: 20px 20px 0 #fff, -20px -20px 0 #fff; animation:twinkle 3s infinite;}
 @keyframes twinkle{0%,100%{opacity:.2}50%{opacity:1}}
 #splash h1{font-size:clamp(32px,6vw,64px);color:#fff;letter-spacing:4px;text-shadow: 4px 4px 0 #3f3f3f, 0 0 0 #000;margin-bottom:12px;}
@@ -25,10 +25,11 @@ body{background:#000;overflow:hidden;user-select:none;font-family:'Press Start 2
   border-top: 4px solid #a8a8a8; border-left: 4px solid #a8a8a8;
   border-bottom: 4px solid #3f3f3f; border-right: 4px solid #3f3f3f;
   padding:16px 40px;font-size:16px;cursor:pointer;text-shadow: 2px 2px 0 #3f3f3f;
+  position:relative; z-index:10; /* Fixed: Restored relative positioning so it sits above stars */
 }
 #playBtn:hover{background: #8b8b8b; border-top-color: #c0c0c0; border-left-color: #c0c0c0;}
 #playBtn:active{border-top: 4px solid #3f3f3f; border-left: 4px solid #3f3f3f; border-bottom: 4px solid #a8a8a8; border-right: 4px solid #a8a8a8;}
-.controls-hint{margin-top:32px;color:#ddd;font-size:10px;line-height:2.5;text-align:center;text-shadow: 2px 2px 0 #000;}
+.controls-hint{margin-top:32px;color:#ddd;font-size:10px;line-height:2.5;text-align:center;text-shadow: 2px 2px 0 #000; position:relative; z-index:10;}
 
 /* ── HUD ── */
 #ui{position:fixed;inset:0;pointer-events:none;}
@@ -384,9 +385,6 @@ let selectedSlot = 0;
 let inUI = false;
 let isCraftingTable = false;
 
-// Populate initial starter items (optional)
-// inventory[0] = {id: WOOD, count: 16};
-
 const RECIPES = [
   { out: PLANKS, count: 4, shape: [[WOOD]] },
   { out: STICK, count: 4, shape: [[PLANKS],[PLANKS]] },
@@ -410,7 +408,6 @@ function toggleUI(show, isTable = false) {
   document.getElementById('c').style.cursor = show ? 'default' : 'none';
   if(!show && cursorItem.id !== AIR) { spawnDrop(px, py, pz, cursorItem.id); cursorItem = {id:AIR, count:0}; }
   if(!show) {
-    // Drop remaining items in craft grid
     for(let i=0; i<craftGrid.length; i++) {
       if(craftGrid[i].id !== AIR) { spawnDrop(px, py, pz, craftGrid[i].id); craftGrid[i] = {id: AIR, count: 0}; }
     }
@@ -633,7 +630,6 @@ function renderHearts() {
 
 function spawnDrop(x,y,z, id) {
   if(id === AIR || id === WATER || id === LEAVES) return;
-  // If block, use top texture. If item, just color cube for now to save rendering effort
   let mat = (id <= 12) ? getMatForFace(id, 2) : new THREE.MeshBasicMaterial({color: 0xa0784a}); 
   let mesh = new THREE.Mesh(dropGeo, mat); mesh.castShadow = true; mesh.position.set(x+0.5, y+0.5, z+0.5); scene.add(mesh);
   drops.push({ mesh, id, vx: (Math.random()-0.5)*3, vy: 3, vz: (Math.random()-0.5)*3, age: 0 });
@@ -753,6 +749,47 @@ function setupInput(){
 
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   cv.addEventListener('wheel',e=>{ if(!inUI) { selectedSlot=(selectedSlot+(e.deltaY>0?1:8))%9; setSlot(selectedSlot); }},{passive:true});
+
+  // Fixed: Restored Mobile touch controls
+  let touchTimeout;
+  cv.addEventListener('touchstart', e => {
+    if(inUI) return;
+    if(e.touches.length === 1) {
+      dragging = true; hasDragged = false;
+      lastMX = e.touches[0].clientX; lastMY = e.touches[0].clientY;
+      touchTimeout = setTimeout(() => { if(!hasDragged) { rightMouseHeld = true; dragging = false; } }, 400);
+    }
+  }, {passive: false});
+
+  cv.addEventListener('touchmove', e => {
+    if(inUI) return;
+    if(dragging && e.touches.length === 1) {
+      yaw-=(e.touches[0].clientX-lastMX)*0.0038; pitch-=(e.touches[0].clientY-lastMY)*0.0038;
+      pitch=Math.max(-1.55,Math.min(1.55,pitch));
+      lastMX=e.touches[0].clientX; lastMY=e.touches[0].clientY;
+      hasDragged = true;
+      clearTimeout(touchTimeout); 
+    }
+  }, {passive: false});
+
+  cv.addEventListener('touchend', e => {
+    if(inUI) return;
+    clearTimeout(touchTimeout);
+    if(rightMouseHeld) { rightMouseHeld = false; resetMining(); } 
+    else if (dragging && !hasDragged) {
+      const ld=lookDir(); const hit=raycast(world,px,py+PH*.88,pz,ld.x,ld.y,ld.z,6);
+      let slotData = inventory[selectedSlot];
+      if(hit && hit.block === CRAFT_TABLE) { toggleUI(true, true); return; }
+      if(hit && slotData.id !== AIR && slotData.id <= 12 && slotData.count > 0){
+        const h2=PW/2+.01, inPlayer=(hit.px<px+h2&&hit.px+1>px-h2&&hit.py<py+PH&&hit.py+1>py&&hit.pz<pz+h2&&hit.pz+1>pz-h2);
+        if(!inPlayer) {
+          world.setBlock(hit.px,hit.py,hit.pz,slotData.id);
+          slotData.count--; if(slotData.count <= 0) slotData.id = AIR; buildHotbar();
+        }
+      }
+    }
+    dragging = false;
+  });
 }
 
 function startGame(){
