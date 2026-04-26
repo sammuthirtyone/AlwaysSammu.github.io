@@ -1,755 +1,980 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><title>KARLRUN - Web Portal Edition</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;overflow:hidden;font-family:'Courier New',monospace; user-select:none;}
-canvas{display:block;position:fixed;top:0;left:0}
-#UI{position:fixed;inset:0;pointer-events:none;z-index:50}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>💍 A Special Question...</title>
+    <style>
+        :root {
+            --bg-pink: #ffe0ec;
+            --pink-light: #fff0f5;
+            --pink-mid: #f8c8d8;
+            --pink-dark: #e891b4;
+            --pink-accent: #ff6b9d;
+            --rose: #e8a0b4;
+            --velvet: #c4546a;
+            --velvet-dark: #9e3d52;
+            --velvet-light: #d4788c;
+            --gold: #f0d78c;
+            --gold-dark: #c49a3c;
+            --gold-light: #fdf0c8;
+            --diamond: #e8f4fd;
+            --diamond-sparkle: #ffffff;
+            --white: #fff;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.18);
+        }
 
-/* ── Mute Button ── */
-#mutebtn{position:absolute;top:20px;right:24px;font-size:24px;color:#fff;pointer-events:all;cursor:pointer;text-shadow:0 2px 5px rgba(0,0,0,0.8);transition:transform 0.2s}
-#mutebtn:hover{transform:scale(1.2)}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* ── Crosshair ── */
-#xh{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:22px;height:22px; transition: transform 0.05s}
-#xh.shoot{transform:translate(-50%,-50%) scale(1.6);}
-#xh::before{content:'';position:absolute;left:10px;top:0;width:2px;height:22px;background:rgba(255,255,255,.9);box-shadow:0 0 4px #fff}
-#xh::after{content:'';position:absolute;top:10px;left:0;width:22px;height:2px;background:rgba(255,255,255,.9);box-shadow:0 0 4px #fff}
+        body {
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg,
+                    #fce4ec 0%, #fdf0f5 15%, #ffe8f0 30%, #fdf2f7 45%,
+                    #ffe4ed 55%, #fde8f2 70%, #fef0f6 85%, #fce8f0 100%);
+            background-size: 400% 400%;
+            animation: bgShift 16s ease-in-out infinite;
+            font-family: 'Segoe UI', 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            overflow-x: hidden;
+            cursor: default;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            position: relative;
+            padding: 15px;
+            touch-action: manipulation;
+        }
 
-/* ── Damage vignette ── */
-#vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 20%,rgba(220,0,0,.85) 100%);opacity:0;transition:opacity .06s;pointer-events:none}
+        @keyframes bgShift {
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+            25% {
+                background-position: 100% 30%;
+            }
+            50% {
+                background-position: 60% 100%;
+            }
+            75% {
+                background-position: 30% 70%;
+            }
+        }
 
-/* ── Hit marker ── */
-#hm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:22px;height:22px;opacity:0;transition:opacity .05s}
-#hm::before{content:'';position:absolute;left:10px;top:0;width:2px;height:22px;background:#f00;box-shadow:0 0 6px #f00}
-#hm::after{content:'';position:absolute;top:10px;left:0;width:22px;height:2px;background:#f00;box-shadow:0 0 6px #f00}
+        /* Floating hearts & sparkles */
+        .bg-decorations {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .floating-element {
+            position: absolute;
+            bottom: -50px;
+            animation: floatUp linear infinite;
+            opacity: 0.5;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg) scale(0.4);
+                opacity: 0;
+            }
+            8% {
+                opacity: 0.55;
+            }
+            30% {
+                transform: translateY(-35vh) translateX(20px) rotate(14deg) scale(0.85);
+                opacity: 0.4;
+            }
+            60% {
+                transform: translateY(-65vh) translateX(-18px) rotate(-10deg) scale(0.65);
+                opacity: 0.2;
+            }
+            90% {
+                opacity: 0.03;
+            }
+            100% {
+                transform: translateY(-108vh) translateX(8px) rotate(5deg) scale(0.25);
+                opacity: 0;
+            }
+        }
 
-/* ── UI Elements (Glossy & Modernized) ── */
-#lvlbadge{position:absolute;top:16px;left:50%;transform:translateX(-50%);
-  background:linear-gradient(135deg, rgba(255,255,255,0.15), rgba(0,0,0,0.6));
-  backdrop-filter: blur(4px); border: 1.5px solid rgba(255,255,255,0.3); border-radius: 8px;
-  padding:8px 24px;font-size:12px;font-weight:bold;letter-spacing:6px;color:#fff;white-space:nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+        /* Main container */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+        }
 
-#hpzone{position:absolute;bottom:22px;left:22px}
-.hudlabel{font-size:10px;font-weight:bold;letter-spacing:4px;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:6px; text-shadow: 0 2px 2px #000;}
-#hptrack{width:220px;height:12px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.2);border-radius:6px;overflow:hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);}
-#hpfill{height:100%;width:100%;background:linear-gradient(180deg,#ff5555,#aa0000);border-radius:4px;transition:width .15s ease-out; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);}
+        /* Title */
+        .title-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #7a3b52;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.65);
+            padding: 10px 24px;
+            border-radius: 50px;
+            letter-spacing: 0.4px;
+            box-shadow: 0 4px 16px rgba(180, 110, 140, 0.18);
+            animation: titlePulse 3s ease-in-out infinite;
+            max-width: 90vw;
+            line-height: 1.4;
+        }
+        @keyframes titlePulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.04);
+            }
+        }
+        .title-text.opened {
+            animation: none;
+            background: rgba(255, 245, 248, 0.85);
+            color: #c4546a;
+        }
 
-#scorenum{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:46px;font-weight:900;color:#fff;letter-spacing:2px;text-shadow:0 4px 0 rgba(0,0,0,.6), 0 0 20px rgba(0,180,255,0.4);}
-#ammozone{position:absolute;bottom:22px;right:22px;text-align:right}
-#ammoval{font-size:26px;font-weight:900;color:#fff;letter-spacing:2px; text-shadow: 0 3px 0 rgba(0,0,0,.6);}
+        /* Box area */
+        .box-area {
+            position: relative;
+            width: 240px;
+            height: 200px;
+            perspective: 1000px;
+            cursor: pointer;
+            touch-action: manipulation;
+            margin: 0 auto;
+        }
+        @media (max-width: 380px) {
+            .box-area {
+                width: 200px;
+                height: 170px;
+            }
+            .title-text {
+                font-size: 1rem;
+                padding: 8px 18px;
+            }
+        }
+        @media (min-width: 500px) {
+            .box-area {
+                width: 270px;
+                height: 225px;
+            }
+        }
 
-/* ── Kill feed & Combo ── */
-#kf{position:absolute;top:70px;right:24px;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
-.kfe{color:#fa0;font-size:12px;font-weight:bold;letter-spacing:2px;animation:kfd 2s forwards; text-shadow: 0 2px 2px #000;}
-@keyframes kfd{0%{opacity:1; transform:translateY(0)}80%{opacity:1}100%{opacity:0; transform:translateY(-10px)}}
+        /* Box bottom */
+        .box-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 75%;
+            height: 55%;
+            background: linear-gradient(180deg,
+                    #d4788c 0%, #c4546a 15%, #b84a5e 35%, #a34052 100%);
+            border-radius: 10px 10px 16px 16px;
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.25),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            overflow: visible;
+        }
+        /* Velvet texture lines */
+        .box-bottom::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 8%;
+            right: 8%;
+            bottom: 15%;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.03) 2px,
+                    rgba(255, 255, 255, 0.03) 3px);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        /* Gold trim on box bottom */
+        .box-bottom::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #f0d78c 20%, #fdf0c8 50%, #f0d78c 80%, transparent);
+            border-radius: 2px;
+            pointer-events: none;
+        }
 
-#combo{position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);font-size:32px;font-weight:900;color:#ffdd00;letter-spacing:4px;text-shadow:0 0 20px #ffdd00, 0 4px 0 #000;opacity:0;pointer-events:none;transition:opacity .1s; transform: scale(1); animation: pulse 0.3s ease-out;}
-@keyframes pulse { 0% { transform: translate(-50%,-50%) scale(1.5); } 100% { transform: translate(-50%,-50%) scale(1); } }
+        /* Box lid – now properly covers the cushion and ring */
+        .box-lid {
+            position: absolute;
+            bottom: 32%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 78%;
+            height: 60%;
+            background: linear-gradient(180deg,
+                    #e8a0b4 0%, #d4788c 20%, #c4546a 60%, #b84a5e 100%);
+            border-radius: 16px 16px 8px 8px;
+            box-shadow:
+                0 8px 28px rgba(0, 0, 0, 0.3),
+                inset 0 3px 6px rgba(255, 255, 255, 0.12),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+            z-index: 5;
+            transform-origin: bottom center;
+            transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .box-lid.open {
+            transform: translateX(-50%) rotateX(-140deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        /* Lid gold trim */
+        .box-lid::before {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 6%;
+            right: 6%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #f0d78c 18%, #fdf0c8 50%, #f0d78c 82%, transparent);
+            border-radius: 2px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* Lid top decoration */
+        .box-lid::after {
+            content: '💝';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.2rem;
+            pointer-events: none;
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            transition: opacity 0.4s ease;
+        }
+        .box-lid.open::after {
+            opacity: 0;
+        }
+        @media (max-width: 380px) {
+            .box-lid::after {
+                font-size: 1.7rem;
+            }
+        }
 
-/* ── Screen Menus ── */
-.overlay{position:absolute;inset:0;background:rgba(5,10,15,.9);display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:all; backdrop-filter: blur(8px);}
-.overlay h1, .overlay h2{font-weight:900;color:#fff;text-shadow:0 0 60px rgba(0,180,255,.6);}
-#startscr h1{font-size:100px;letter-spacing:18px;margin-bottom:6px}
-#lvlbanner h2{font-size:60px;letter-spacing:12px;margin-bottom:14px}
-#pausescr h2{font-size:70px;letter-spacing:16px;margin-bottom:14px}
-#deadscr h2{font-size:75px;color:#ff3333;letter-spacing:12px;text-shadow:0 0 40px rgba(255,0,0,.5);margin-bottom:14px}
-.sub{font-size:14px;letter-spacing:6px;color:rgba(255,255,255,.6);margin-bottom:50px}
-.btn{background:linear-gradient(135deg, rgba(255,255,255,0.1), transparent);border:2px solid #fff;color:#fff;font-family:'Courier New',monospace;font-size:15px;font-weight:bold;letter-spacing:7px;padding:16px 52px;cursor:pointer;text-transform:uppercase;transition:all .2s; border-radius: 4px;}
-.btn:hover{background:#fff;color:#000;box-shadow:0 0 40px rgba(255,255,255,.4); transform: translateY(-2px);}
+        /* Inner cushion */
+        .box-cushion {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 65%;
+            height: 38%;
+            background: linear-gradient(180deg,
+                    #fef5f0 0%, #fdf0e8 30%, #f8e8dc 100%);
+            border-radius: 50%;
+            z-index: 3;
+            box-shadow:
+                inset 0 4px 12px rgba(0, 0, 0, 0.08),
+                0 2px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+        }
+        /* Ring on cushion */
+        .ring-container {
+            position: relative;
+            z-index: 4;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            transform: scale(0.3) translateY(15px);
+            pointer-events: none;
+        }
+        .ring-container.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        .ring-emoji {
+            font-size: 3.5rem;
+            display: block;
+            filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.3))
+                drop-shadow(0 0 25px rgba(255, 220, 150, 0.8))
+                drop-shadow(0 0 50px rgba(255, 200, 100, 0.5));
+            animation: ringShine 2s ease-in-out infinite;
+        }
+        @keyframes ringShine {
+            0%,
+            100% {
+                filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.3))
+                    drop-shadow(0 0 25px rgba(255, 220, 150, 0.8))
+                    drop-shadow(0 0 50px rgba(255, 200, 100, 0.5));
+            }
+            30% {
+                filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.3))
+                    drop-shadow(0 0 35px rgba(255, 240, 180, 1))
+                    drop-shadow(0 0 70px rgba(255, 220, 140, 0.8))
+                    drop-shadow(0 0 100px rgba(255, 200, 120, 0.4));
+            }
+            60% {
+                filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.3))
+                    drop-shadow(0 0 20px rgba(255, 200, 130, 0.7))
+                    drop-shadow(0 0 45px rgba(255, 190, 100, 0.4));
+            }
+        }
+        @media (max-width: 380px) {
+            .ring-emoji {
+                font-size: 2.8rem;
+            }
+        }
 
-.cg{display:grid;grid-template-columns:1fr 1fr;gap:12px 60px;margin-bottom:50px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);}
-.cg div{font-size:13px;color:rgba(255,255,255,.7)}
-.cg span{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:3px 10px;border-radius:4px;margin-right:8px;font-size:11px;font-weight:bold;color:#fff;}
-</style>
+        /* Sparkle dots around ring */
+        .ring-sparkle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 14px;
+            animation: miniSparkle 2s ease-in-out infinite;
+        }
+        @keyframes miniSparkle {
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(0.6);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.3);
+            }
+        }
+
+        /* Buttons area */
+        .buttons-area {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+        .buttons-area.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        @media (max-width: 380px) {
+            .buttons-area {
+                gap: 16px;
+            }
+        }
+
+        .btn-proposal {
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 16px 38px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 7px 22px rgba(0, 0, 0, 0.18);
+            touch-action: manipulation;
+            position: relative;
+            overflow: hidden;
+            min-width: 110px;
+        }
+        .btn-yes {
+            background: linear-gradient(135deg, #ff8fb3, #ff6b9d, #e85585);
+            color: #fff;
+            font-size: 1.5rem;
+            animation: yesGlow 2s ease-in-out infinite;
+        }
+        @keyframes yesGlow {
+            0%,
+            100% {
+                box-shadow: 0 7px 22px rgba(255, 107, 157, 0.35);
+            }
+            50% {
+                box-shadow: 0 7px 36px rgba(255, 107, 157, 0.65), 0 0 60px rgba(255, 150, 180, 0.35);
+            }
+        }
+        .btn-yes:hover {
+            transform: translateY(-5px) scale(1.07);
+            box-shadow: 0 12px 32px rgba(255, 107, 157, 0.55);
+        }
+        .btn-yes:active {
+            transform: scale(0.9);
+        }
+        .btn-no {
+            background: linear-gradient(135deg, #f5e6ea, #f0d8df, #e8c8d2);
+            color: #8b5a6b;
+            font-size: 1.2rem;
+        }
+        .btn-no:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 10px 26px rgba(150, 100, 120, 0.3);
+        }
+        .btn-no:active {
+            transform: scale(0.9);
+        }
+
+        /* Message area */
+        .message-area {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 16px 24px;
+            border-radius: 30px;
+            max-width: 90vw;
+            line-height: 1.5;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            transform: scale(0.7);
+            pointer-events: none;
+        }
+        .message-area.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .message-celebration {
+            background: rgba(255, 255, 255, 0.8);
+            color: #c4546a;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 30px rgba(200, 100, 140, 0.3);
+            animation: celebBounce 0.6s ease;
+            white-space: pre-line;
+        }
+        @keyframes celebBounce {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.15);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .message-sorry {
+            background: rgba(255, 248, 250, 0.85);
+            color: #7a4a5c;
+            font-size: 1rem;
+            box-shadow: 0 6px 22px rgba(160, 120, 140, 0.2);
+            animation: gentleAppear 0.8s ease;
+            white-space: pre-line;
+        }
+        @keyframes gentleAppear {
+            0% {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Reset button */
+        .reset-btn {
+            display: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #7a3b52;
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid #e8c8d2;
+            padding: 10px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 14px rgba(160, 110, 130, 0.18);
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            animation: btnAppear 0.5s ease;
+        }
+        .reset-btn.visible {
+            display: block;
+        }
+        @keyframes btnAppear {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(160, 110, 130, 0.3);
+        }
+        .reset-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Celebration overlay */
+        .celebration-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 200;
+        }
+        .confetti-piece-celeb {
+            position: absolute;
+            pointer-events: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            animation: confettiRain 1.8s ease-out forwards;
+        }
+        @keyframes confettiRain {
+            0% {
+                transform: translate(0, -80px) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--cx), 110vh) rotate(var(--cr)) scale(0.2);
+                opacity: 0;
+            }
+        }
+        .heart-burst {
+            position: absolute;
+            pointer-events: none;
+            font-size: 28px;
+            animation: heartExplode 1.2s ease-out forwards;
+        }
+        @keyframes heartExplode {
+            0% {
+                transform: translate(0, 0) scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(var(--hx), var(--hy)) scale(1.8) rotate(180deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(var(--hx2), var(--hy2)) scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Screen shake for celebration */
+        .screen-shake {
+            animation: screenShake 0.5s ease-out;
+        }
+        @keyframes screenShake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            10% {
+                transform: translateX(-8px) rotate(-1deg);
+            }
+            20% {
+                transform: translateX(7px) rotate(1deg);
+            }
+            30% {
+                transform: translateX(-5px);
+            }
+            40% {
+                transform: translateX(4px);
+            }
+            55% {
+                transform: translateX(-2px);
+            }
+            70% {
+                transform: translateX(1px);
+            }
+        }
+
+        /* Hint tap */
+        .tap-hint {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #c4546a;
+            font-weight: 600;
+            animation: hintBounce 1.4s ease-in-out infinite;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        @keyframes hintBounce {
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateX(-50%) translateY(-8px);
+                opacity: 1;
+            }
+        }
+        .tap-hint.hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-<div id="UI">
-  <div id="vig"></div><div id="hm"></div><div id="xh"></div>
-  <div id="lvlbadge">LEVEL 1</div>
-  <div id="mutebtn">🔊</div>
-  <div id="hpzone"><div class="hudlabel">HEALTH</div><div id="hptrack"><div id="hpfill"></div></div></div>
-  <div id="scorenum">0</div>
-  <div id="ammozone"><div class="hudlabel">AMMO</div><div id="ammoval">30/30</div></div>
-  <div id="kf"></div><div id="combo"></div>
 
-  <div id="lvlbanner" class="overlay">
-    <h2 id="lvlbannertitle">LEVEL COMPLETE</h2>
-    <div class="sub" id="lvlbannersub">+50 BONUS</div>
-    <button class="btn" id="nextlvlbtn">NEXT LEVEL →</button>
-  </div>
+    <!-- Background decorations -->
+    <div class="bg-decorations" id="bgDecorations"></div>
 
-  <div id="pausescr" class="overlay">
-    <h2>PAUSED</h2>
-    <div class="sub">CLICK ANYWHERE TO RESUME</div>
-  </div>
+    <!-- Celebration overlay -->
+    <div class="celebration-overlay" id="celebrationOverlay"></div>
 
-  <div id="startscr" class="overlay" style="display:flex;">
-    <h1>KARLRUN</h1>
-    <div class="sub">parkour · shoot · survive</div>
-    <div class="cg">
-      <div><span>W A S D</span> Move</div>
-      <div><span>MOUSE</span> Look</div>
-      <div><span>SPACE</span> Jump / Double</div>
-      <div><span>SHIFT</span> Slide / Dash (Air)</div>
-      <div><span>E</span> Shoot</div>
-      <div><span>R</span> Reload</div>
+    <!-- Main -->
+    <div class="main-container" id="mainContainer">
+        <div class="title-text" id="titleText">💕 Tap the box to open it...</div>
+
+        <div class="box-area" id="boxArea">
+            <div class="box-lid" id="boxLid"></div>
+            <div class="box-cushion" id="boxCushion">
+                <div class="ring-container" id="ringContainer">
+                    <span class="ring-emoji">💍</span>
+                    <span class="ring-sparkle" style="top:-12px;left:-18px;animation-delay:0s;">✨</span>
+                    <span class="ring-sparkle" style="top:-8px;right:-20px;animation-delay:0.7s;">⭐</span>
+                    <span class="ring-sparkle" style="bottom:-6px;left:-14px;animation-delay:1.4s;">💫</span>
+                    <span class="ring-sparkle" style="bottom:-2px;right:-16px;animation-delay:2.1s;">🌟</span>
+                </div>
+            </div>
+            <div class="box-bottom"></div>
+            <div class="tap-hint" id="tapHint">👆 tap me!</div>
+        </div>
+
+        <div class="buttons-area" id="buttonsArea">
+            <button class="btn-proposal btn-yes" id="btnYes">Yes 💖</button>
+            <button class="btn-proposal btn-no" id="btnNo">No 💔</button>
+        </div>
+
+        <div class="message-area" id="messageArea"></div>
+
+        <button class="reset-btn" id="resetBtn">🔄 Ask Again?</button>
     </div>
-    <button class="btn" id="playbtn">PLAY</button>
-  </div>
-
-  <div id="deadscr" class="overlay">
-    <h2>YOU DIED</h2>
-    <div class="sub" id="dscore">SCORE: 0</div>
-    <div class="sub" id="dlvl" style="margin-bottom:36px;font-size:12px;">LEVEL 1</div>
-    <button class="btn" id="retrybtn">RETRY</button>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-'use strict';
-
-// ════════════════════════════════════════════
-//  GLOBALS & SETUP
-// ════════════════════════════════════════════
-let isMuted = false;
-let isPaused = false;
-
-document.getElementById('mutebtn').addEventListener('click', (e) => {
-    isMuted = !isMuted;
-    e.target.textContent = isMuted ? '🔇' : '🔊';
-});
-
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
-renderer.outputEncoding = THREE.sRGBEncoding;
-document.body.appendChild(renderer.domElement);
-
-const scene  = new THREE.Scene();
-scene.background = new THREE.Color(0x0a1622);
-scene.fog = new THREE.FogExp2(0x0a1622, 0.015);
-
-const camera = new THREE.PerspectiveCamera(85, innerWidth/innerHeight, 0.05, 200);
-scene.add(camera);
-const clock = new THREE.Clock();
-
-// ════════════════════════════════════════════
-//  AUDIO API & BGM SYNTHESIZER
-// ════════════════════════════════════════════
-let AC;
-function ac(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();return AC;}
-
-function beep(f,d,t,v,fe){
-  if(isMuted) return;
-  try{const c=ac(),o=c.createOscillator(),g=c.createGain();
-  o.connect(g);g.connect(c.destination);o.type=t||'square';o.frequency.value=f;
-  if(fe)o.frequency.exponentialRampToValueAtTime(fe,c.currentTime+d);
-  g.gain.setValueAtTime(v||.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);
-  o.start();o.stop(c.currentTime+d);}catch(e){}
-}
-
-const SFX={
-  shoot:()=>{beep(160,.08,'sawtooth',.6);beep(80,.12,'square',.3);},
-  jump:()=>beep(220,.15,'sine',.25,450),
-  dash:()=>beep(100,.15,'triangle',.4,-50),
-  land:()=>beep(60,.1,'sine',.35),
-  hit:()=>{beep(90,.15,'square',.65);},
-  wall:()=>beep(240,.1,'sine',.25),
-  die:()=>[0,100,200].forEach(d=>setTimeout(()=>beep(65,.35,'sawtooth',.5),d)),
-  rl:()=>{beep(400,.05,'square',.2);setTimeout(()=>beep(600,.05,'square',.2),80);},
-  empty:()=>beep(190,.08,'square',.25),
-  lvlUp:()=>{beep(440,.15,'sine',.5);setTimeout(()=>beep(660,.2,'sine',.5),160);setTimeout(()=>beep(880,.3,'sine',.4),340);},
-};
-
-// --- Cyberpunk BGM Sequencer ---
-const bgmNotes = [55.00, 55.00, 55.00, 65.41, 73.42, 73.42, 65.41, 55.00]; // Bassline A1, C2, D2
-let nextNoteTime = 0, currentNote = 0, bgmTimerID;
-
-function scheduleNote(beatNumber, time) {
-    if(isMuted || isPaused || isDead || !alive) return;
-    const freq = bgmNotes[beatNumber];
-    const c = ac();
-    const osc = c.createOscillator();
-    const gain = c.createGain();
-    const filter = c.createBiquadFilter();
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(c.destination);
-
-    osc.type = 'sawtooth';
-    osc.frequency.value = freq;
-    
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(400, time);
-    filter.frequency.exponentialRampToValueAtTime(1500, time + 0.05);
-    filter.frequency.exponentialRampToValueAtTime(200, time + 0.15);
-
-    gain.gain.setValueAtTime(0.08, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
-
-    osc.start(time);
-    osc.stop(time + 0.15);
-}
-
-function nextBGMNote() {
-    const secondsPerBeat = 60.0 / 140; // 140 BPM
-    nextNoteTime += 0.25 * secondsPerBeat; // 16th notes
-    currentNote = (currentNote + 1) % bgmNotes.length;
-}
-
-function bgmScheduler() {
-    const c = ac();
-    while (nextNoteTime < c.currentTime + 0.1) {
-        scheduleNote(currentNote, nextNoteTime);
-        nextBGMNote();
-    }
-    bgmTimerID = window.setTimeout(bgmScheduler, 25);
-}
-
-function startBGM() {
-    const c = ac();
-    if(c.state === 'suspended') c.resume();
-    nextNoteTime = c.currentTime + 0.05;
-    bgmScheduler();
-}
-
-// ════════════════════════════════════════════
-//  TEXTURES & MATERIALS
-// ════════════════════════════════════════════
-function mkGrid(bg, line, sz, cells, thick){
-  const cv=document.createElement('canvas'); cv.width=cv.height=sz; const cx=cv.getContext('2d');
-  cx.fillStyle=bg; cx.fillRect(0,0,sz,sz); cx.fillStyle=line; const s=sz/cells;
-  for(let i=0;i<=cells;i++){ cx.fillRect(i*s - thick/2, 0, thick, sz); cx.fillRect(0, i*s - thick/2, sz, thick); }
-  const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  return t;
-}
-
-const TX_WALL  = mkGrid('#0d1822','#3a90b0', 512, 12, 3); 
-const TX_FLOOR = mkGrid('#3a4550','#ffffff', 512, 10, 4); 
-const TX_PLAT  = mkGrid('#2a3540','#80c0ff', 256, 6, 3);
-const TX_CRATE = (()=>{
-  const cv=document.createElement('canvas');cv.width=cv.height=128; const cx=cv.getContext('2d');
-  cx.fillStyle='#a86630';cx.fillRect(0,0,128,128); cx.strokeStyle='#7a4010';cx.lineWidth=4;
-  cx.strokeRect(4,4,120,120); cx.beginPath();cx.moveTo(4,4);cx.lineTo(124,124);cx.stroke();
-  cx.beginPath();cx.moveTo(124,4);cx.lineTo(4,124);cx.stroke();
-  const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; return t;
-})();
-
-function LMat(col,map,em,rough=0.7){ return new THREE.MeshStandardMaterial({color:col||0xffffff, map:map||null, emissive:em||0, roughness: rough, metalness: 0.1}); }
-
-const MAT={
-  wall  :LMat(0xffffff, TX_WALL, 0, 0.8),
-  floor :LMat(0xffffff, TX_FLOOR, 0, 0.5),
-  plat  :LMat(0xffffff, TX_PLAT, 0, 0.6),
-  red   :new THREE.MeshStandardMaterial({color:0xff0800, emissive:0x330000, roughness:0.4}),
-  redE  :new THREE.MeshBasicMaterial({color:0xff3300}),
-  gunW  :LMat(0xb0b8c0, null, 0, 0.3),
-  gunG  :LMat(0x505860, null, 0, 0.4),
-  gunD  :LMat(0x202530),
-  eBody :LMat(0xffcc00, null, 0, 0.5),
-  eLimb :LMat(0xddaa00, null, 0, 0.5),
-  eHead :LMat(0xffdd22, null, 0, 0.5),
-  eEye  :new THREE.MeshBasicMaterial({color:0xff0000}),
-  eGun  :LMat(0x222222),
-  pBul  :new THREE.MeshBasicMaterial({color:0x0088ff}),
-  eBul  :new THREE.MeshBasicMaterial({color:0xff4400}),
-  mFlsh :new THREE.MeshBasicMaterial({color:0xffffee, transparent:true, opacity:0.9}),
-  crate :LMat(0xffffff, TX_CRATE),
-};
-
-// ════════════════════════════════════════════
-//  LIGHTING & DUST PARTICLES
-// ════════════════════════════════════════════
-scene.add(new THREE.AmbientLight(0x88aabb, 0.7)); 
-const sun=new THREE.DirectionalLight(0xffffff, 1.4);
-sun.castShadow=true; sun.shadow.mapSize.width=sun.shadow.mapSize.height=2048;
-sun.shadow.camera.left=sun.shadow.camera.bottom=-80; sun.shadow.camera.right=sun.shadow.camera.top=80;
-sun.shadow.camera.far=250; sun.shadow.bias = -0.001;
-scene.add(sun);scene.add(sun.target);
-
-// Volumetric Ambient Dust
-const dustGeo = new THREE.BufferGeometry();
-const dustCount = 1500;
-const dustPos = new Float32Array(dustCount * 3);
-for(let i=0; i<dustCount*3; i++) dustPos[i] = (Math.random()-0.5)*120;
-dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-const dustMat = new THREE.PointsMaterial({color: 0x88ccff, size: 0.15, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending});
-const dustParticles = new THREE.Points(dustGeo, dustMat);
-scene.add(dustParticles);
-
-// ════════════════════════════════════════════
-//  PLAYER GUN & EFFECTS
-// ════════════════════════════════════════════
-const gunGrp=new THREE.Group();
-
-const gBody=new THREE.Mesh(new THREE.BoxGeometry(.12,.15,.55),MAT.gunW);
-gBody.position.set(0,0,-.15);gunGrp.add(gBody);
-const gSlide=new THREE.Mesh(new THREE.BoxGeometry(.14,.08,.60),MAT.gunG);
-gSlide.position.set(0,.11,-.16);gunGrp.add(gSlide);
-const gBrl=new THREE.Mesh(new THREE.BoxGeometry(.08,.06,.1),MAT.gunD);
-gBrl.position.set(0,.11,-.48);gunGrp.add(gBrl);
-const gGrip=new THREE.Mesh(new THREE.BoxGeometry(.11,.28,.15),MAT.gunG);
-gGrip.position.set(0,-.18,.05); gGrip.rotation.x = 0.2; gunGrp.add(gGrip);
-
-const mFlash=new THREE.Mesh(new THREE.SphereGeometry(.18,8,8),MAT.mFlsh.clone());
-mFlash.position.set(0,.11,-.65); mFlash.scale.set(1,1,2); mFlash.visible=false;
-gunGrp.add(mFlash);
-
-const muzzleLight = new THREE.PointLight(0x00aaff, 0, 15);
-muzzleLight.position.set(0, 0.11, -0.8);
-gunGrp.add(muzzleLight);
-
-camera.add(gunGrp);
-const GUN_REST=new THREE.Vector3(.35,-.30,-.60);
-gunGrp.position.copy(GUN_REST);
-gunGrp.rotation.y=-.08;
-
-let gBobT=0,gKick=0,gKickZ=0;
-
-// ════════════════════════════════════════════
-//  LEVEL DEFINITIONS & STATE
-// ════════════════════════════════════════════
-const LEVEL_DEFS=[
-  {name:'LEVEL 1', eHP:2, eSpd:1.0, eBSpd:38, eRate:2.5, eCount:1, eWave:4.5, killsNeeded:6,  theme:'platforms'},
-  {name:'LEVEL 2', eHP:2, eSpd:1.2, eBSpd:45, eRate:2.0, eCount:2, eWave:4.0, killsNeeded:10, theme:'wallrun'},
-  {name:'LEVEL 3', eHP:3, eSpd:1.4, eBSpd:52, eRate:1.7, eCount:2, eWave:3.5, killsNeeded:14, theme:'gaps'},
-  {name:'LEVEL 4', eHP:3, eSpd:1.6, eBSpd:60, eRate:1.4, eCount:3, eWave:3.0, killsNeeded:18, theme:'mixed'},
-  {name:'LEVEL 5', eHP:4, eSpd:1.8, eBSpd:65, eRate:1.1, eCount:4, eWave:2.5, killsNeeded:22, theme:'mixed'},
-  {name:'LEVEL 6', eHP:5, eSpd:2.2, eBSpd:70, eRate:0.9, eCount:5, eWave:2.0, killsNeeded:30, theme:'mixed'},
-];
-
-const surfaces=[], enemies=[], bullets=[], sparks=[], worldMeshes=[];
-let builtUpToZ=-9999;
-const CW=13, CH=8, CL=55;
-
-let eTimer=0;
-const pPos=new THREE.Vector3(0,2.5,0), pVel=new THREE.Vector3();
-let yaw=Math.PI, pitch=0; 
-const EYE=1.65, PRAD=0.32, GRAV=-28, SPFWD=10;
-let onGround=false, wallRun=false, wallSide=0, wallT=0;
-let jumps=0, sliding=false, slideT=0, dashCd=0, pShake=0, pHP=100;
-let ammo=30, maxAmmo=30, reloading=false, reloadT=0, shootCd=0;
-let score=0, combo=0, comboT=0, alive=false, isDead=false, levelComplete=false;
-let lvlIdx=0, levelKills=0;
-let cfg=LEVEL_DEFS[0];
-
-const K={}; let dragging=false;
-
-// ════════════════════════════════════════════
-//  WORLD GENERATION
-// ════════════════════════════════════════════
-function mkBox(x,y,z,w,h,d,mat,noShadow){
-  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-  m.position.set(x,y,z);
-  if(!noShadow){m.castShadow=true;m.receiveShadow=true;}
-  scene.add(m);worldMeshes.push(m); return m;
-}
-function addSurf(x,y,z,w,h,d,mat,isWall,nx){
-  const mesh=mkBox(x,y,z,w,h,d,mat);
-  const s={mesh,minX:x-w/2,maxX:x+w/2,minY:y-h/2,maxY:y+h/2,minZ:z-d/2,maxZ:z+d/2,isWall:!!isWall,nx:nx||0};
-  surfaces.push(s); return s;
-}
-
-function buildChunk(startZ, theme){
-  const mz = startZ + CL/2, endZ = startZ + CL;
-  addSurf(-CW/2, CH/2, mz, 0.5, CH*2.5, CL, MAT.wall, true, 1);
-  addSurf( CW/2, CH/2, mz, 0.5, CH*2.5, CL, MAT.wall, true, -1);
-  mkBox(-CW/2 + 1.2, -0.4, mz, 2.4, 0.5, CL, MAT.red, true);
-  mkBox( CW/2 - 1.2, -0.4, mz, 2.4, 0.5, CL, MAT.red, true);
-  mkBox(0, CH*1.5, mz, CW, 0.5, CL, MAT.wall, true);
-
-  function plat(x,y,z,w,d){
-    addSurf(x,y,z,w,0.5,d,MAT.floor,false,0);
-    if(Math.random()>0.6) mkBox(x+(Math.random()-.5)*w*.5, y+0.85, z, 0.8,0.8,0.8, MAT.crate, false);
-  }
-  function wallR(x,y,z,d){
-    addSurf(x,y,z,0.4,CH,d,MAT.wall,true,x<0?1:-1);
-    mkBox(x, 0.2, z, 0.45, 0.35, d, MAT.redE, true);
-  }
-
-  if(theme==='platforms' || theme==='corridor'){
-    plat(0, -0.7, sz+10, 6, 12); plat(-2.5, 0.5, sz+26, 4, 8);
-    plat( 2.5, 1.5, sz+40, 4, 8); plat( 0, 0.0, sz+50, 6, 10);
-  } else if(theme==='wallrun'){
-    plat(0, -0.7, sz+8, 6, 8); wallR(-3.8, CH/2, sz+24, 20); 
-    wallR( 3.8, CH/2, sz+40, 20); plat(0, -0.7, sz+52, 6, 10);
-  } else if(theme==='gaps'){
-    plat(0, -0.7, sz+5, 5, 5); plat(-2.5, 0.5, sz+16, 3, 3);
-    plat( 2.5, 1.2, sz+27, 3, 3); plat(-1.5, 2.0, sz+38, 3, 3); plat(0, 0.0, sz+50, 6, 8);
-  } else if(theme==='mixed'){
-    plat(-2, 0.0, sz+10, 4, 6); wallR( 3.8, CH/2, sz+22, 16);
-    plat( 0, 1.5, sz+36, 3, 3); wallR(-3.8, CH/2, sz+48, 14); plat( 0, 0.0, sz+55, 6, 8);
-  }
-
-  if (startZ === 0) addSurf(0, -0.7, startZ + 5, CW-4, 1.4, 15, MAT.floor);
-  builtUpToZ = endZ;
-}
-
-function getSafeSpawnPoint(zMin, zMax) {
-  const floors = surfaces.filter(s => !s.isWall && s.minZ >= zMin && s.maxZ <= zMax);
-  if (floors.length === 0) return new THREE.Vector3(0, 2, (zMin+zMax)/2);
-  const f = floors[Math.floor(Math.random()*floors.length)];
-  return new THREE.Vector3( (f.minX+f.maxX)/2, f.maxY, (f.minZ+f.maxZ)/2 );
-}
-
-// ════════════════════════════════════════════
-//  ENEMIES
-// ════════════════════════════════════════════
-function buildEnemyMesh(){
-  const g=new THREE.Group();
-  function pt(w,h,d,mat,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat.clone()); m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;}
-  
-  const torso=pt(.45,.6,.28,MAT.eBody, 0,.93,0), head=pt(.4,.4,.4,MAT.eHead, 0,1.5,0);
-  pt(.1,.08,.05,MAT.eEye,-.1,1.52,.21); pt(.1,.08,.05,MAT.eEye,.1,1.52,.21);
-  
-  const aLG=new THREE.Group();aLG.position.set(-.35,.85,0);g.add(aLG);
-  const aL=new THREE.Mesh(new THREE.BoxGeometry(.16,.55,.16),MAT.eLimb.clone()); aL.position.y=-.2;aLG.add(aL);
-  
-  const aRG=new THREE.Group();aRG.position.set(.35,.85,0);g.add(aRG);
-  const aR=new THREE.Mesh(new THREE.BoxGeometry(.16,.55,.16),MAT.eLimb.clone()); aR.position.y=-.2;aRG.add(aR);
-  
-  const gunMain=new THREE.Mesh(new THREE.BoxGeometry(.12,.15,.5),MAT.eGun.clone()); gunMain.position.set(0,-.25,-.25);aRG.add(gunMain);
-  const gunBarrel=new THREE.Mesh(new THREE.BoxGeometry(.06,.06,.4),MAT.eGun.clone()); gunBarrel.position.set(0,-.2,-.6);aRG.add(gunBarrel);
-  const eMFlash=new THREE.Mesh(new THREE.SphereGeometry(.12,6,6), MAT.mFlsh.clone()); eMFlash.position.set(0,-.2,-.85);eMFlash.scale.set(1,1,1.5);eMFlash.visible=false;aRG.add(eMFlash);
-  
-  const lLG=new THREE.Group();lLG.position.set(-.15,.5,0);g.add(lLG);
-  const lL=new THREE.Mesh(new THREE.BoxGeometry(.18,.58,.18),MAT.eLimb.clone()); lL.position.y=-.25;lLG.add(lL);
-  const lRG=new THREE.Group();lRG.position.set(.15,.5,0);g.add(lRG);
-  const lR=new THREE.Mesh(new THREE.BoxGeometry(.18,.58,.18),MAT.eLimb.clone()); lR.position.y=-.25;lRG.add(lR);
-
-  g.userData={torso,head,aLG,aRG,lLG,lRG,eMFlash}; return g;
-}
-
-function spawnEnemy(zMin, zMax){
-  const spawnPos = getSafeSpawnPoint(zMin, zMax);
-  const grp=buildEnemyMesh(); grp.position.copy(spawnPos); scene.add(grp);worldMeshes.push(grp);
-  enemies.push({grp, pos:grp.position, vel:new THREE.Vector3(), hp:cfg.eHP, maxHp:cfg.eHP, alive:true, shootT:.5+Math.random()*cfg.eRate, animT:Math.random()*6.28, hitFlash:0, deathT:0, sd:Math.random()>.5?1:-1, strafT:1+Math.random(), state:'patrol', alertTimer:0});
-}
-
-// ════════════════════════════════════════════
-//  PORTAL AUTO-PAUSE & INPUTS
-// ════════════════════════════════════════════
-document.addEventListener('pointerlockchange', () => {
-    if(document.pointerLockElement !== renderer.domElement) {
-        if(alive && !isDead && !levelComplete) {
-            isPaused = true;
-            document.getElementById('pausescr').style.display = 'flex';
-        }
-    } else {
-        isPaused = false;
-        document.getElementById('pausescr').style.display = 'none';
-        if(alive && !isDead) startBGM(); // Resume audio context if it was suspended by browser
-    }
-});
-
-document.getElementById('pausescr').addEventListener('click', () => {
-    if(alive && !isDead && !levelComplete) renderer.domElement.requestPointerLock();
-});
-
-renderer.domElement.addEventListener('mousedown',()=>{if(!alive||isDead)return;dragging=true;renderer.domElement.requestPointerLock();});
-renderer.domElement.addEventListener('mouseup',()=>dragging=false);
-renderer.domElement.addEventListener('mouseleave',()=>dragging=false);
-
-renderer.domElement.addEventListener('mousemove',e=>{
-  if(!alive||isDead||isPaused||!dragging||document.pointerLockElement===renderer.domElement)return;
-  yaw-=e.movementX*.003;pitch-=e.movementY*.003;pitch=Math.max(-.5,Math.min(.5,pitch));
-});
-document.addEventListener('mousemove',e=>{
-  if(!alive||isDead||isPaused||document.pointerLockElement!==renderer.domElement)return;
-  yaw-=e.movementX*.0022;pitch-=e.movementY*.0022;pitch=Math.max(-.5,Math.min(.5,pitch));
-});
-document.addEventListener('keydown',e=>{
-  K[e.code]=true; if(!alive||isDead||isPaused)return;
-  if(e.code==='Space'){e.preventDefault();doJump();}
-  if(e.code==='KeyR'&&!reloading&&ammo<maxAmmo)doReload();
-  if(e.code==='KeyE'&&shootCd<=0)doShoot();
-});
-document.addEventListener('keyup',e=>K[e.code]=false);
-
-function doJump(){
-  if(onGround){pVel.y=12.5;onGround=false;jumps=1;SFX.jump();}
-  else if(wallRun){pVel.y=11.5;pVel.x=wallSide*8.5;wallRun=false;jumps=1;SFX.jump();}
-  else if(jumps<2){pVel.y=11;jumps++;SFX.jump();}
-}
-
-function doDash(){
-  if(dashCd>0 || onGround) return;
-  const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
-  pVel.add(dir.multiplyScalar(22)); pVel.y = Math.max(pVel.y, 4); 
-  dashCd = 1.0; sliding = false; SFX.dash();
-  camera.fov = 95; camera.updateProjectionMatrix(); 
-}
-
-function doReload(){
-  reloading=true;reloadT=1.4;
-  document.getElementById('ammoval').style.color = '#888';
-  setTimeout(()=>{ammo=maxAmmo;updateAmmoUI();SFX.rl();document.getElementById('ammoval').style.color='#fff';reloading=false;}, 1400);
-}
-
-function fireLaser(from, dir, speed, isPlayer) {
-  const bm = new THREE.Mesh(new THREE.BoxGeometry(isPlayer?.06:.1, isPlayer?.06:.1, 2.0), isPlayer ? MAT.pBul : MAT.eBul);
-  bm.position.copy(from); bm.lookAt(from.clone().add(dir)); scene.add(bm);
-  bullets.push({mesh:bm, dir:dir.clone(), speed, life:1.5, player:isPlayer, pos:from.clone()});
-}
-
-function doShoot(){
-  if(reloading||shootCd>0)return;
-  if(ammo<=0){SFX.empty();doReload();return;}
-  ammo--;updateAmmoUI();SFX.shoot();
-  pShake=.05;gKick=.28;gKickZ=.18;shootCd=.12;
-  camera.fov = Math.min(100, camera.fov + 2); camera.updateProjectionMatrix(); // FOV punch
-  
-  const xh = document.getElementById('xh'); xh.classList.add('shoot');
-  setTimeout(()=>xh.classList.remove('shoot'), 50);
-
-  mFlash.visible=true; muzzleLight.intensity = 15;
-  setTimeout(()=>{mFlash.visible=false; muzzleLight.intensity = 0;}, 50);
-
-  const dir=new THREE.Vector3();camera.getWorldDirection(dir);
-  const org=camera.position.clone().addScaledVector(dir,.6); org.y -= 0.1; 
-  fireLaser(org, dir, 220, true);
-}
-
-function fireEnemyBullet(e, from, target){
-  const dir=target.clone().sub(from).normalize();
-  const inac=Math.max(.02,.20-lvlIdx*.03);
-  dir.x+=(Math.random()-.5)*inac;dir.y+=(Math.random()-.5)*inac*.8;dir.normalize();
-  if(e.grp.userData.eMFlash){e.grp.userData.eMFlash.visible=true; setTimeout(()=>e.grp.userData.eMFlash.visible=false, 55);}
-  fireLaser(from, dir, cfg.eBSpd, false);
-}
-
-// ════════════════════════════════════════════
-//  SYSTEMS
-// ════════════════════════════════════════════
-function mkSparks(p,col,n){
-  for(let i=0;i<(n||10);i++){
-    const m=new THREE.Mesh(new THREE.BoxGeometry(.1,.1,.1),new THREE.MeshBasicMaterial({color:col||0xffee44})); m.position.copy(p);scene.add(m);
-    sparks.push({mesh:m,vel:new THREE.Vector3((Math.random()-.5)*18,Math.random()*12+3,(Math.random()-.5)*18),life:.4+Math.random()*.5});
-  }
-}
-
-function resolvePlayer(){
-  let grounded=false,wallHit=null; const r=PRAD,topY=pPos.y+EYE+.15;
-  for(const s of surfaces){
-    if(pPos.z>s.maxZ+2||pPos.z<s.minZ-2 || pPos.x>s.maxX+r+.5||pPos.x<s.minX-r-.5)continue;
-    const inX=pPos.x>s.minX-r&&pPos.x<s.maxX+r, inZ=pPos.z>s.minZ-r&&pPos.z<s.maxZ+r, inY=pPos.y<s.maxY+EYE+.3&&topY>s.minY-.3;
-    if(!inX||!inZ||!inY)continue;
-    if(!s.isWall){
-      if(pVel.y<=.5&&pPos.y<=s.maxY+.55&&pPos.y>=s.maxY-.8){pPos.y=s.maxY;pVel.y=0;grounded=true;}
-      if(pVel.y>0&&topY>=s.minY&&topY<=s.minY+.6){pVel.y=0;pPos.y=s.minY-EYE-.18;}
-    }else{
-      wallHit=s; const dL=pPos.x-(s.minX-r),dR=(s.maxX+r)-pPos.x;
-      if(dL<dR){if(dL<.45){pPos.x=s.minX-r;if(pVel.x<0)pVel.x=0;}}else{if(dR<.45){pPos.x=s.maxX+r;if(pVel.x>0)pVel.x=0;}}
-    }
-  }
-  if(pPos.y < -12){ takeDmg(100); } 
-  return{grounded,wallHit};
-}
-
-function takeDmg(d){
-  if(isDead)return; pHP=Math.max(0,pHP-d);
-  document.getElementById('hpfill').style.width=pHP+'%';
-  const v=document.getElementById('vig');v.style.opacity=1;setTimeout(()=>v.style.opacity=0,160);
-  pShake=.15;SFX.hit(); if(pHP<=0)doDie();
-}
-
-function showHitMarker(){const h=document.getElementById('hm');h.style.opacity=1;setTimeout(()=>h.style.opacity=0,120);}
-function doDie(){isDead=true;document.exitPointerLock();document.getElementById('dscore').textContent='SCORE: '+score;document.getElementById('dlvl').textContent=cfg.name;document.getElementById('deadscr').style.display='flex';SFX.die();}
-
-function killEnemy(e){
-  e.alive=false;e.deathT=.7; combo++;comboT=2.5;
-  const pts=10*(lvlIdx+1)*Math.max(combo,1); score+=pts;levelKills++;
-  document.getElementById('scorenum').textContent=score;
-  if(combo>1){
-    const c=document.getElementById('combo');c.textContent='×'+combo+' COMBO';c.style.opacity=1;
-    c.style.animation = 'none'; void c.offsetWidth; c.style.animation = 'pulse 0.3s ease-out';
-  }
-  const d=document.createElement('div');d.className='kfe';d.textContent='+'+pts; document.getElementById('kf').appendChild(d);setTimeout(()=>d.remove(),2100);
-  mkSparks(e.pos.clone().add(new THREE.Vector3(0,1,0)),0xffdd22, 25); SFX.die();showHitMarker();
-  if(levelKills>=cfg.killsNeeded&&!levelComplete)triggerLevelComplete();
-}
-
-function updateAmmoUI(){document.getElementById('ammoval').textContent=reloading?'--/30':ammo+'/'+maxAmmo;}
-
-function triggerLevelComplete(){
-  levelComplete=true; SFX.lvlUp(); const bonus=200*(lvlIdx+1); score+=bonus; document.getElementById('scorenum').textContent=score;
-  const ban=document.getElementById('lvlbanner'); document.getElementById('lvlbannertitle').textContent=cfg.name+' COMPLETE!'; document.getElementById('lvlbannersub').textContent='BONUS +'+bonus+' POINTS';
-  ban.style.display='flex'; document.exitPointerLock();
-}
-
-document.getElementById('nextlvlbtn').addEventListener('click',()=>{
-  document.getElementById('lvlbanner').style.display='none'; lvlIdx=Math.min(lvlIdx+1,LEVEL_DEFS.length-1); cfg=LEVEL_DEFS[lvlIdx];
-  spawnNextLevel(); renderer.domElement.requestPointerLock();
-});
-
-function clearWorld(){
-  worldMeshes.forEach(m=>scene.remove(m));worldMeshes.length=0;surfaces.length=0;
-  enemies.forEach(e=>scene.remove(e.grp));enemies.length=0;
-  bullets.forEach(b=>scene.remove(b.mesh));bullets.length=0;
-  sparks.forEach(s=>scene.remove(s.mesh));sparks.length=0; builtUpToZ=0;
-}
-
-function spawnNextLevel(){
-  clearWorld(); levelKills=0;levelComplete=false;eTimer=0; pHP=Math.min(pHP+40,100); document.getElementById('hpfill').style.width=pHP+'%'; document.getElementById('lvlbadge').textContent=cfg.name;
-  pPos.set(0,2.5,0);pVel.set(0,0,0); yaw=Math.PI; pitch=0;
-  for(let i=0;i<6;i++) buildChunk(i*CL, cfg.theme);
-}
-
-function initGame(){
-  clearWorld(); pPos.set(0,2.5,0);pVel.set(0,0,0); yaw=Math.PI; pitch=0; onGround=false;wallRun=false;jumps=0; sliding=false;pShake=0;pHP=100;
-  ammo=30;reloading=false;shootCd=0; score=0;combo=0;comboT=0;eTimer=0;dashCd=0;
-  lvlIdx=0;cfg=LEVEL_DEFS[0];levelKills=0;levelComplete=false;isDead=false;
-  document.getElementById('hpfill').style.width='100%'; document.getElementById('scorenum').textContent='0'; document.getElementById('lvlbadge').textContent='LEVEL 1'; document.getElementById('combo').style.opacity=0;
-  updateAmmoUI(); for(let i=0;i<6;i++) buildChunk(i*CL, cfg.theme);
-  startBGM(); // Start music
-}
-
-document.getElementById('playbtn').addEventListener('click',()=>{document.getElementById('startscr').style.display='none';initGame();alive=true;renderer.domElement.requestPointerLock();});
-document.getElementById('retrybtn').addEventListener('click',()=>{document.getElementById('deadscr').style.display='none';initGame();alive=true;isDead=false;renderer.domElement.requestPointerLock();});
-
-// ════════════════════════════════════════════
-//  MAIN UPDATE LOOP
-// ════════════════════════════════════════════
-const FWD=new THREE.Vector3(),RGT=new THREE.Vector3();
-
-function update(dt){
-  if(!alive||isDead||isPaused||levelComplete)return;
-
-  while(builtUpToZ < pPos.z + 200){ buildChunk(builtUpToZ, cfg.theme); }
-  for(let i=surfaces.length-1;i>=0;i--){ if(surfaces[i].maxZ < pPos.z - 80){ scene.remove(surfaces[i].mesh); const wi=worldMeshes.indexOf(surfaces[i].mesh);if(wi!==-1)worldMeshes.splice(wi,1); surfaces.splice(i,1); } }
-
-  // Wrap Dust Particles around Player
-  const dPos = dustParticles.geometry.attributes.position.array;
-  for(let i=0; i<dustCount*3; i+=3){
-      if(dPos[i+2] > pPos.z + 60) dPos[i+2] -= 120;
-      if(dPos[i+2] < pPos.z - 60) dPos[i+2] += 120;
-      if(dPos[i] > pPos.x + 60) dPos[i] -= 120;
-      if(dPos[i] < pPos.x - 60) dPos[i] += 120;
-  }
-  dustParticles.geometry.attributes.position.needsUpdate = true;
-
-  sun.position.set(pPos.x+15,30,pPos.z-25); sun.target.position.copy(pPos);sun.target.updateMatrixWorld();
-
-  FWD.set(-Math.sin(yaw),0,-Math.cos(yaw)); RGT.set( Math.cos(yaw),0,-Math.sin(yaw));
-  let mx=0,mz=0;
-  if(K['KeyW']||K['ArrowUp']){mx+=FWD.x;mz+=FWD.z;} if(K['KeyS']||K['ArrowDown']){mx-=FWD.x;mz-=FWD.z;}
-  if(K['KeyA']||K['ArrowLeft']){mx-=RGT.x;mz-=RGT.z;} if(K['KeyD']||K['ArrowRight']){mx+=RGT.x;mz+=RGT.z;}
-  const ml=Math.hypot(mx,mz);if(ml>0){mx/=ml;mz/=ml;}
-
-  if(dashCd > 0) dashCd -= dt;
-  if((K['ShiftLeft']||K['ShiftRight'])){
-    if(onGround && !sliding && Math.hypot(pVel.x,pVel.z)>3){ sliding=true; slideT=.6; }
-    else if(!onGround && dashCd<=0){ doDash(); }
-  }
-  
-  if(camera.fov > 85) { camera.fov = Math.max(85, camera.fov - dt*40); camera.updateProjectionMatrix(); }
-
-  if(sliding){slideT-=dt;pVel.x*=.96;pVel.z*=.96;if(slideT<=0)sliding=false;}
-  else{const sp=wallRun?SPFWD*1.3:SPFWD;pVel.x+=(mx*sp-pVel.x)*Math.min(dt*12,1);pVel.z+=(mz*sp-pVel.z)*Math.min(dt*12,1);}
-
-  if(wallRun){wallT-=dt;pVel.y=Math.max(pVel.y-4*dt,-1.5);if(wallT<=0||onGround)wallRun=false;} else pVel.y+=GRAV*dt;
-
-  const prevG=onGround; pPos.addScaledVector(pVel,dt); const{grounded,wallHit}=resolvePlayer(); onGround=grounded;
-  if(onGround&&!prevG){jumps=0;wallRun=false;if(pVel.y<-7)SFX.land();}
-  if(!onGround&&!wallRun&&wallHit&&Math.hypot(pVel.x,pVel.z)>3.5){wallRun=true;wallT=1.5;wallSide=wallHit.nx>0?1:-1;pVel.y=Math.max(pVel.y,3.0);jumps=1;SFX.wall();}
-
-  let shk=0;if(pShake>0){shk=pShake;pShake*=.7;if(pShake<.001)pShake=0;}
-  
-  const mv=Math.min(Math.hypot(pVel.x,pVel.z)/SPFWD,1);
-  const headBob = onGround && !sliding ? Math.sin(clock.elapsedTime * 12) * 0.08 * mv : 0;
-  
-  camera.position.set(pPos.x+(Math.random()-.5)*shk,pPos.y+EYE+headBob+(sliding?-.6:0)+(Math.random()-.5)*shk,pPos.z);
-  camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch+(wallRun?-.05:0);camera.rotation.z=wallRun?wallSide*.15:(mx*0.035);
-
-  gBobT+=dt*7; const bob=onGround?Math.sin(gBobT)*.015*mv:0;
-  if(gKick>0)gKick=Math.max(0,gKick-dt*6); if(gKickZ>0)gKickZ=Math.max(0,gKickZ-dt*5);
-  gunGrp.position.set(GUN_REST.x, GUN_REST.y+bob, GUN_REST.z + gKickZ*.4);
-  gunGrp.rotation.x=.08 + gKick*.35;gunGrp.rotation.z=wallRun?-.12:0;
-
-  if(shootCd>0)shootCd-=dt;
-  if(K['KeyE']&&shootCd<=0&&!reloading)doShoot();
-
-  for(let i=bullets.length-1;i>=0;i--){
-    const b=bullets[i]; b.pos.addScaledVector(b.dir,b.speed*dt);b.mesh.position.copy(b.pos);b.life-=dt;
-    if(b.life<=0){scene.remove(b.mesh);bullets.splice(i,1);continue;}
-    if(b.player){
-      let hit=false;
-      for(const e of enemies){
-        if(!e.alive)continue; const ep=e.pos.clone();ep.y+=1;
-        if(b.pos.distanceTo(ep)<1.2){
-          e.hp--;e.hitFlash=.15;mkSparks(b.pos.clone(),0xffeedd,12);
-          scene.remove(b.mesh);bullets.splice(i,1);hit=true;
-          if(e.hp<=0)killEnemy(e);else showHitMarker(); break;
-        }
-      }
-    }else{
-      const pp=pPos.clone();pp.y+=.9;
-      if(b.pos.distanceTo(pp)<1.0){takeDmg(10+lvlIdx*2);mkSparks(b.pos.clone(),0xff3300,10);scene.remove(b.mesh);bullets.splice(i,1);}
-    }
-  }
-
-  if(!levelComplete){ eTimer-=dt; if(eTimer<=0){ for(let i=0;i<cfg.eCount;i++) spawnEnemy(pPos.z+15, pPos.z+45); eTimer=cfg.eWave; } }
-
-  for(let i=enemies.length-1;i>=0;i--){
-    const e=enemies[i];
-    if(!e.alive){ e.deathT-=dt;e.grp.position.y-=5*dt;e.grp.rotation.z+=5*dt; if(e.deathT<=0){scene.remove(e.grp);enemies.splice(i,1);} continue; }
-    if(e.pos.z < pPos.z-45){scene.remove(e.grp);enemies.splice(i,1);continue;}
-
-    const toP=pPos.clone().sub(e.pos), dist=toP.length(); e.animT+=dt*4.5; 
-    e.grp.rotation.y += (Math.atan2(toP.x, toP.z) - e.grp.rotation.y) * dt * 6;
-
-    if(dist<35){e.state='alert';e.alertTimer=2;} else if(e.alertTimer>0){e.alertTimer-=dt;} else e.state='patrol';
-
-    e.strafT-=dt;if(e.strafT<=0){e.sd*=-1;e.strafT=1+Math.random()*2;}
-    if(dist>7&&e.state==='alert'){e.vel.x+=(toP.x/dist)*3.5*dt*cfg.eSpd;e.vel.z+=(toP.z/dist)*3.5*dt*cfg.eSpd;}
-    else{e.vel.x+=Math.cos(e.animT*.5)*e.sd*cfg.eSpd*dt;}
-    
-    e.vel.x*=.82;e.vel.z*=.82;e.vel.y+=GRAV*dt; e.pos.addScaledVector(e.vel,dt);
-    
-    for(const s of surfaces) {
-      if(!s.isWall && e.pos.x>s.minX && e.pos.x<s.maxX && e.pos.z>s.minZ && e.pos.z<s.maxZ) {
-        if(e.vel.y<=0 && e.pos.y<=s.maxY+.5 && e.pos.y>=s.maxY-1) { e.pos.y = s.maxY; e.vel.y = 0; break; }
-      }
-    }
-    if(e.pos.y < -5) { killEnemy(e); continue; }
-
-    e.shootT-=dt;
-    if(e.shootT<=0&&dist<30&&e.state==='alert'){
-      const from=e.pos.clone();from.y+=1.2; fireEnemyBullet(e, from, pPos.clone().add(new THREE.Vector3(0,1.0,0))); e.shootT=cfg.eRate*(.5+Math.random()*.5);
-    }
-
-    const ud=e.grp.userData, isMoving = Math.hypot(e.vel.x, e.vel.z) > 0.5, animMult = isMoving ? 1 : 0;
-    if(ud.lLG){ud.lLG.rotation.x=Math.sin(e.animT)*.7 * animMult;ud.lRG.rotation.x=-Math.sin(e.animT)*.7 * animMult;}
-    if(ud.aLG) ud.aLG.rotation.x = -Math.sin(e.animT)*.5 * animMult;
-    
-    if(e.state==='alert'){ if(ud.aRG) { ud.aRG.rotation.x = -1.2 + Math.atan2(toP.y, dist); } } 
-    else { if(ud.aRG) ud.aRG.rotation.x = Math.sin(e.animT)*.5 * animMult; }
-    
-    if(ud.torso)ud.torso.position.y=.93+Math.sin(e.animT*2)*.025*animMult;
-    if(e.hitFlash>0){ e.hitFlash-=dt; const col=e.hitFlash>0?0xffffff:0x000000; [ud.torso,ud.head].forEach(m=>{if(m&&m.material&&m.material.emissive)m.material.emissive.setHex(col);}); }
-  }
-
-  for(let i=sparks.length-1;i>=0;i--){
-    const s=sparks[i];s.vel.y+=GRAV*dt;s.mesh.position.addScaledVector(s.vel,dt);s.life-=dt;
-    if(s.mesh.material)s.mesh.material.opacity=Math.max(0,s.life/.5);
-    if(s.life<=0){scene.remove(s.mesh);sparks.splice(i,1);}
-  }
-  if(comboT>0){comboT-=dt;if(comboT<=0){combo=0;document.getElementById('combo').style.opacity=0;}}
-}
-
-function frame(){ requestAnimationFrame(frame); const dt=Math.min(clock.getDelta(),.05); update(dt); renderer.render(scene,camera); }
-frame();
-
-window.addEventListener('resize',()=>{ renderer.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); });
-</script>
+
+    <script>
+        (function() {
+            // ────────────────────────────
+            // DOM refs
+            // ────────────────────────────
+            const boxLid = document.getElementById('boxLid');
+            const boxArea = document.getElementById('boxArea');
+            const ringContainer = document.getElementById('ringContainer');
+            const buttonsArea = document.getElementById('buttonsArea');
+            const messageArea = document.getElementById('messageArea');
+            const titleText = document.getElementById('titleText');
+            const tapHint = document.getElementById('tapHint');
+            const resetBtn = document.getElementById('resetBtn');
+            const mainContainer = document.getElementById('mainContainer');
+            const celebrationOverlay = document.getElementById('celebrationOverlay');
+            const bgDecorations = document.getElementById('bgDecorations');
+            const btnYes = document.getElementById('btnYes');
+            const btnNo = document.getElementById('btnNo');
+
+            let boxOpened = false;
+            let answered = false;
+            let isAnimating = false;
+
+            // ────────────────────────────
+            // Create floating background elements
+            // ────────────────────────────
+            function createBgDecorations() {
+                const items = ['💕', '💖', '💗', '💝', '💘', '🩷', '💓', '🌸', '✨', '💐', '🩵', '💎', '🌟', '💫'];
+                for (let i = 0; i < 25; i++) {
+                    const el = document.createElement('span');
+                    el.className = 'floating-element';
+                    el.textContent = items[Math.floor(Math.random() * items.length)];
+                    el.style.left = Math.random() * 94 + '%';
+                    el.style.fontSize = (14 + Math.random() * 26) + 'px';
+                    el.style.animationDuration = (9 + Math.random() * 18) + 's';
+                    el.style.animationDelay = Math.random() * 14 + 's';
+                    el.style.opacity = (0.22 + Math.random() * 0.38);
+                    bgDecorations.appendChild(el);
+                }
+            }
+
+            // ────────────────────────────
+            // Open box
+            // ────────────────────────────
+            boxArea.addEventListener('click', function(e) {
+                if (isAnimating) return;
+                if (answered) return;
+                if (!boxOpened) {
+                    openBox();
+                }
+            });
+
+            function openBox() {
+                isAnimating = true;
+                boxOpened = true;
+
+                // Open lid
+                boxLid.classList.add('open');
+                tapHint.classList.add('hidden');
+
+                // Show ring after a short delay
+                setTimeout(function() {
+                    ringContainer.classList.add('visible');
+                }, 350);
+
+                // Show buttons
+                setTimeout(function() {
+                    buttonsArea.classList.add('visible');
+                    titleText.textContent = '💍 Will you marry me?';
+                    titleText.classList.add('opened');
+                }, 600);
+
+                // Spawn sparkles
+                setTimeout(function() {
+                    const rect = boxArea.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const cy = rect.top + rect.height * 0.35;
+                    spawnBoxSparkles(cx, cy, 15);
+                }, 400);
+
+                setTimeout(function() {
+                    isAnimating = false;
+                }, 700);
+            }
+
+            // ────────────────────────────
+            // Yes button
+            // ────────────────────────────
+            btnYes.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (answered || isAnimating) return;
+                answered = true;
+                isAnimating = true;
+
+                // Hide buttons
+                buttonsArea.classList.remove('visible');
+
+                // Show celebration message
+                setTimeout(function() {
+                    messageArea.textContent = '🎉 Yaaaaaaaayy!!! 🎉\nI am the happiest person ever! 💖';
+                    messageArea.className = 'message-area message-celebration visible';
+                }, 300);
+
+                // Screen shake
+                setTimeout(function() {
+                    mainContainer.classList.add('screen-shake');
+                    setTimeout(function() { mainContainer.classList.remove('screen-shake'); }, 500);
+                }, 400);
+
+                // Massive celebration
+                const rect = boxArea.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                spawnConfettiRain(cx, cy, 60);
+                spawnHeartBursts(cx, cy, 25);
+                spawnBoxSparkles(cx, cy, 30);
+
+                // Update title
+                titleText.textContent = '💖 She said YES! 💖';
+                titleText.classList.add('opened');
+
+                // Show reset
+                setTimeout(function() {
+                    resetBtn.classList.add('visible');
+                    isAnimating = false;
+                }, 800);
+            });
+
+            // ────────────────────────────
+            // No button
+            // ────────────────────────────
+            btnNo.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (answered || isAnimating) return;
+                answered = true;
+                isAnimating = true;
+
+                // Hide buttons
+                buttonsArea.classList.remove('visible');
+
+                // Show gentle sorry message
+                setTimeout(function() {
+                    messageArea.textContent =
+                        '😢 Ohhh... I am sorry...\nI will try my best to be a good match for you... 💔';
+                    messageArea.className = 'message-area message-sorry visible';
+                }, 300);
+
+                // Gentle sparkles (subdued)
+                const rect = boxArea.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                spawnBoxSparkles(cx, cy, 10);
+
+                // Update title
+                titleText.textContent = '💔 Maybe someday...';
+                titleText.classList.add('opened');
+
+                // Show reset
+                setTimeout(function() {
+                    resetBtn.classList.add('visible');
+                    isAnimating = false;
+                }, 800);
+            });
+
+            // ────────────────────────────
+            // Reset
+            // ────────────────────────────
+            resetBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                resetAll();
+            });
+
+            function resetAll() {
+                boxOpened = false;
+                answered = false;
+                isAnimating = false;
+
+                boxLid.classList.remove('open');
+                ringContainer.classList.remove('visible');
+                buttonsArea.classList.remove('visible');
+                messageArea.className = 'message-area';
+                messageArea.textContent = '';
+                resetBtn.classList.remove('visible');
+                tapHint.classList.remove('hidden');
+                titleText.textContent = '💕 Tap the box to open it...';
+                titleText.classList.remove('opened');
+                mainContainer.classList.remove('screen-shake');
+
+                // Clear celebration overlay
+                celebrationOverlay.innerHTML = '';
+            }
+
+            // ────────────────────────────
+            // Particles
+            // ────────────────────────────
+            function spawnBoxSparkles(x, y, count) {
+                const emojis = ['✨', '⭐', '💫', '🌟', '💖', '💕', '💎', '🔮', '💝', '🩷'];
+                for (let i = 0; i < count; i++) {
+                    const s = document.createElement('span');
+                    s.className = 'heart-burst';
+                    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    s.style.left = x + 'px';
+                    s.style.top = y + 'px';
+                    s.style.fontSize = (16 + Math.random() * 30) + 'px';
+                    s.style.setProperty('--hx', (Math.random() - 0.5) * 200 + 'px');
+                    s.style.setProperty('--hy', (Math.random() - 0.7) * 180 + 'px');
+                    s.style.setProperty('--hx2', (Math.random() - 0.5) * 280 + 'px');
+                    s.style.setProperty('--hy2', (Math.random() - 0.8) * 240 + 'px');
+                    s.style.animationDuration = (0.8 + Math.random() * 1.4) + 's';
+                    celebrationOverlay.appendChild(s);
+                    setTimeout(function() { s.remove(); }, 1500);
+                }
+            }
+
+            function spawnConfettiRain(x, y, count) {
+                const colors = [
+                    '#ff6b9d', '#ff9ec4', '#ffd4e3', '#f0d890', '#e891b4',
+                    '#ffb3c6', '#ffc2d1', '#ffe5ec', '#d4a853', '#ff8fab',
+                    '#c49a3c', '#e8c878', '#ffe0ec', '#ffd0e2', '#ffb8d0',
+                    '#fddde6', '#fccfdc', '#fbb1c8', '#f998b9', '#ff7ba6'
+                ];
+                for (let i = 0; i < count; i++) {
+                    const c = document.createElement('div');
+                    c.className = 'confetti-piece-celeb';
+                    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    c.style.left = (x + (Math.random() - 0.5) * 300) + 'px';
+                    c.style.top = y + 'px';
+                    c.style.width = (7 + Math.random() * 16) + 'px';
+                    c.style.height = (6 + Math.random() * 14) + 'px';
+                    c.style.setProperty('--cx', (Math.random() - 0.5) * 500 + 'px');
+                    c.style.setProperty('--cr', (Math.random() * 900 - 450) + 'deg');
+                    c.style.animationDuration = (1.2 + Math.random() * 2.5) + 's';
+                    c.style.animationDelay = Math.random() * 0.8 + 's';
+                    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '3px';
+                    celebrationOverlay.appendChild(c);
+                    setTimeout(function() { c.remove(); }, 3000);
+                }
+            }
+
+            function spawnHeartBursts(x, y, count) {
+                const hearts = ['💖', '💕', '💗', '💝', '💘', '💓', '🩷', '❤️', '💞', '💟'];
+                for (let i = 0; i < count; i++) {
+                    const h = document.createElement('span');
+                    h.className = 'heart-burst';
+                    h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                    h.style.left = x + 'px';
+                    h.style.top = y + 'px';
+                    h.style.fontSize = (20 + Math.random() * 40) + 'px';
+                    h.style.setProperty('--hx', (Math.random() - 0.5) * 350 + 'px');
+                    h.style.setProperty('--hy', (Math.random() - 0.8) * 300 + 'px');
+                    h.style.setProperty('--hx2', (Math.random() - 0.5) * 400 + 'px');
+                    h.style.setProperty('--hy2', (Math.random() - 0.9) * 380 + 'px');
+                    h.style.animationDuration = (1 + Math.random() * 2) + 's';
+                    h.style.animationDelay = Math.random() * 0.4 + 's';
+                    celebrationOverlay.appendChild(h);
+                    setTimeout(function() { h.remove(); }, 2500);
+                }
+            }
+
+            // ────────────────────────────
+            // Init
+            // ────────────────────────────
+            function init() {
+                createBgDecorations();
+                ringContainer.classList.remove('visible');
+                buttonsArea.classList.remove('visible');
+                messageArea.className = 'message-area';
+                messageArea.textContent = '';
+                resetBtn.classList.remove('visible');
+                boxLid.classList.remove('open');
+                tapHint.classList.remove('hidden');
+                titleText.textContent = '💕 Tap the box to open it...';
+                titleText.classList.remove('opened');
+            }
+
+            init();
+
+            console.log('💍 Ring box ready! Tap the velvet box to open it.');
+            console.log('💖 The ring is hidden under the lid until you tap!');
+            console.log('💍 Will you say yes?');
+        })();
+    </script>
 </body>
 </html>
